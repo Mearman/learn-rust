@@ -366,13 +366,8 @@ export const settingsPanelHeader = style({
 
 export const settingsGrid = style({
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
+    gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
     gap: "0.875rem",
-    "@media": {
-        "screen and (max-width: 759px)": {
-            gridTemplateColumns: "1fr",
-        },
-    },
 });
 
 export const settingsField = style({

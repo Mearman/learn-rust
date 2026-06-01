@@ -9,11 +9,15 @@ import {
     settingsHelp,
 } from "../theme/styles.css.ts";
 import {
+    DEVELOPER_BACKGROUND_OPTIONS,
+    developerBackgroundLabel,
+} from "./backgrounds.ts";
+import {
     LANGUAGE_FAMILIARITY_OPTIONS,
     languageFamiliarityLabel,
 } from "./languages.ts";
 import type { UserProfile, UserProfileUpdater } from "./types.ts";
-import { isLanguageFamiliarity, isExperienceLevel } from "./types.ts";
+import { isDeveloperBackground, isLanguageFamiliarity, isExperienceLevel } from "./types.ts";
 
 const EXPERIENCE_OPTIONS = [
     { value: "beginner", label: "Beginner" },
@@ -27,6 +31,17 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
+    const handleBackground = (value: string | null) => {
+        if (value === null) return;
+        if (!isDeveloperBackground(value)) {
+            throw new Error(`Unknown developer background: ${value}`);
+        }
+        setProfile((prev) => ({
+            ...prev,
+            background: value,
+        }));
+    };
+
     const handleFamiliarity = (value: string | null) => {
         if (value === null) return;
         if (!isLanguageFamiliarity(value)) {
@@ -55,12 +70,52 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                     Tailor the examples
                 </div>
                 <div className={settingsHelp}>
-                    Pick the language you know best and how much detail you want.
-                    This is about familiarity, not your broader background.
+                    Pick your actual background, the language you know best, and how much detail you want.
+                    They’re independent on purpose.
                 </div>
             </div>
 
             <div className={settingsGrid}>
+                <div className={settingsField}>
+                    <label className={settingsLabel} htmlFor="developer-background">
+                        Actual background
+                    </label>
+                    <Select
+                        id="developer-background"
+                        data={DEVELOPER_BACKGROUND_OPTIONS}
+                        value={profile.background}
+                        onChange={handleBackground}
+                        allowDeselect={false}
+                        aria-label="Actual background"
+                        styles={{
+                            input: {
+                                background: vars.colour.panel,
+                                border: `1px solid ${vars.colour.border}`,
+                                color: vars.colour.text,
+                            },
+                            dropdown: {
+                                background: vars.colour.panel,
+                                border: `1px solid ${vars.colour.border}`,
+                            },
+                            option: {
+                                color: vars.colour.text,
+                                "&[data-selected]": {
+                                    background: vars.colour.accentDim,
+                                    color: vars.colour.text,
+                                },
+                                "&[data-hovered]": {
+                                    background: vars.colour.borderSoft,
+                                },
+                            },
+                        }}
+                    />
+                    <div className={settingsHelp}>
+                        {profile.background === "none"
+                            ? "No background selected yet."
+                            : `We’ll keep this separate from language familiarity: ${developerBackgroundLabel(profile.background)}`}
+                    </div>
+                </div>
+
                 <div className={settingsField}>
                     <label className={settingsLabel} htmlFor="language-familiarity">
                         Language familiarity

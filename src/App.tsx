@@ -25,6 +25,8 @@ import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
 import { SettingsPanel } from "./settings/SettingsPanel.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
+import { developerBackgroundLabel } from "./settings/backgrounds.ts";
+import { languageFamiliarityLabel } from "./settings/languages.ts";
 
 type Mode = "learn" | "challenge" | "cheatsheet";
 
@@ -87,7 +89,7 @@ export function App() {
                                 The ten ideas that actually make Rust feel different.
                             </p>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }} className={monoSm}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }} className={monoSm}>
                             <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
                                 <BookOpen size={13} style={{ color: vars.colour.accent }} />
                                 {viewed.size}/{LESSONS.length} read
@@ -95,6 +97,20 @@ export function App() {
                             <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
                                 <Trophy size={13} style={{ color: vars.colour.accent }} />
                                 {challenge.correct}/{challenge.total}
+                            </span>
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                                <span style={{ color: vars.colour.accent }}>•</span>
+                                Background:
+                                {profile.background === "none"
+                                    ? " not set"
+                                    : ` ${developerBackgroundLabel(profile.background)}`}
+                            </span>
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                                <span style={{ color: vars.colour.accent }}>•</span>
+                                Familiarity:
+                                {profile.familiarity === "none"
+                                    ? " not set"
+                                    : ` ${languageFamiliarityLabel(profile.familiarity)}`}
                             </span>
                         </div>
                     </div>
