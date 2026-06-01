@@ -110,6 +110,164 @@ const noPointlessReassignments: Rule.RuleModule = {
     },
 };
 
+// ---------------------------------------------------------------------------
+// Custom rule: no-barrel-files
+//
+// Bans index.ts / index.tsx files. Every module should be imported directly
+// by its own name, not re-exported through a barrel.
+// ---------------------------------------------------------------------------
+
+const noBarrelFiles: Rule.RuleModule = {
+    meta: {
+        type: "problem",
+        messages: {
+            noBarrelFile:
+                "Barrel files (index.ts/index.tsx) are banned. Every module should be imported directly by its name, not re-exported through a barrel.",
+        },
+        docs: {
+            description:
+                "Bans barrel files (index.ts / index.tsx) — every module is imported directly.",
+        },
+    },
+    create(context) {
+        const filename = context.filename;
+        const basename = filename.split("/").pop() ?? "";
+        if (basename !== "index.ts" && basename !== "index.tsx") return {};
+
+        return {
+            Program(node) {
+                context.report({ node, messageId: "noBarrelFile" });
+            },
+        };
+    },
+};
+
+// ---------------------------------------------------------------------------
+// Custom rule: no-re-exports
+//
+// Bans re-exports (export ... from) in non-index files. Import directly from
+// the source module instead. Autofix removes the re-export statement.
+// ---------------------------------------------------------------------------
+
+const noReExports: Rule.RuleModule = {
+    meta: {
+        type: "problem",
+        fixable: "code",
+        messages: {
+            noReExport:
+                "Re-exports (export ... from) are banned. Import directly from the source module instead.",
+        },
+        docs: {
+            description:
+                "Bans re-exports in non-index files — every module should be imported directly from its source.",
+        },
+    },
+    create(context) {
+        const filename = context.filename;
+        const basename = filename.split("/").pop() ?? "";
+        const isIndex = /^(?:index\.[cm]?[jt]sx?)$/.test(basename);
+
+        if (isIndex) return {};
+
+        function removeStatement(
+            fixer: Rule.RuleFixer,
+            node: Rule.Node,
+        ): Rule.Fix | null {
+            const source = context.sourceCode;
+            const statement = node.parent;
+            // Walk up to the export declaration or module declaration
+            let target = statement;
+            while (
+                target.parent &&
+                target.parent.type !== "Program"
+            ) {
+                target = target.parent;
+            }
+            if (target.parent?.type !== "Program") return null;
+
+            // Remove from the start of the line to capture leading whitespace/newlines
+            const prevToken = source.getTokenBefore(target, {
+                includeComments: false,
+            });
+            const start = prevToken
+                ? prevToken.range[1]
+                : target.range[0];
+            // Eat trailing newline
+            const textAfter = source.text.slice(target.range[1]);
+            const nlMatch = textAfter.match(/^(\r?\n)?/);
+            const end =
+                target.range[1] +
+                (nlMatch ? nlMatch[0].length : 0);
+
+            // Don't leave behind blank lines — remove whitespace between
+            // the previous token's end and the next token's start.
+            const nextToken = source.getTokenAfter(target, {
+                includeComments: false,
+            });
+            const removeEnd = nextToken
+                ? Math.min(end, nextToken.range[0])
+                : end;
+
+            return fixer.removeRange([start, removeEnd]);
+        }
+
+        return {
+            ExportNamedDeclaration(node) {
+                if (node.source) {
+                    context.report({
+                        node,
+                        messageId: "noReExport",
+                        fix(fixer) {
+                            return removeStatement(fixer, node);
+                        },
+                    });
+                }
+            },
+            ExportAllDeclaration(node) {
+                context.report({
+                    node,
+                    messageId: "noReExport",
+                    fix(fixer) {
+                        return removeStatement(fixer, node);
+                    },
+                });
+            },
+        };
+    },
+};
+
+// ---------------------------------------------------------------------------
+// Custom rule: no-dynamic-imports
+//
+// Bans dynamic import() expressions. Use static imports instead.
+// ---------------------------------------------------------------------------
+
+const noDynamicImports: Rule.RuleModule = {
+    meta: {
+        type: "problem",
+        messages: {
+            noDynamicImport:
+                "Dynamic imports are forbidden — use static imports instead.",
+        },
+        docs: {
+            description:
+                "Bans dynamic import() expressions — every module dependency should be a static import.",
+        },
+    },
+    create(context) {
+        return {
+            CallExpression(node) {
+                if (node.callee.type === "Import") {
+                    context.report({
+                        node,
+                        messageId: "noDynamicImport",
+                    });
+                }
+            },
+        };
+    },
+};
+
 export default defineConfig(
     globalIgnores(["dist"]),
     {
@@ -141,6 +299,9 @@ export default defineConfig(
             custom: {
                 rules: {
                     "no-pointless-reassignments": noPointlessReassignments,
+                    "no-barrel-files": noBarrelFiles,
+                    "no-re-exports": noReExports,
+                    "no-dynamic-imports": noDynamicImports,
                 },
             },
         },
@@ -151,6 +312,9 @@ export default defineConfig(
                 { assertionStyle: "never" },
             ],
             "custom/no-pointless-reassignments": "error",
+            "custom/no-barrel-files": "error",
+            "custom/no-re-exports": "error",
+            "custom/no-dynamic-imports": "error",
         },
     },
     eslintConfigPrettier,
