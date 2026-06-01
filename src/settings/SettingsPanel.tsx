@@ -15,7 +15,7 @@ import {
 import {
     LANGUAGE_FAMILIARITY_OPTIONS,
     joinLanguageFamiliarities,
-} from "./languages.ts";
+} from "../data/languages.ts";
 import type { UserProfile, UserProfileUpdater } from "./types.ts";
 import {
     isDeveloperBackground,

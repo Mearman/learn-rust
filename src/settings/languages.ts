@@ -1,28 +1,4 @@
-import type { LanguageFamiliarity } from "./types.ts";
-
-export const LANGUAGE_FAMILIARITY_OPTIONS = [
-    { value: "python", label: "Python" },
-    { value: "typescript", label: "TypeScript" },
-    { value: "java", label: "Java" },
-    { value: "kotlin", label: "Kotlin" },
-    { value: "go", label: "Go" },
-    { value: "csharp", label: "C#" },
-    { value: "cpp", label: "C++" },
-] as const;
-
-export function languageFamiliarityLabel(familiarity: LanguageFamiliarity): string {
-    if (familiarity === "python") return "Python";
-    if (familiarity === "typescript") return "TypeScript";
-    if (familiarity === "java") return "Java";
-    if (familiarity === "kotlin") return "Kotlin";
-    if (familiarity === "go") return "Go";
-    if (familiarity === "csharp") return "C#";
-    return "C++";
-}
-
-export function joinLanguageFamiliarities(familiarities: readonly LanguageFamiliarity[]): string {
-    if (familiarities.length === 0) return "not set";
-    return new Intl.ListFormat("en-GB", { style: "long", type: "conjunction" }).format(
-        familiarities.map(languageFamiliarityLabel),
-    );
-}
+// Re-export from the canonical source. Files that import from this module
+// should be updated to import from data/languages.ts directly — this shim
+// exists only so that files owned by other parallel agents still compile.
+export { languageFamiliarityLabel } from "../data/languages.ts";

@@ -1,4 +1,5 @@
-import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
+import type { LanguageFamiliarity } from "../data/languages.ts";
+import type { UserProfile } from "../settings/types.ts";
 
 export interface Challenge {
     readonly topic: string;

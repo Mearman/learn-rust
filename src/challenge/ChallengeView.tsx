@@ -18,8 +18,9 @@ import { CompileOutput } from "../compiler/CompileOutput.tsx";
 import { CHALLENGES, getFilteredChallenges } from "./challenges.ts";
 import type { Challenge } from "./challenges.ts";
 import type { CompileResult } from "../compiler/types.ts";
-import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
-import { languageFamiliarityLabel } from "../settings/languages.ts";
+import type { LanguageFamiliarity } from "../data/languages.ts";
+import type { UserProfile } from "../settings/types.ts";
+import { languageNameForId } from "../data/languages.ts";
 import { backgroundContextNotes } from "../settings/background-context.ts";
 
 interface ChallengeState {
@@ -92,7 +93,7 @@ function PerLanguageNotes({
                         }}
                     >
                         <span style={{ color: vars.colour.accentSoft, fontWeight: 600 }}>
-                            If you&apos;re familiar with {languageFamiliarityLabel(note.familiarity)}:{" "}
+                            If you&apos;re familiar with {languageNameForId(note.familiarity)}:{" "}
                         </span>
                         {note.explanation}
                     </p>

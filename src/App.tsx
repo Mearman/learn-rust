@@ -26,7 +26,7 @@ import { useCompiler } from "./compiler/useCompiler.ts";
 import { SettingsPanel } from "./settings/SettingsPanel.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
 import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
-import { joinLanguageFamiliarities } from "./settings/languages.ts";
+import { joinLanguageFamiliarities } from "./data/languages.ts";
 import { ComparisonView } from "./references/ComparisonView.tsx";
 import { CONCEPTS } from "./data/concepts.ts";
 

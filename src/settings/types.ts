@@ -1,11 +1,6 @@
-export type LanguageFamiliarity =
-    | "python"
-    | "typescript"
-    | "java"
-    | "kotlin"
-    | "go"
-    | "csharp"
-    | "cpp";
+import type { LanguageFamiliarity } from "../data/languages.ts";
+
+export type { LanguageFamiliarity };
 
 export type DeveloperBackground =
     | "frontend"
