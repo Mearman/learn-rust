@@ -2,6 +2,15 @@ import { style, globalStyle } from "@vanilla-extract/css";
 import { vars } from "./theme.css.js";
 
 // ---------------------------------------------------------------------------
+// Breakpoints
+// ---------------------------------------------------------------------------
+
+const sm = "screen and (min-width: 640px)";
+const md = "screen and (min-width: 768px)";
+const lg = "screen and (min-width: 1024px)";
+const xl = "screen and (min-width: 1280px)";
+
+// ---------------------------------------------------------------------------
 // Global base
 // ---------------------------------------------------------------------------
 
@@ -12,6 +21,11 @@ globalStyle("*, *::before, *::after", {
 globalStyle("body", {
     margin: 0,
     minHeight: "100vh",
+});
+
+globalStyle("html", {
+    scrollPaddingTop: "80px",
+    "@media": { [md]: { scrollPaddingTop: "56px" } },
 });
 
 // ---------------------------------------------------------------------------
@@ -40,7 +54,7 @@ export const codeDot = style({
     width: 9,
     height: 9,
     borderRadius: 9,
-    background: "#3a3530",
+    background: vars.colour.borderSoft,
 });
 
 export const codePre = style({
@@ -48,7 +62,8 @@ export const codePre = style({
     overflowX: "auto",
     lineHeight: 1.625,
     margin: 0,
-    fontSize: 13,
+    fontSize: 12,
+    "@media": { [md]: { fontSize: 13 } },
 });
 
 export const tokenCommentOrLifetime = style({
@@ -89,7 +104,7 @@ export const textBlock = style({
 });
 
 // ---------------------------------------------------------------------------
-// LearnView
+// Learn grid (sidebar + content)
 // ---------------------------------------------------------------------------
 
 export const learnGrid = style({
@@ -97,9 +112,9 @@ export const learnGrid = style({
     gridTemplateColumns: "1fr",
     gap: "1.25rem",
     "@media": {
-        "screen and (min-width: 760px)": {
-            gridTemplateColumns: "240px minmax(0, 1fr)",
-        },
+        [md]: { gridTemplateColumns: "220px minmax(0, 1fr)" },
+        [lg]: { gridTemplateColumns: "260px minmax(0, 1fr)" },
+        [xl]: { gridTemplateColumns: "280px minmax(0, 1fr)" },
     },
 });
 
@@ -116,6 +131,10 @@ export const lessonTagline = style({
     color: vars.colour.accentSoft,
 });
 
+// ---------------------------------------------------------------------------
+// Nav buttons (lesson sidebar, comparison sidebar, etc.)
+// ---------------------------------------------------------------------------
+
 export const navButton = style({
     display: "flex",
     alignItems: "center",
@@ -130,6 +149,8 @@ export const navButton = style({
     border: "1px solid transparent",
     cursor: "pointer",
     width: "100%",
+    minWidth: 0,
+    overflow: "hidden",
     selectors: {
         "&:hover": {
             color: vars.colour.text,
@@ -176,6 +197,7 @@ export const answerButton = style({
     background: vars.colour.panel2,
     border: `1px solid ${vars.colour.border}`,
     cursor: "pointer",
+    minWidth: 0,
 });
 
 export const feedbackBox = style({
@@ -213,13 +235,18 @@ export const nextButton = style({
 });
 
 // ---------------------------------------------------------------------------
-// CheatsheetView
+// Cheatsheet
 // ---------------------------------------------------------------------------
 
 export const cheatsGrid = style({
     display: "grid",
     gap: "1rem",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    "@media": {
+        [md]: { gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
+        [lg]: { gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" },
+        [xl]: { gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" },
+    },
 });
 
 export const cheatCard = style({
@@ -240,6 +267,19 @@ export const cheatTitle = style({
 });
 
 // ---------------------------------------------------------------------------
+// Reference list grid (glossary, errors)
+// ---------------------------------------------------------------------------
+
+export const referenceListGrid = style({
+    display: "grid",
+    gap: "1rem",
+    gridTemplateColumns: "1fr",
+    "@media": {
+        [lg]: { gridTemplateColumns: "1fr 1fr" },
+    },
+});
+
+// ---------------------------------------------------------------------------
 // App shell
 // ---------------------------------------------------------------------------
 
@@ -252,70 +292,91 @@ export const shell = style({
 });
 
 export const shellInner = style({
-    maxWidth: "56rem",
+    maxWidth: "100%",
     margin: "0 auto",
-    padding: "1.5rem",
+    padding: "1rem",
     display: "flex",
     flexDirection: "column",
     gap: "1.5rem",
     "@media": {
-        "screen and (min-width: 640px)": {
-            paddingLeft: "1.5rem",
-            paddingRight: "1.5rem",
-        },
+        [sm]: { paddingLeft: "1.5rem", paddingRight: "1.5rem" },
+        [lg]: { maxWidth: "72rem" },
+        [xl]: { maxWidth: "80rem" },
     },
 });
 
 export const headerFlex = style({
     display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    gap: "1rem",
-    flexWrap: "wrap",
+    flexDirection: "column",
+    gap: "0.75rem",
+    "@media": {
+        [md]: {
+            flexDirection: "row",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+        },
+    },
 });
 
 export const heading = style({
-    fontSize: "1.875rem",
+    fontSize: "1.5rem",
     fontWeight: 700,
     margin: 0,
     letterSpacing: "-0.025em",
     color: vars.colour.text,
     "@media": {
-        "screen and (min-width: 640px)": {
-            fontSize: "1.875rem",
-        },
+        [sm]: { fontSize: "1.875rem" },
     },
 });
 
-export const mainPanel = style({
-    borderRadius: "1rem",
-    padding: "1rem",
-    background: vars.colour.panel,
-    border: `1px solid ${vars.colour.border}`,
+// ---------------------------------------------------------------------------
+// Section headings
+// ---------------------------------------------------------------------------
+
+export const sectionHeading = style({
+    fontSize: "1.25rem",
+    fontWeight: 700,
+    margin: 0,
+    color: vars.colour.text,
+    paddingBottom: "0.5rem",
+    borderBottom: `1px solid ${vars.colour.border}`,
     "@media": {
-        "screen and (min-width: 640px)": {
-            padding: "1.5rem",
-        },
+        [sm]: { fontSize: "1.375rem" },
     },
 });
 
-export const tabNav = style({
+// ---------------------------------------------------------------------------
+// Sticky section nav
+// ---------------------------------------------------------------------------
+
+export const stickyNav = style({
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
     display: "flex",
+    flexWrap: "wrap",
     gap: "0.25rem",
-    padding: "0.25rem",
+    padding: "0.5rem",
     borderRadius: "0.75rem",
-    alignSelf: "flex-start",
     background: vars.colour.panel,
     border: `1px solid ${vars.colour.border}`,
+    backdropFilter: "blur(8px)",
+    "@media": {
+        [md]: {
+            flexWrap: "nowrap",
+            overflowX: "auto",
+            padding: "0.25rem",
+        },
+    },
 });
 
 export const tabButton = style({
     display: "flex",
     alignItems: "center",
-    gap: "0.5rem",
+    gap: "0.375rem",
     borderRadius: "0.5rem",
-    padding: "0.5rem 0.875rem",
-    fontSize: "0.875rem",
+    padding: "0.5rem 0.625rem",
+    fontSize: "0.8125rem",
     fontWeight: 500,
     transition: "background 0.15s, color 0.15s",
     background: "transparent",
@@ -323,6 +384,12 @@ export const tabButton = style({
     border: "none",
     cursor: "pointer",
     whiteSpace: "nowrap",
+    "@media": {
+        [md]: {
+            padding: "0.5rem 0.875rem",
+            fontSize: "0.875rem",
+        },
+    },
 });
 
 export const tabButtonActive = style({
@@ -330,23 +397,25 @@ export const tabButtonActive = style({
     color: "#1a0f08",
 });
 
-export const footer = style({
-    textAlign: "center",
-    fontSize: "0.75rem",
-    color: vars.colour.faint,
+export const tabButtonLabel = style({
+    display: "none",
+    "@media": { [md]: { display: "inline" } },
 });
 
-export const monoSm = style({
-    fontSize: "0.75rem",
-    fontFamily: "ui-monospace, monospace",
-    color: vars.colour.faint,
+// ---------------------------------------------------------------------------
+// Sections
+// ---------------------------------------------------------------------------
+
+export const contentSection = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    paddingTop: "0.5rem",
 });
 
-export const dimSm = style({
-    fontSize: "0.75rem",
-    fontFamily: "ui-monospace, monospace",
-    color: vars.colour.dim,
-});
+// ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
 
 export const settingsPanel = style({
     display: "flex",
@@ -366,8 +435,11 @@ export const settingsPanelHeader = style({
 
 export const settingsGrid = style({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
+    gridTemplateColumns: "1fr",
     gap: "0.875rem",
+    "@media": {
+        [md]: { gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))" },
+    },
 });
 
 export const settingsField = style({
@@ -423,12 +495,10 @@ export const accentLabel = style({
 
 export const comparisonGrid = style({
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "1fr",
     gap: "1rem",
     "@media": {
-        "screen and (max-width: 759px)": {
-            gridTemplateColumns: "1fr",
-        },
+        [md]: { gridTemplateColumns: "1fr 1fr" },
     },
 });
 
@@ -522,12 +592,13 @@ export const outputHeader = style({
 export const outputPre = style({
     padding: "0.75rem 1rem",
     margin: 0,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "ui-monospace, monospace",
     lineHeight: 1.625,
     overflowX: "auto",
     whiteSpace: "pre-wrap" as const,
     wordBreak: "break-word" as const,
+    "@media": { [md]: { fontSize: 13 } },
 });
 
 export const runButton = style({
@@ -563,4 +634,83 @@ export const clearButton = style({
     color: vars.colour.dim,
     border: `1px solid ${vars.colour.border}`,
     cursor: "pointer",
+});
+
+// ---------------------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------------------
+
+export const monoSm = style({
+    fontSize: "0.75rem",
+    fontFamily: "ui-monospace, monospace",
+    color: vars.colour.faint,
+});
+
+export const dimSm = style({
+    fontSize: "0.75rem",
+    fontFamily: "ui-monospace, monospace",
+    color: vars.colour.dim,
+});
+
+export const footer = style({
+    textAlign: "center",
+    fontSize: "0.75rem",
+    color: vars.colour.faint,
+    padding: "2rem 0 1rem",
+});
+
+// ---------------------------------------------------------------------------
+// Search overlay
+// ---------------------------------------------------------------------------
+
+export const searchOverlay = style({
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.5)",
+    zIndex: 20,
+    display: "flex",
+    justifyContent: "center",
+    padding: "4rem 1rem 1rem",
+    "@media": {
+        [md]: { padding: "6rem 2rem 2rem" },
+    },
+});
+
+export const searchPanel = style({
+    width: "100%",
+    maxWidth: "40rem",
+    maxHeight: "100%",
+    borderRadius: "0.75rem",
+    background: vars.colour.panel,
+    border: `1px solid ${vars.colour.border}`,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+});
+
+export const searchInput = style({
+    padding: "1rem",
+    border: "none",
+    outline: "none",
+    background: "transparent",
+    color: vars.colour.text,
+    fontSize: "1rem",
+    fontFamily: "inherit",
+    borderBottom: `1px solid ${vars.colour.borderSoft}`,
+});
+
+export const searchResults = style({
+    overflowY: "auto",
+    padding: "0.75rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+});
+
+export const hideOnMobile = style({
+    display: "none",
+    "@media": { [md]: { display: "inline" } },
 });

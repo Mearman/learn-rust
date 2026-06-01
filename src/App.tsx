@@ -9,6 +9,7 @@ import {
     ListChecks,
     Search,
     Trophy,
+    X,
     type LucideIcon,
 } from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
@@ -17,12 +18,19 @@ import {
     shellInner,
     headerFlex,
     heading,
-    mainPanel,
-    tabNav,
+    stickyNav,
     tabButton,
     tabButtonActive,
+    tabButtonLabel,
+    contentSection,
+    sectionHeading,
     footer,
     monoSm,
+    searchOverlay,
+    searchPanel,
+    searchInput,
+    searchResults,
+    hideOnMobile,
 } from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
 import { LearnView } from "./learn/LearnView.tsx";
@@ -51,31 +59,24 @@ import { GLOSSARY } from "./data/glossary.ts";
 import { ERROR_CATALOGUE } from "./data/errors.ts";
 import { ThemeToggle } from "./theme/ThemeToggle.tsx";
 import { useThemeMode } from "./theme/useThemeMode.ts";
+import {
+    useActiveSection,
+    scrollToSection,
+    type SectionId,
+} from "./layout/useActiveSection.ts";
 
-type Mode =
-    | "learn"
-    | "challenge"
-    | "compare"
-    | "syntax"
-    | "glossary"
-    | "errors"
-    | "progression"
-    | "search"
-    | "cheatsheet";
-
-const TABS: readonly {
-    readonly id: Mode;
+const SECTIONS: readonly {
+    readonly id: SectionId;
     readonly label: string;
     readonly icon: LucideIcon;
 }[] = [
     { id: "learn", label: "Learn", icon: BookOpen },
     { id: "challenge", label: "Will it compile?", icon: ListChecks },
-    { id: "progression", label: "Path", icon: GitBranch },
+    { id: "path", label: "Path", icon: GitBranch },
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
     { id: "syntax", label: "Syntax", icon: Braces },
     { id: "glossary", label: "Glossary", icon: BookOpen },
     { id: "errors", label: "Errors", icon: AlertTriangle },
-    { id: "search", label: "Search", icon: Search },
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
 ];
 
@@ -108,8 +109,10 @@ const FIRST_ERROR_ID = (() => {
 })();
 
 export function App() {
-    const [mode, setMode] = useState<Mode>("learn");
-    const [active, setActive] = useState(FIRST_LESSON_ID);
+    const activeSection = useActiveSection();
+    const [showSearch, setShowSearch] = useState(false);
+
+    const [activeLesson, setActiveLesson] = useState(FIRST_LESSON_ID);
     const [viewed, setViewed] = useState(() => new Set([FIRST_LESSON_ID]));
     const [concept, setConcept] = useState(FIRST_CONCEPT_ID);
     const [syntaxTopic, setSyntaxTopic] = useState<string>(() => {
@@ -148,33 +151,32 @@ export function App() {
     );
 
     const selectLesson = useCallback((id: string) => {
-        setActive(id);
+        setActiveLesson(id);
         setViewed((prev) => {
             const next = new Set(prev);
             next.add(id);
             return next;
         });
-        setMode("learn");
     }, []);
 
     const openCompare = useCallback((id: string) => {
         setConcept(id);
-        setMode("compare");
+        scrollToSection("compare");
     }, []);
 
     const openSyntax = useCallback((topic: string) => {
         setSyntaxTopic(topic);
-        setMode("syntax");
+        scrollToSection("syntax");
     }, []);
 
     const openGlossary = useCallback((id: string) => {
         setGlossaryId(id);
-        setMode("glossary");
+        scrollToSection("glossary");
     }, []);
 
     const openError = useCallback((id: string) => {
         setErrorId(id);
-        setMode("errors");
+        scrollToSection("errors");
     }, []);
 
     return (
@@ -248,8 +250,9 @@ export function App() {
                                 {challenge.correct}/{challenge.total}
                             </span>
                             <span
+                                className={hideOnMobile}
                                 style={{
-                                    display: "flex",
+                                    display: "none",
                                     alignItems: "center",
                                     gap: "0.375rem",
                                 }}
@@ -257,12 +260,12 @@ export function App() {
                                 <span style={{ color: vars.colour.accent }}>
                                     •
                                 </span>
-                                Backgrounds:{" "}
                                 {joinDeveloperBackgrounds(profile.backgrounds)}
                             </span>
                             <span
+                                className={hideOnMobile}
                                 style={{
-                                    display: "flex",
+                                    display: "none",
                                     alignItems: "center",
                                     gap: "0.375rem",
                                 }}
@@ -270,7 +273,6 @@ export function App() {
                                 <span style={{ color: vars.colour.accent }}>
                                     •
                                 </span>
-                                Familiarities:{" "}
                                 {joinLanguageFamiliarities(
                                     profile.familiarities
                                 )}
@@ -281,110 +283,248 @@ export function App() {
                     <SettingsPanel profile={profile} setProfile={setProfile} />
 
                     <ThemeToggle mode={themeMode} onChange={setThemeMode} />
-
-                    <nav className={tabNav}>
-                        {TABS.map((t) => {
-                            const Icon = t.icon;
-                            const on = t.id === mode;
-                            return (
-                                <button
-                                    key={t.id}
-                                    onClick={() => {
-                                        setMode(t.id);
-                                    }}
-                                    className={`${tabButton} ${on ? tabButtonActive : ""}`}
-                                >
-                                    <Icon size={15} />
-                                    <span>{t.label}</span>
-                                </button>
-                            );
-                        })}
-                    </nav>
                 </header>
 
-                <main className={mainPanel}>
-                    {mode === "learn" ? (
-                        <LearnView
-                            active={active}
-                            setActive={selectLesson}
-                            viewed={viewed}
-                            profile={profile}
-                            compiling={compiling}
-                            compileResult={compileResult}
-                            onCompile={compile}
-                            onClearCompile={clearCompile}
-                            onOpenReference={openCompare}
-                        />
-                    ) : null}
-                    {mode === "challenge" ? (
-                        <ChallengeView
-                            state={challenge}
-                            dispatch={dispatch}
-                            profile={profile}
-                            compiling={compiling}
-                            compileResult={compileResult}
-                            onCompile={compile}
-                            onClearCompile={clearCompile}
-                        />
-                    ) : null}
-                    {mode === "progression" ? (
-                        <ProgressionView
-                            onOpenLesson={selectLesson}
-                            onOpenConcept={openCompare}
-                        />
-                    ) : null}
-                    {mode === "compare" ? (
-                        <ComparisonView
-                            profile={profile}
-                            active={concept}
-                            onSelect={setConcept}
-                            onOpenLesson={selectLesson}
-                        />
-                    ) : null}
-                    {mode === "syntax" ? (
-                        <SyntaxView
-                            profile={profile}
-                            active={syntaxTopic}
-                            onSelect={setSyntaxTopic}
-                        />
-                    ) : null}
-                    {mode === "glossary" ? (
-                        <GlossaryView
-                            active={glossaryId}
-                            onSelect={setGlossaryId}
-                            onOpenConcept={openCompare}
-                        />
-                    ) : null}
-                    {mode === "errors" ? (
-                        <ErrorCatalogueView
-                            active={errorId}
-                            onSelect={setErrorId}
-                            onOpenConcept={openCompare}
-                        />
-                    ) : null}
-                    {mode === "search" ? (
-                        <SearchView
-                            onOpenLesson={selectLesson}
-                            onOpenConcept={openCompare}
-                            onOpenSyntax={openSyntax}
-                            onOpenGlossary={openGlossary}
-                            onOpenError={openError}
-                        />
-                    ) : null}
-                    {mode === "cheatsheet" ? (
-                        <CheatsheetView
-                            onOpenReferences={() => {
-                                setMode("compare");
-                            }}
-                            onOpenConcept={openCompare}
-                        />
-                    ) : null}
-                </main>
+                <nav className={stickyNav}>
+                    {SECTIONS.map((s) => {
+                        const Icon = s.icon;
+                        const on = s.id === activeSection;
+                        return (
+                            <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => {
+                                    scrollToSection(s.id);
+                                }}
+                                className={`${tabButton} ${on ? tabButtonActive : ""}`}
+                            >
+                                <Icon size={15} />
+                                <span className={tabButtonLabel}>
+                                    {s.label}
+                                </span>
+                            </button>
+                        );
+                    })}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowSearch(true);
+                        }}
+                        className={tabButton}
+                    >
+                        <Search size={15} />
+                        <span className={tabButtonLabel}>Search</span>
+                    </button>
+                </nav>
+
+                <section id="learn" className={contentSection}>
+                    <h2 className={sectionHeading}>Learn</h2>
+                    <LearnView
+                        active={activeLesson}
+                        setActive={selectLesson}
+                        viewed={viewed}
+                        profile={profile}
+                        compiling={compiling}
+                        compileResult={compileResult}
+                        onCompile={compile}
+                        onClearCompile={clearCompile}
+                        onOpenReference={openCompare}
+                    />
+                </section>
+
+                <section id="challenge" className={contentSection}>
+                    <h2 className={sectionHeading}>Will it compile?</h2>
+                    <ChallengeView
+                        state={challenge}
+                        dispatch={dispatch}
+                        profile={profile}
+                        compiling={compiling}
+                        compileResult={compileResult}
+                        onCompile={compile}
+                        onClearCompile={clearCompile}
+                    />
+                </section>
+
+                <section id="path" className={contentSection}>
+                    <h2 className={sectionHeading}>Learning path</h2>
+                    <ProgressionView
+                        onOpenLesson={(id) => {
+                            selectLesson(id);
+                            scrollToSection("learn");
+                        }}
+                        onOpenConcept={openCompare}
+                    />
+                </section>
+
+                <section id="compare" className={contentSection}>
+                    <h2 className={sectionHeading}>Compare</h2>
+                    <ComparisonView
+                        profile={profile}
+                        active={concept}
+                        onSelect={setConcept}
+                        onOpenLesson={(id) => {
+                            selectLesson(id);
+                            scrollToSection("learn");
+                        }}
+                    />
+                </section>
+
+                <section id="syntax" className={contentSection}>
+                    <h2 className={sectionHeading}>Syntax</h2>
+                    <SyntaxView
+                        profile={profile}
+                        active={syntaxTopic}
+                        onSelect={setSyntaxTopic}
+                    />
+                </section>
+
+                <section id="glossary" className={contentSection}>
+                    <h2 className={sectionHeading}>Glossary</h2>
+                    <GlossaryView
+                        active={glossaryId}
+                        onSelect={setGlossaryId}
+                        onOpenConcept={openCompare}
+                    />
+                </section>
+
+                <section id="errors" className={contentSection}>
+                    <h2 className={sectionHeading}>Errors</h2>
+                    <ErrorCatalogueView
+                        active={errorId}
+                        onSelect={setErrorId}
+                        onOpenConcept={openCompare}
+                    />
+                </section>
+
+                <section id="cheatsheet" className={contentSection}>
+                    <h2 className={sectionHeading}>Cheatsheet</h2>
+                    <CheatsheetView
+                        onOpenReferences={() => {
+                            scrollToSection("compare");
+                        }}
+                        onOpenConcept={openCompare}
+                    />
+                </section>
 
                 <footer className={footer}>
                     Snippets are illustrative. Run them for real at
                     play.rust-lang.org
                 </footer>
+            </div>
+
+            {showSearch ? (
+                <SearchOverlay
+                    onClose={() => {
+                        setShowSearch(false);
+                    }}
+                    onOpenLesson={(id) => {
+                        selectLesson(id);
+                        setShowSearch(false);
+                        scrollToSection("learn");
+                    }}
+                    onOpenConcept={openCompare}
+                    onOpenSyntax={(topic) => {
+                        openSyntax(topic);
+                        setShowSearch(false);
+                    }}
+                    onOpenGlossary={(id) => {
+                        openGlossary(id);
+                        setShowSearch(false);
+                    }}
+                    onOpenError={(id) => {
+                        openError(id);
+                        setShowSearch(false);
+                    }}
+                />
+            ) : null}
+        </div>
+    );
+}
+
+interface SearchOverlayProps {
+    readonly onClose: () => void;
+    readonly onOpenLesson: (id: string) => void;
+    readonly onOpenConcept: (id: string) => void;
+    readonly onOpenSyntax: (topic: string) => void;
+    readonly onOpenGlossary: (id: string) => void;
+    readonly onOpenError: (id: string) => void;
+}
+
+function SearchOverlay({
+    onClose,
+    onOpenLesson,
+    onOpenConcept,
+    onOpenSyntax,
+    onOpenGlossary,
+    onOpenError,
+}: SearchOverlayProps) {
+    return (
+        <div
+            className={searchOverlay}
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
+            }}
+        >
+            <div className={searchPanel}>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        borderBottom: `1px solid ${vars.colour.borderSoft}`,
+                    }}
+                >
+                    <Search
+                        size={18}
+                        style={{
+                            marginLeft: "1rem",
+                            color: vars.colour.faint,
+                            flexShrink: 0,
+                        }}
+                    />
+                    <input
+                        type="text"
+                        className={searchInput}
+                        placeholder="Search lessons, concepts, syntax, glossary, errors..."
+                        autoFocus
+                    />
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        style={{
+                            background: "transparent",
+                            border: "none",
+                            color: vars.colour.dim,
+                            cursor: "pointer",
+                            padding: "0.75rem",
+                        }}
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+                <div className={searchResults}>
+                    <SearchView
+                        onOpenLesson={(id) => {
+                            onOpenLesson(id);
+                            onClose();
+                        }}
+                        onOpenConcept={(id) => {
+                            onOpenConcept(id);
+                            onClose();
+                        }}
+                        onOpenSyntax={(topic) => {
+                            onOpenSyntax(topic);
+                            onClose();
+                        }}
+                        onOpenGlossary={(id) => {
+                            onOpenGlossary(id);
+                            onClose();
+                        }}
+                        onOpenError={(id) => {
+                            onOpenError(id);
+                            onClose();
+                        }}
+                    />
+                </div>
             </div>
         </div>
     );

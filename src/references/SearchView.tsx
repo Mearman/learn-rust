@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
-import { lessonTitle, cheatCard, noteBlock } from "../theme/styles.css.ts";
+import { cheatCard, noteBlock } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
 import { LESSONS } from "../learn/lessons.ts";
 import { GLOSSARY } from "../data/glossary.ts";
@@ -136,121 +135,81 @@ export function SearchView({
     ]);
 
     return (
-        <div
-            style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
-        >
-            <header
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.375rem",
+        <>
+            <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                    setQuery(e.target.value);
                 }}
-            >
-                <h2 className={lessonTitle}>Search</h2>
-            </header>
-
-            <div
+                className={cheatCard}
+                placeholder="Type to search..."
                 style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "0.75rem 1rem",
-                    borderRadius: "0.5rem",
                     border: `1px solid ${vars.colour.border}`,
-                    background: vars.colour.panel,
+                    background: vars.colour.panel2,
+                    color: vars.colour.text,
+                    fontSize: "1rem",
+                    fontFamily: "inherit",
+                    padding: "0.75rem",
+                    borderRadius: "0.5rem",
+                    outline: "none",
+                    width: "100%",
                 }}
-            >
-                <Search
-                    size={18}
-                    style={{ color: vars.colour.faint, flexShrink: 0 }}
-                />
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => {
-                        setQuery(e.target.value);
-                    }}
-                    placeholder="Search lessons, concepts, syntax, glossary, errors..."
-                    style={{
-                        flex: 1,
-                        border: "none",
-                        outline: "none",
-                        background: "transparent",
-                        color: vars.colour.text,
-                        fontSize: "1rem",
-                        fontFamily: "inherit",
-                    }}
-                />
-            </div>
+            />
 
-            {query.trim().length < 2 ? (
-                <div className={noteBlock}>
-                    <span>
-                        Type at least two characters to search across all
-                        content.
-                    </span>
-                </div>
-            ) : results.length === 0 ? (
+            {query.trim().length >= 2 && results.length === 0 ? (
                 <div className={noteBlock}>
                     <span>No results for &quot;{query}&quot;.</span>
                 </div>
-            ) : (
-                <div
+            ) : null}
+
+            {results.map((result, i) => (
+                <button
+                    key={i}
+                    type="button"
+                    onClick={result.action}
+                    className={cheatCard}
                     style={{
+                        cursor: "pointer",
+                        textAlign: "left",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "0.75rem",
+                        gap: "0.25rem",
+                        border: "none",
+                        width: "100%",
                     }}
                 >
-                    {results.map((result, i) => (
-                        <button
-                            key={i}
-                            type="button"
-                            onClick={result.action}
-                            className={cheatCard}
-                            style={{
-                                cursor: "pointer",
-                                textAlign: "left",
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.25rem",
-                                border: "none",
-                                width: "100%",
-                            }}
-                        >
-                            <span
-                                style={{
-                                    fontSize: "0.7rem",
-                                    fontWeight: 600,
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.05em",
-                                    color: vars.colour.accent,
-                                }}
-                            >
-                                {result.type}
-                            </span>
-                            <span
-                                style={{
-                                    color: vars.colour.text,
-                                    fontWeight: 600,
-                                    fontSize: "0.95rem",
-                                }}
-                            >
-                                {result.label}
-                            </span>
-                            <span
-                                style={{
-                                    color: vars.colour.dim,
-                                    fontSize: "0.85rem",
-                                    lineHeight: 1.4,
-                                }}
-                            >
-                                {result.description}
-                            </span>
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
+                    <span
+                        style={{
+                            fontSize: "0.7rem",
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            color: vars.colour.accent,
+                        }}
+                    >
+                        {result.type}
+                    </span>
+                    <span
+                        style={{
+                            color: vars.colour.text,
+                            fontWeight: 600,
+                            fontSize: "0.95rem",
+                        }}
+                    >
+                        {result.label}
+                    </span>
+                    <span
+                        style={{
+                            color: vars.colour.dim,
+                            fontSize: "0.85rem",
+                            lineHeight: 1.4,
+                        }}
+                    >
+                        {result.description}
+                    </span>
+                </button>
+            ))}
+        </>
     );
 }
