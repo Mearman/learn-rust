@@ -9,7 +9,7 @@ import {
 } from "../theme/styles.css.ts";
 import { Block } from "./Block.tsx";
 import { LESSONS } from "./lessons.ts";
-import type { Lesson, LessonBlock } from "./lessons.ts";
+import type { LessonBlock } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { UserProfile, ExperienceLevel } from "../settings/types.ts";
 import { backgroundContextNotes } from "../settings/background-context.ts";

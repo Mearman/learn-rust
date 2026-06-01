@@ -19,7 +19,7 @@ import {
     TARGET_LANGUAGE_ID,
 } from "../data/languages.ts";
 import { LANGUAGE_CONCEPTS } from "../data/language-concepts.ts";
-import type { LanguageConcept, Concept } from "../data/types.ts";
+import type { LanguageConcept } from "../data/types.ts";
 import type { UserProfile } from "../settings/types.ts";
 
 interface ComparisonViewProps {
