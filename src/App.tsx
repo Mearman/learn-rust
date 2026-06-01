@@ -77,6 +77,7 @@ import {
     useScrollNavigation,
     useHashNavigation,
 } from "./layout/useScrollNavigation.ts";
+import { useHasBeenVisible } from "./layout/useHasBeenVisible.ts";
 
 const SECTIONS: readonly {
     readonly id: SectionId;
@@ -134,6 +135,26 @@ export function App() {
         [profile, saveScore]
     );
 
+    // Lazy-mount controls for the two heaviest sections.
+    const {
+        mounted: compareMounted,
+        sentinelRef: compareSentinelRef,
+        forceMount: forceCompareMount,
+    } = useHasBeenVisible();
+    const {
+        mounted: syntaxMounted,
+        sentinelRef: syntaxSentinelRef,
+        forceMount: forceSyntaxMount,
+    } = useHasBeenVisible();
+
+    const sectionMounts = useMemo(
+        () => ({
+            compare: forceCompareMount,
+            syntax: forceSyntaxMount,
+        }),
+        [forceCompareMount, forceSyntaxMount]
+    );
+
     const {
         openLesson,
         openConcept,
@@ -141,10 +162,10 @@ export function App() {
         openGlossary,
         openError,
         scrollToSubSection,
-    } = useScrollNavigation(markViewed);
+    } = useScrollNavigation(markViewed, sectionMounts);
 
     // Scroll to the fragment from the initial URL on first mount.
-    useHashNavigation();
+    useHashNavigation(sectionMounts);
 
     // Global Cmd/Ctrl+K shortcut to open search overlay.
     useEffect(() => {
@@ -346,15 +367,33 @@ export function App() {
 
                         <section id="compare" className={contentSection}>
                             <h2 className={sectionHeading}>Compare</h2>
-                            <ComparisonView
-                                profile={profile}
-                                onOpenLesson={openLesson}
-                            />
+                            {/*
+                             * Sentinel watched by useHasBeenVisible. When it
+                             * nears the viewport the ComparisonView mounts.
+                             * forceCompareMount() is called before any
+                             * programmatic navigation to concept-* IDs so the
+                             * target element exists before scrollIntoView runs.
+                             */}
+                            <div ref={compareSentinelRef} />
+                            {compareMounted ? (
+                                <ComparisonView
+                                    profile={profile}
+                                    onOpenLesson={openLesson}
+                                />
+                            ) : null}
                         </section>
 
                         <section id="syntax" className={contentSection}>
                             <h2 className={sectionHeading}>Syntax</h2>
-                            <SyntaxView profile={profile} />
+                            {/*
+                             * Same lazy-mount pattern as compare above.
+                             * forceSyntaxMount() fires before syntax-*
+                             * navigation.
+                             */}
+                            <div ref={syntaxSentinelRef} />
+                            {syntaxMounted ? (
+                                <SyntaxView profile={profile} />
+                            ) : null}
                         </section>
 
                         <section id="glossary" className={contentSection}>
