@@ -3,9 +3,7 @@ import { useEffect, useState } from "react";
 export function useActiveSubSection(
     ids: readonly string[]
 ): string | undefined {
-    const [active, setActive] = useState<string | undefined>(
-        () => ids[0]
-    );
+    const [active, setActive] = useState<string | undefined>(() => ids[0]);
 
     useEffect(() => {
         if (ids.length === 0) {
