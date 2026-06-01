@@ -1,20 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useActiveSubSection(
     ids: readonly string[]
 ): string | undefined {
-    const firstId = useMemo(() => ids[0], [ids]);
+    const [active, setActive] = useState<string | undefined>(
+        () => ids[0]
+    );
 
-    const [active, setActive] = useState<string | undefined>(firstId);
-
-    // Reset to first when the section changes (firstId changes).
     useEffect(() => {
-        setActive(firstId);
-    }, [firstId]);
-
-    // Observe subsection elements for intersection.
-    useEffect(() => {
-        if (ids.length === 0) return;
+        if (ids.length === 0) {
+            return;
+        }
 
         const observers: IntersectionObserver[] = [];
 
