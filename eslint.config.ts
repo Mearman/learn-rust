@@ -177,9 +177,10 @@ const noReExports: Rule.RuleModule = {
         ): Rule.Fix | null {
             const source = context.sourceCode;
             const statement = node.parent;
+            if (statement === null) return null;
             // Walk up to the export declaration or module declaration
-            let target = statement;
-            while (target.parent && target.parent.type !== "Program") {
+            let target: Rule.Node = statement;
+            while (target.parent !== null && target.parent.type !== "Program") {
                 target = target.parent;
             }
             if (target.parent?.type !== "Program") return null;
