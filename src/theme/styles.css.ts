@@ -350,9 +350,6 @@ export const sectionHeading = style({
 // ---------------------------------------------------------------------------
 
 export const stickyNav = style({
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
     display: "flex",
     flexWrap: "wrap",
     gap: "0.25rem",
@@ -400,6 +397,51 @@ export const tabButtonActive = style({
 export const tabButtonLabel = style({
     display: "none",
     "@media": { [md]: { display: "inline" } },
+});
+
+// ---------------------------------------------------------------------------
+// Sticky subsection nav
+// ---------------------------------------------------------------------------
+
+export const stickyNavContainer = style({
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.25rem",
+});
+
+export const subNav = style({
+    display: "flex",
+    flexWrap: "nowrap",
+    overflowX: "auto",
+    gap: "0.25rem",
+    padding: "0.375rem 0.5rem",
+    borderRadius: "0.5rem",
+    background: vars.colour.panel2,
+    border: `1px solid ${vars.colour.border}`,
+});
+
+export const subNavButton = style({
+    display: "inline-flex",
+    alignItems: "center",
+    borderRadius: "0.375rem",
+    padding: "0.25rem 0.5rem",
+    fontSize: "0.75rem",
+    fontWeight: 500,
+    transition: "background 0.15s, color 0.15s",
+    background: "transparent",
+    color: vars.colour.dim,
+    border: "none",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+});
+
+export const subNavButtonActive = style({
+    background: vars.colour.accentDim,
+    color: vars.colour.text,
 });
 
 // ---------------------------------------------------------------------------

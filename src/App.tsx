@@ -18,10 +18,14 @@ import {
     shellInner,
     headerFlex,
     heading,
+    stickyNavContainer,
     stickyNav,
     tabButton,
     tabButtonActive,
     tabButtonLabel,
+    subNav,
+    subNavButton,
+    subNavButtonActive,
     contentSection,
     sectionHeading,
     footer,
@@ -60,6 +64,8 @@ import {
     scrollToSection,
     type SectionId,
 } from "./layout/useActiveSection.ts";
+import { getSubSections } from "./layout/subSections.ts";
+import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
 
 const SECTIONS: readonly {
     readonly id: SectionId;
@@ -79,6 +85,10 @@ const SECTIONS: readonly {
 export function App() {
     const activeSection = useActiveSection();
     const [showSearch, setShowSearch] = useState(false);
+
+    const subSections = getSubSections(activeSection);
+    const subIds = subSections.map((s) => s.id);
+    const activeSub = useActiveSubSection(subIds);
 
     const [viewed, setViewed] = useState<ReadonlySet<string>>(() => new Set());
     const {
@@ -263,37 +273,64 @@ export function App() {
                     <ThemeToggle mode={themeMode} onChange={setThemeMode} />
                 </header>
 
-                <nav className={stickyNav}>
-                    {SECTIONS.map((s) => {
-                        const Icon = s.icon;
-                        const on = s.id === activeSection;
-                        return (
-                            <button
-                                key={s.id}
-                                type="button"
-                                onClick={() => {
-                                    scrollToSection(s.id);
-                                }}
-                                className={`${tabButton} ${on ? tabButtonActive : ""}`}
-                            >
-                                <Icon size={15} />
-                                <span className={tabButtonLabel}>
-                                    {s.label}
-                                </span>
-                            </button>
-                        );
-                    })}
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowSearch(true);
-                        }}
-                        className={tabButton}
-                    >
-                        <Search size={15} />
-                        <span className={tabButtonLabel}>Search</span>
-                    </button>
-                </nav>
+                <div className={stickyNavContainer}>
+                    <nav className={stickyNav}>
+                        {SECTIONS.map((s) => {
+                            const Icon = s.icon;
+                            const on = s.id === activeSection;
+                            return (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => {
+                                        scrollToSection(s.id);
+                                    }}
+                                    className={`${tabButton} ${on ? tabButtonActive : ""}`}
+                                >
+                                    <Icon size={15} />
+                                    <span className={tabButtonLabel}>
+                                        {s.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowSearch(true);
+                            }}
+                            className={tabButton}
+                        >
+                            <Search size={15} />
+                            <span className={tabButtonLabel}>Search</span>
+                        </button>
+                    </nav>
+
+                    {subSections.length > 0 ? (
+                        <nav className={subNav}>
+                            {subSections.map((sub) => (
+                                <button
+                                    key={sub.id}
+                                    type="button"
+                                    onClick={() => {
+                                        const el = document.getElementById(
+                                            sub.id
+                                        );
+                                        if (el !== null) {
+                                            el.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start",
+                                            });
+                                        }
+                                    }}
+                                    className={`${subNavButton} ${sub.id === activeSub ? subNavButtonActive : ""}`}
+                                >
+                                    {sub.label}
+                                </button>
+                            ))}
+                        </nav>
+                    ) : null}
+                </div>
 
                 <section id="learn" className={contentSection}>
                     <h2 className={sectionHeading}>Learn</h2>
