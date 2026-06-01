@@ -67,7 +67,8 @@ const noPointlessReassignments: Rule.RuleModule = {
                         );
 
                         const hasShorthand = readRefs.some((r) => {
-                            if (r.identifier.type !== "Identifier") return false;
+                            if (r.identifier.type !== "Identifier")
+                                return false;
                             const afterToken = context.sourceCode.getTokenAfter(
                                 r.identifier
                             );
