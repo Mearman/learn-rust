@@ -24,7 +24,8 @@ import type {
 } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
-import { languageFamiliarityLabel } from "../settings/languages.ts";
+import { languageNameForId } from "../data/languages.ts";
+import { LANGUAGE_CONCEPTS } from "../data/language-concepts.ts";
 
 interface BlockProps {
     readonly block: LessonBlock;
@@ -82,7 +83,7 @@ function AnalogySection({ block, profile }: {
                     <div>{block.text}</div>
                     {matches.map(({ familiarity, value }) => (
                         <div key={familiarity} style={{ color: vars.colour.faint }}>
-                            {languageFamiliarityLabel(familiarity)}: {value}
+                            {languageNameForId(familiarity)}: {value}
                         </div>
                     ))}
                 </div>
@@ -91,29 +92,52 @@ function AnalogySection({ block, profile }: {
     );
 }
 
+function findConceptEntry(conceptId: string, languageId: string) {
+    const entry = LANGUAGE_CONCEPTS.find(
+        (c) => c.conceptId === conceptId && c.languageId === languageId,
+    );
+    if (entry === undefined) {
+        throw new Error(
+            `No LanguageConcept found for conceptId="${conceptId}" languageId="${languageId}"`,
+        );
+    }
+    return entry;
+}
+
 function ComparisonSection({ block, profile }: {
     readonly block: ComparisonBlockType;
     readonly profile: UserProfile;
 }) {
-    const matches = matchingFamiliarities(profile.familiarities, block.comparisons);
+    const rustEntry = findConceptEntry(block.conceptId, "rust");
+    const familiarEntries = profile.familiarities
+        .map((fam) => ({
+            familiarity: fam,
+            entry: LANGUAGE_CONCEPTS.find(
+                (c) => c.conceptId === block.conceptId && c.languageId === fam,
+            ),
+        }))
+        .filter((result): result is {
+            readonly familiarity: LanguageFamiliarity;
+            readonly entry: typeof LANGUAGE_CONCEPTS[number];
+        } => result.entry !== undefined);
 
     return (
         <div className={comparisonGrid}>
             <div className={comparisonColumn}>
                 <span className={comparisonLabel}>Rust</span>
-                <CodeBlock code={block.rustCode} label="rust" />
+                <CodeBlock code={rustEntry.code} label="rust" />
             </div>
             <div className={comparisonColumn}>
                 <span className={comparisonLabel}>
                     {profile.familiarities.length === 0 ? "Your familiar language" : "Your familiar languages"}
                 </span>
-                {matches.length > 0 ? (
+                {familiarEntries.length > 0 ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        {matches.map(({ familiarity, value }) => (
+                        {familiarEntries.map(({ familiarity, entry }) => (
                             <div key={familiarity} style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
-                                <span className={comparisonLabel} style={{ color: vars.colour.accentSoft }}>{languageFamiliarityLabel(familiarity)}</span>
-                                <CodeBlock code={value.code} label={familiarity} />
-                                {value.notes ? <span className={comparisonNotes}>{value.notes}</span> : null}
+                                <span className={comparisonLabel} style={{ color: vars.colour.accentSoft }}>{languageNameForId(familiarity)}</span>
+                                <CodeBlock code={entry.code} label={familiarity} />
+                                <span className={comparisonNotes}>{entry.explanation}</span>
                             </div>
                         ))}
                     </div>

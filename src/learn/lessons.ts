@@ -54,16 +54,7 @@ export interface AnalogyBlock extends LessonBlockBase {
 
 export interface ComparisonBlock extends LessonBlockBase {
     readonly kind: "comparison";
-    readonly rustCode: string;
-    readonly comparisons: Partial<
-        Record<
-            LanguageFamiliarity,
-            {
-                readonly code: string;
-                readonly notes?: string;
-            }
-        >
-    >;
+    readonly conceptId: string;
 }
 
 export interface DeepDiveBlock extends LessonBlockBase {
@@ -122,44 +113,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: ownership moves, old binding invalid\nlet s1 = String::from("hello");\nlet s2 = s1;\n// s1 is now invalid; compile error if used`,
-                comparisons: {
-                    python: {
-                        code: `# Python: variables are references;\n# GC tracks object lifetime\ns1 = "hello"\ns2 = s1  # both names point to same object\n# no concept of "moved from"`,
-                        notes:
-                            "Python uses reference counting + a cycle collector. Both names remain valid until they go out of scope or are deleted.",
-                    },
-                    typescript: {
-                        code: `// TypeScript/JS: all values are GC-tracked\nconst s1 = "hello";\nconst s2 = s1;  // primitive is copied, string is immutable\n// both are always valid`,
-                        notes:
-                            "JS primitives (including strings) are copied on assignment. Objects share the reference and are GC'd when unreachable.",
-                    },
-                    java: {
-                        code: `// Java: references with GC\nString s1 = "hello";\nString s2 = s1;  // copies the reference, not the object\n// both references remain valid`,
-                        notes:
-                            "Java has no move semantics. All objects live on the heap and are garbage collected. Identity is by reference.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: same JVM model as Java\nval s1 = "hello"\nval s2 = s1  // reference copy\n// both valid, GC-managed`,
-                        notes:
-                            "Kotlin runs on the JVM (or JS/native) with the same GC model. No move semantics exist.",
-                    },
-                    go: {
-                        code: `// Go: escape analysis + GC\nfunc main() {\n    s1 := "hello"\n    s2 := s1  // copies the string header (pointer + len)\n    // both valid until GC collects`,
-                        notes:
-                            "Go strings are immutable slices (pointer + length). Assignment copies the header. The underlying data is GC'd.",
-                    },
-                    csharp: {
-                        code: `// C#: references with GC\nstring s1 = "hello";\nstring s2 = s1;  // copies the reference\n// both valid, GC-managed`,
-                        notes:
-                            "C# strings are immutable reference types. Assignment copies the reference, not the data.",
-                    },
-                    cpp: {
-                        code: `// C++: unique_ptr models single ownership\nauto s1 = std::make_unique<std::string>("hello");\nauto s2 = std::move(s1);  // explicit move required\n// s1 is now nullptr; accessing it is UB`,
-                        notes:
-                            "Rust's ownership is like unique_ptr but enforced at compile time. No need for std::move — the compiler tracks it.",
-                    },
-                },
+                conceptId: "memory-management",
             },
             {
                 kind: "note",
@@ -228,44 +182,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: &T for shared, &mut T for exclusive\nfn add_one(v: &mut Vec<i32>) {\n    v.push(1);\n}\n\nfn peek(v: &Vec<i32>) -> i32 {\n    v[0]\n}`,
-                comparisons: {
-                    python: {
-                        code: `# Python: all variables are references;\n# mutation is always visible to all names\ndef add_one(v):\n    v.append(1)\n\ndef peek(v):\n    return v[0]`,
-                        notes:
-                            "No concept of shared vs exclusive. Any reference can mutate at any time — data races are possible in threaded code.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: const prevents reassignment,\n// not mutation\nfunction addOne(v: number[]) {\n    v.push(1);\n}\n\nfunction peek(v: number[]): number {\n    return v[0];\n}`,
-                        notes:
-                            "No aliasing control. const only prevents reassigning the variable, not mutating the object it points to.",
-                    },
-                    java: {
-                        code: `// Java: references are shared by default\nvoid addOne(List<Integer> v) {\n    v.add(1);\n}\n\nint peek(List<Integer> v) {\n    return v.get(0);  // v could be mutated elsewhere\n}`,
-                        notes:
-                            "No mechanism to prevent aliasing. Collections.unmodifiableList creates a read-only wrapper but doesn't prevent the backing list from changing.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: val prevents reassignment, not mutation\nfun addOne(v: MutableList<Int>) {\n    v.add(1)\n}\n\nfun peek(v: List<Int>): Int = v[0]`,
-                        notes:
-                            "val is like const in JS — prevents reassignment only. List vs MutableList distinguishes read-only from mutable, but read-only is a view, not a guarantee.",
-                    },
-                    go: {
-                        code: `// Go: pointers allow mutation; no aliasing rules\nfunc addOne(v *[]int) {\n    *v = append(*v, 1)\n}\n\nfunc peek(v []int) int {\n    return v[0]  // slice passed by value (descriptor)\n}`,
-                        notes:
-                            "Slices are reference-like (pointer + len + cap). No aliasing protection. The race detector catches bugs at runtime, not compile time.",
-                    },
-                    csharp: {
-                        code: `// C#: ref parameters for explicit references\nvoid AddOne(ref List<int> v) {\n    v.Add(1);\n}\n\nint Peek(List<int> v) {\n    return v[0];  // v could be mutated on another thread\n}`,
-                        notes:
-                            "ref is close to &mut but without the aliasing guarantee. in (C# 7.2+) is close to &T but also not enforced for thread safety.",
-                    },
-                    cpp: {
-                        code: `// C++: T& for shared, no built-in exclusivity\nvoid add_one(std::vector<int>& v) {\n    v.push_back(1);\n}\n\nint peek(const std::vector<int>& v) {\n    return v[0];  // const reference, but others\n                   // might hold non-const refs\n}`,
-                        notes:
-                            "const T& is like &T, T& is like &mut T — but the compiler doesn't enforce exclusive access. Data races compile fine.",
-                    },
-                },
+                conceptId: "reference-semantics",
             },
             {
                 kind: "note",
@@ -316,44 +233,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: explicit lifetime relationship\nfn longest<'a>(x: &'a str, y: &'a str) -> &'a str {\n    if x.len() > y.len() { x } else { y }\n}`,
-                comparisons: {
-                    python: {
-                        code: `# Python: no lifetime concept;\n# GC keeps objects alive as long as\n# any reference exists\ndef longest(x, y):\n    return x if len(x) > len(y) else y`,
-                        notes:
-                            "Python's GC ensures objects live as long as any reference exists. No lifetime annotations needed — but also no compile-time guarantee.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: GC-managed, no lifetimes\nfunction longest(x: string, y: string): string {\n    return x.length > y.length ? x : y;\n}`,
-                        notes:
-                            "JS strings are primitives and always valid. For objects, the GC handles lifetimes at runtime.",
-                    },
-                    java: {
-                        code: `// Java: GC-managed, no lifetime annotations\nstatic String longest(String x, String y) {\n    return x.length() > y.length() ? x : y;\n}`,
-                        notes:
-                            "Java references are always valid (or null). No way to express that a return value depends on an argument's lifetime.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: same JVM model\nfun longest(x: String, y: String): String =\n    if (x.length > y.length) x else y`,
-                        notes:
-                            "Same as Java — GC manages lifetimes. No compile-time lifetime tracking.",
-                    },
-                    go: {
-                        code: `// Go: escape analysis handles this;\n// no lifetime annotations\nfunc longest(x, y string) string {\n    if len(x) > len(y) {\n        return x\n    }\n    return y\n}`,
-                        notes:
-                            "Go's escape analysis decides stack vs heap. No way to express lifetime constraints — the GC handles it.",
-                    },
-                    csharp: {
-                        code: `// C#: GC-managed, no lifetimes\nstatic string Longest(string x, string y) {\n    return x.Length > y.Length ? x : y;\n}`,
-                        notes:
-                            "C# references are GC-managed. ref struct and Span<T> (C# 7.2+) introduce stack-only constraints somewhat similar to lifetimes.",
-                    },
-                    cpp: {
-                        code: `// C++: no lifetime annotations;\n// dangling references are UB\nconst std::string& longest(\n    const std::string& x,\n    const std::string& y) {\n    return x.size() > y.size() ? x : y;\n}`,
-                        notes:
-                            "Same signature shape, but the compiler can't verify the returned reference outlives its callers. Dangling references are undefined behaviour.",
-                    },
-                },
+                conceptId: "reference-validity",
             },
             {
                 kind: "note",
@@ -405,44 +285,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: &str is a borrowed view, String owns\nfn greet(name: &str) -> String {\n    format!("Hello, {}!", name)\n}\n\nlet s = greet("world");  // &str literal\nlet s2 = greet(&owned);  // &String coerces to &str`,
-                comparisons: {
-                    python: {
-                        code: `# Python: str is immutable, always "borrowed"\ndef greet(name: str) -> str:\n    return f"Hello, {name}!"\n\ns = greet("world")  # no owned/borrowed distinction`,
-                        notes:
-                            "Python has one string type. All strings are immutable and GC'd. No slice/view distinction — slicing creates a new string.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: string is immutable primitive\nfunction greet(name: string): string {\n    return \`Hello, \${name}!\`;\n}\n\nconst s = greet("world");  // always a new string`,
-                        notes:
-                            "JS strings are immutable primitives. No owned/borrowed distinction. Substring creates a new string.",
-                    },
-                    java: {
-                        code: `// Java: String is immutable heap object\nstatic String greet(String name) {\n    return "Hello, " + name + "!";\n}\n\nString s = greet("world");`,
-                        notes:
-                            "Java String is an immutable reference type. Substring used to share the backing array (Java 6) but now copies. StringBuilder is the mutable analogue.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: String is same as Java\nfun greet(name: String): String =\n    "Hello, $name!"\n\nval s = greet("world")`,
-                        notes:
-                            "Kotlin shares Java's String. String templates are built-in. buildString {} is the mutable builder analogue.",
-                    },
-                    go: {
-                        code: `// Go: string is immutable slice header\nfunc greet(name string) string {\n    return fmt.Sprintf("Hello, %s!", name)\n}\n\ns := greet("world")\n// []byte(s) for mutable view`,
-                        notes:
-                            "Go strings are immutable byte slices (pointer + length). []byte converts to a mutable copy. No separate owned/borrowed string types.",
-                    },
-                    csharp: {
-                        code: `// C#: string is immutable reference type\nstatic string Greet(string name) {\n    return $"Hello, {name}!";\n}\n\nstring s = Greet("world");\n// Span<char> / ReadOnlySpan<char> for views`,
-                        notes:
-                            "C# string is immutable. ReadOnlySpan<char> is the closest analogue to &str — a borrowed view without allocation.",
-                    },
-                    cpp: {
-                        code: `// C++: std::string owns, std::string_view borrows\nstd::string greet(std::string_view name) {\n    return "Hello, " + std::string(name) + "!";\n}\n\nstd::string s = greet("world");  // literal → string_view`,
-                        notes:
-                            "string_view is the direct equivalent of &str. std::string is the equivalent of String. The same owned/borrowed split exists.",
-                    },
-                },
+                conceptId: "string-types",
             },
             {
                 kind: "analogy",
@@ -502,44 +345,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: algebraic enum with exhaustive match\nenum Event {\n    Click { x: i32, y: i32 },\n    KeyPress(char),\n    Quit,\n}\n\nfn handle(e: Event) {\n    match e {\n        Event::Click { x, y } => {\n            println!("clicked at {},{}", x, y);\n        }\n        Event::KeyPress(c) => {\n            println!("key: {}", c);\n        }\n        Event::Quit => println!("bye"),\n    }\n}`,
-                comparisons: {
-                    python: {
-                        code: `# Python: dataclasses + isinstance, or\nclass Click:\n    x: int; y: int\nclass KeyPress:\n    key: str\nclass Quit: pass\n\ndef handle(e):\n    match e:  # Python 3.10+ structural pattern matching\n        case Click(x=x, y=y):\n            print(f"clicked at {x},{y}")\n        case KeyPress(key=c):\n            print(f"key: {c}")\n        case Quit():\n            print("bye")`,
-                        notes:
-                            "Python 3.10 added structural pattern matching (PEP 634), but exhaustiveness is not enforced by the language.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: discriminated unions\ntype Event =\n    | { kind: "click"; x: number; y: number }\n    | { kind: "keypress"; key: string }\n    | { kind: "quit" };\n\nfunction handle(e: Event) {\n    switch (e.kind) {\n        case "click":\n            console.log(\`clicked at \${e.x},\${e.y}\`);\n            break;\n        case "keypress":\n            console.log(\`key: \${e.key}\`);\n            break;\n        case "quit":\n            console.log("bye"); break;\n    }\n}`,
-                        notes:
-                            "Discriminated unions + switch give you exhaustiveness checking via the never type — very close to Rust's match.",
-                    },
-                    java: {
-                        code: `// Java 21+: sealed interfaces + pattern matching\nsealed interface Event {\n    record Click(int x, int y) implements Event {}\n    record KeyPress(char key) implements Event {}\n    record Quit() implements Event {}\n}\n\nvoid handle(Event e) {\n    switch (e) {\n        case Event.Click(var x, var y) ->\n            System.out.println("clicked at " + x + "," + y);\n        case Event.KeyPress(var c) ->\n            System.out.println("key: " + c);\n        case Event.Quit() ->\n            System.out.println("bye");\n    } // exhaustive for sealed types\n}`,
-                        notes:
-                            "Java 21 sealed classes + pattern matching in switches provide exhaustiveness checking — the closest Java has come to Rust enums.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: sealed class hierarchy\nsealed class Event {\n    data class Click(val x: Int, val y: Int) : Event()\n    data class KeyPress(val key: Char) : Event()\n    data object Quit : Event()\n}\n\nfun handle(e: Event) = when (e) {\n    is Event.Click -> println("clicked at \${e.x},\${e.y}")\n    is Event.KeyPress -> println("key: \${e.key}")\n    is Event.Quit -> println("bye")\n} // when is exhaustive for sealed classes`,
-                        notes:
-                            "Sealed classes + when provide exhaustiveness checking. Very close to Rust's enum + match.",
-                    },
-                    go: {
-                        code: `// Go: no sum types; use interfaces + type switch\ntype Event interface{ isEvent() }\n\ntype Click struct{ X, Y int }\nfunc (Click) isEvent() {}\n\ntype KeyPress struct{ Key rune }\nfunc (KeyPress) isEvent() {}\n\ntype Quit struct{}\nfunc (Quit) isEvent() {}\n\nfunc handle(e Event) {\n    switch v := e.(type) {\n    case Click:\n        fmt.Printf("clicked at %d,%d\\n", v.X, v.Y)\n    case KeyPress:\n        fmt.Printf("key: %c\\n", v.Key)\n    case Quit:\n        fmt.Println("bye")\n    }\n} // no exhaustiveness check`,
-                        notes:
-                            "Go uses interfaces and type switches. No compiler-enforced exhaustiveness — you can forget a case.",
-                    },
-                    csharp: {
-                        code: `// C# 8+: discriminated unions via one-of types\n// (no native ADTs — use OneOf library or manual)\nabstract record Event {\n    public sealed record Click(int X, int Y) : Event;\n    public sealed record KeyPress(char Key) : Event;\n    public sealed record Quit() : Event;\n}\n\nvoid Handle(Event e) => e switch {\n    Event.Click(var x, var y) =>\n        Console.WriteLine($"clicked at {x},{y}"),\n    Event.KeyPress(var c) =>\n        Console.WriteLine($"key: {c}"),\n    Event.Quit =>\n        Console.WriteLine("bye"),\n    _ => throw new NotSupportedException()\n};`,
-                        notes:
-                            "C# records + switch expressions approximate ADTs. Exhaustiveness requires a default case unless the compiler can prove completeness.",
-                    },
-                    cpp: {
-                        code: `// C++: std::variant + std::visit\nusing Event = std::variant<\n    struct Click { int x, y; },\n    struct KeyPress { char key; },\n    struct Quit {};\n>;\n\n// std::visit with an overloaded functor\n// no exhaustiveness check at compile time\nstd::visit(overloaded{\n    [](const Click& c) { /* ... */ },\n    [](const KeyPress& k) { /* ... */ },\n    [](const Quit&) { /* ... */ }\n}, event);`,
-                        notes:
-                            "std::variant + std::visit is the closest analogue. The compiler warns about missing cases but doesn't reject them by default.",
-                    },
-                },
+                conceptId: "algebraic-data-types",
             },
             {
                 kind: "note",
@@ -591,44 +397,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: Option for absence, Result for errors\nfn find_user(id: i32) -> Option<String> {\n    if id == 1 {\n        Some(String::from("Alice"))\n    } else {\n        None\n    }\n}\n\nfn parse_age(s: &str) -> Result<u32, String> {\n    s.parse::<u32>()\n        .map_err(|_| format!("invalid: {}", s))\n}`,
-                comparisons: {
-                    python: {
-                        code: `# Python: None for absence, exceptions for errors\ndef find_user(id: int) -> str | None:\n    if id == 1:\n        return "Alice"\n    return None\n\ndef parse_age(s: str) -> int:\n    try:\n        return int(s)\n    except ValueError:\n        raise ValueError(f"invalid: {s}")`,
-                        notes:
-                            "Optional values use None (PEP 484: T | None). Errors use exceptions — there's no Result type, no ? operator. try/except is the control flow.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: null/undefined for absence,\n// exceptions for errors\nfunction findUser(id: number): string | null {\n    return id === 1 ? "Alice" : null;\n}\n\nfunction parseAge(s: string): number {\n    const n = parseInt(s, 10);\n    if (isNaN(n)) throw new Error(\`invalid: \${s}\`);\n    return n;\n}`,
-                        notes:
-                            "TypeScript has null and undefined built in. No Result type in the language — some libraries add it. Exceptions are unchecked.",
-                    },
-                    java: {
-                        code: `// Java: null for absence, exceptions for errors\nOptional<String> findUser(int id) {\n    return id == 1\n        ? Optional.of("Alice")\n        : Optional.empty();\n}\n\nint parseAge(String s) throws NumberFormatException {\n    return Integer.parseInt(s);  // throws on bad input\n}`,
-                        notes:
-                            "Optional<T> (Java 8+) is like Option<T>. Checked exceptions are like Result but less composable. The ? operator has no equivalent.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: nullable types + sealed Result-like classes\nfun findUser(id: Int): String? =\n    if (id == 1) "Alice" else null\n\nfun parseAge(s: String): Result<Int> =\n    s.toIntOrNull()\n        ?.let { Result.success(it) }\n        ?: Result.failure(IllegalArgumentException("invalid: $s"))`,
-                        notes:
-                            "Kotlin's T? is like Option<T>. Result<T> exists but isn't used for control flow the same way. No ? operator.",
-                    },
-                    go: {
-                        code: `// Go: zero value + ok bool, error returns\nfunc findUser(id int) (string, bool) {\n    if id == 1 {\n        return "Alice", true\n    }\n    return "", false\n}\n\nfunc parseAge(s string) (int, error) {\n    n, err := strconv.Atoi(s)\n    if err != nil {\n        return 0, fmt.Errorf("invalid: %s", s)\n    }\n    return n, nil\n}`,
-                        notes:
-                            "Go uses (value, ok) tuples and error returns. No Option or Result type — the convention is to return an error as the last value.",
-                    },
-                    csharp: {
-                        code: `// C#: nullable types + exceptions\nstring? FindUser(int id) =>\n    id == 1 ? "Alice" : null;\n\nint ParseAge(string s) {\n    if (!int.TryParse(s, out var n))\n        throw new FormatException($"invalid: {s}");\n    return n;\n}`,
-                        notes:
-                            "C# nullable reference types (C# 8+) annotate nullability. TryParse patterns avoid exceptions. No built-in Result type.",
-                    },
-                    cpp: {
-                        code: `// C++: std::optional + std::expected (C++23)\nstd::optional<std::string> find_user(int id) {\n    if (id == 1) return "Alice";\n    return std::nullopt;\n}\n\n// C++23: std::expected<T, E>\nstd::expected<int, std::string> parse_age(std::string_view s);\n// No ? operator — use .and_then() or explicit checks`,
-                        notes:
-                            "std::optional (C++17) is like Option. std::expected (C++23) is like Result. No ? operator — monadic chaining uses .and_then().",
-                    },
-                },
+                conceptId: "error-signalling",
             },
             {
                 kind: "analogy",
@@ -685,44 +454,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: trait with default method + impl\ntrait Printable {\n    fn format(&self) -> String;\n    fn debug(&self) -> String {\n        format!("[{}]", self.format())\n    }\n}\n\nstruct User { name: String }\n\nimpl Printable for User {\n    fn format(&self) -> String {\n        format!("User({})", self.name)\n    }\n}\n\nfn print(p: &impl Printable) {\n    println!("{}", p.format());\n}`,
-                comparisons: {
-                    python: {
-                        code: `# Python: duck typing + abstract base classes\nfrom abc import ABC, abstractmethod\n\nclass Printable(ABC):\n    @abstractmethod\n    def format(self) -> str: ...\n\n    def debug(self) -> str:\n        return f"[{self.format()}]"\n\nclass User(Printable):\n    def __init__(self, name):\n        self.name = name\n    def format(self) -> str:\n        return f"User({self.name})"`,
-                        notes:
-                            "ABCs approximate traits but Python mostly relies on duck typing. No static dispatch — all method calls are dynamic.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: interfaces with default impl via classes\ninterface Printable {\n    format(): string;\n    debug(): string;  // can't have default in interface\n}\n\n// Use a base class for defaults:\nabstract class PrintableBase implements Printable {\n    abstract format(): string;\n    debug(): string { return \`[\${this.format()}]\`; }\n}\n\nclass User extends PrintableBase {\n    constructor(readonly name: string) { super(); }\n    format() { return \`User(\${this.name})\`; }\n}`,
-                        notes:
-                            "Interfaces can't have default implementations — you need abstract classes. TypeScript's structural typing gives you duck typing for free.",
-                    },
-                    java: {
-                        code: `// Java: interfaces with default methods\ninterface Printable {\n    String format();\n    default String debug() {\n        return "[" + format() + "]";\n    }\n}\n\nrecord User(String name) implements Printable {\n    @Override\n    public String format() {\n        return "User(" + name + ")";\n    }\n}`,
-                        notes:
-                            "Java 8+ interfaces with default methods are very close to Rust traits. The main difference: Java doesn't have orphan impls — you can't add an interface to a class you didn't write.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: interfaces with default implementations\ninterface Printable {\n    fun format(): String\n    fun debug(): String = "[\${format()}]"\n}\n\ndata class User(val name: String) : Printable {\n    override fun format() = "User(\${name})"\n}`,
-                        notes:
-                            "Kotlin interfaces can have default implementations, just like Rust traits. Same orphan impl limitation as Java — you can't implement an interface on a class you don't own.",
-                    },
-                    go: {
-                        code: `// Go: interfaces are satisfied structurally\ntype Printable interface {\n    Format() string\n    // no default methods in Go interfaces\n}\n\ntype User struct{ Name string }\n\nfunc (u User) Format() string {\n    return fmt.Sprintf("User(%s)", u.Name)\n}\n\n// User implicitly satisfies Printable`,
-                        notes:
-                            "Go interfaces are structural — no impl declaration needed. But no default methods and no generics-based dispatch until recently.",
-                    },
-                    csharp: {
-                        code: `// C#: interfaces with default implementations (C# 8)\ninterface IPrintable {\n    string Format();\n    string Debug() => $"[{Format()}]";\n}\n\nrecord User(string Name) : IPrintable {\n    public string Format() => $"User({Name})";\n}`,
-                        notes:
-                            "C# 8+ interfaces with default implementations are close to traits. Same limitation: no orphan impls for classes you don't own.",
-                    },
-                    cpp: {
-                        code: `// C++: concepts (C++20) for compile-time constraints\ntemplate<typename T>\nconcept Printable = requires(T t) {\n    { t.format() } -> std::convertible_to<std::string>;\n};\n\nstruct User {\n    std::string name;\n    std::string format() const {\n        return "User(" + name + ")";\n    }\n};\n\nstatic_assert(Printable<User>);`,
-                        notes:
-                            "C++20 concepts check that a type satisfies a constraint, but they don't provide default methods. Virtual functions + inheritance are the traditional interface pattern.",
-                    },
-                },
+                conceptId: "behaviour-abstraction",
             },
             {
                 kind: "text",
@@ -770,44 +502,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: monomorphised generics with trait bounds\nfn wrap_in_vec<T>(value: T) -> Vec<T> {\n    vec![value]\n}\n\nlet ints = wrap_in_vec(42);\nlet strs = wrap_in_vec("hello");`,
-                comparisons: {
-                    python: {
-                        code: `# Python: generics via typing (runtime: just objects)\nfrom typing import TypeVar, Generic, List\n\nT = TypeVar("T")\n\ndef wrap_in_list(value: T) -> list[T]:\n    return [value]\n\nints = wrap_in_list(42)\nstrs = wrap_in_list("hello")`,
-                        notes:
-                            "Python generics are type-annotations only — at runtime, everything is a dynamic object. No monomorphisation.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: generics erased at runtime\nfunction wrapInArray<T>(value: T): T[] {\n    return [value];\n}\n\nconst ints = wrapInArray(42);\nconst strs = wrapInArray("hello");`,
-                        notes:
-                            "TypeScript generics are erased at compile time. No specialised copies — one implementation handles all types at runtime.",
-                    },
-                    java: {
-                        code: `// Java: type erasure — one copy, Object at runtime\n<T> List<T> wrapInList(T value) {\n    return List.of(value);\n}\n\nList<Integer> ints = wrapInList(42);\nList<String> strs = wrapInList("hello");`,
-                        notes:
-                            "Java uses type erasure — generics become Object at runtime. No monomorphisation, no specialisation. Primitive types must be boxed.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: same JVM erasure as Java\nfun <T> wrapInList(value: T): List<T> = listOf(value)\n\nval ints = wrapInList(42)\nval strs = wrapInList("hello")`,
-                        notes:
-                            "Kotlin shares Java's erasure. Inline functions with reified type parameters recover some type info at runtime.",
-                    },
-                    go: {
-                        code: `// Go: generics (1.18+) — monomorphised for\n// different types but GC-shaped only\nfunc wrapInSlice[T any](value T) []T {\n    return []T{value}\n}\n\nints := wrapInSlice(42)\nstrs := wrapInSlice("hello")`,
-                        notes:
-                            "Go 1.18 generics use a hybrid of dictionaries and GCshapes. Roughly monomorphised, but less aggressively than C++ or Rust.",
-                    },
-                    csharp: {
-                        code: `// C#: reified generics (specialised for value types)\nList<T> WrapInList<T>(T value) {\n    return new List<T> { value };\n}\n\nvar ints = WrapInList(42);     // specialised for int\nvar strs = WrapInList("hello"); // shared reference impl`,
-                        notes:
-                            "C# reified generics specialise for value types but share a single implementation for all reference types.",
-                    },
-                    cpp: {
-                        code: `// C++: templates — monomorphised, duck-typed\ntemplate<typename T>\nstd::vector<T> wrap_in_vector(T value) {\n    return {std::move(value)};\n}\n\nauto ints = wrap_in_vector(42);\nauto strs = wrap_in_vector("hello"s);`,
-                        notes:
-                            "C++ templates are the closest analogue — fully monomorphised, no runtime cost. Concepts (C++20) add bounds similar to trait bounds.",
-                    },
-                },
+                conceptId: "generics",
             },
             {
                 kind: "deep-dive",
@@ -850,44 +545,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: lazy iterator chain\nlet results: Vec<i32> = (1..=100)\n    .filter(|&n| n % 3 == 0)\n    .map(|n| n * 2)\n    .take(5)\n    .collect();`,
-                comparisons: {
-                    python: {
-                        code: `# Python: generators are lazy, list() forces evaluation\nresults = list(\n    (n * 2 for n in range(1, 101) if n % 3 == 0)\n)[:5]\n\n# Or with itertools:\nfrom itertools import islice\nresults = list(islice(\n    (n * 2 for n in range(1, 101) if n % 3 == 0), 5\n))`,
-                        notes:
-                            "Generator expressions are lazy like Rust iterators. list() or for loops consume them. itertools provides adapters like islice.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: lazy with generators, eager with array methods\n// Array methods (eager):\nconst results = Array.from({length: 100}, (_, i) => i + 1)\n    .filter(n => n % 3 === 0)\n    .map(n => n * 2)\n    .slice(0, 5);\n\n// Generators (lazy):\nfunction* filtered() {\n    for (let n = 1; n <= 100; n++) {\n        if (n % 3 === 0) yield n * 2;\n    }\n}`,
-                        notes:
-                            "Array methods are eager (create intermediate arrays). Generator functions are lazy but less ergonomic than Rust's iterator adapters.",
-                    },
-                    java: {
-                        code: `// Java: Streams are lazy\nList<Integer> results = IntStream.rangeClosed(1, 100)\n    .filter(n -> n % 3 == 0)\n    .map(n -> n * 2)\n    .limit(5)\n    .boxed()\n    .toList();`,
-                        notes:
-                            "Java Streams are lazy like Rust iterators. Terminal operations (collect, toList) drive evaluation. Primitive streams avoid boxing.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: sequences are lazy\nval results = (1..100).asSequence()\n    .filter { it % 3 == 0 }\n    .map { it * 2 }\n    .take(5)\n    .toList()`,
-                        notes:
-                            "Sequences are lazy (like Rust iterators). Without .asSequence(), Kotlin collections use eager evaluation with intermediate lists.",
-                    },
-                    go: {
-                        code: `// Go: no built-in lazy iterators (pre-1.23)\n// Go 1.23 adds iter package with range-over-func\nresults := []int{}\nfor n := range iter.Filter(\n    iter.Range(1, 101),\n    func(n int) bool { return n%3 == 0 },\n) {\n    if len(results) >= 5 { break }\n    results = append(results, n*2)\n}`,
-                        notes:
-                            "Go 1.23 added range-over-function iterators. Before that, you wrote loops or used channels. Less ergonomic than Rust's chain.",
-                    },
-                    csharp: {
-                        code: `// C#: LINQ is lazy for IEnumerable\nvar results = Enumerable.Range(1, 100)\n    .Where(n => n % 3 == 0)\n    .Select(n => n * 2)\n    .Take(5)\n    .ToList();`,
-                        notes:
-                            "LINQ to Objects is lazy (yield return under the hood). ToList() forces evaluation. Very close to Rust's iterator model.",
-                    },
-                    cpp: {
-                        code: `// C++: ranges (C++20) are lazy\nauto results = std::views::iota(1, 101)\n    | std::views::filter([](int n) { return n % 3 == 0; })\n    | std::views::transform([](int n) { return n * 2; })\n    | std::views::take(5);\n\n// materialise:\nauto vec = std::vector<int>(results.begin(), results.end());`,
-                        notes:
-                            "C++20 ranges are lazy views composed with |. Very similar to Rust's iterator adapters. Materialisation requires explicit iteration.",
-                    },
-                },
+                conceptId: "collection-pipelines",
             },
             {
                 kind: "note",
@@ -943,44 +601,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "comparison",
-                rustCode: `// Rust: Box<T> — heap allocation, single owner\nlet b = Box::new(42);\n\n// Rc<T> — shared ownership (single-threaded)\nuse std::rc::Rc;\nlet a = Rc::new(vec![1, 2, 3]);\nlet b = Rc::clone(&a);  // count = 2`,
-                comparisons: {
-                    python: {
-                        code: `# Python: all objects are heap-allocated\n# reference counting + cycle collector\nimport sys\n\nclass Node:\n    def __init__(self, val):\n        self.val = val\n        self.children = []\n\na = Node(1)\nb = a  # reference count increased\nprint(sys.getrefcount(a) - 1)  # 2`,
-                        notes:
-                            "Every Python object is heap-allocated with reference counting. There's no Box equivalent — it's the default. Shared ownership is the default too.",
-                    },
-                    typescript: {
-                        code: `// TypeScript: all objects are GC'd heap allocations\nconst obj = { val: 42 };\nconst ref = obj;  // shared reference, GC tracked\n// no Box, Rc, or RefCell — everything is shared`,
-                        notes:
-                            "JS objects are always on the heap and GC'd. No distinction between Box, Rc, or raw references — everything is a shared GC reference.",
-                    },
-                    java: {
-                        code: `// Java: all objects are heap-allocated + GC'd\nvar list = new ArrayList<>(List.of(1, 2, 3));\nvar ref = list;  // shared reference\n// no Box — heap allocation is the default\n// no Rc — GC handles shared ownership`,
-                        notes:
-                            "All Java objects live on the heap. GC handles shared ownership. No equivalent of RefCell — all objects allow interior mutability.",
-                    },
-                    kotlin: {
-                        code: `// Kotlin: same JVM model\nval list = mutableListOf(1, 2, 3)\nval ref = list  // shared reference\n// heap-allocated and GC'd by default`,
-                        notes:
-                            "Same as Java — all objects heap-allocated, GC-managed. No Box/Rc/RefCell distinction.",
-                    },
-                    go: {
-                        code: `// Go: escape analysis decides heap vs stack\n// all shared pointers are GC'd\nlist := []int{1, 2, 3}\nref := &list  // pointer, GC-tracked\n// no Box — compiler decides allocation\n// no Rc — GC handles sharing`,
-                        notes:
-                            "Go's escape analysis decides stack vs heap. Pointers are GC'd. No explicit shared ownership types.",
-                    },
-                    csharp: {
-                        code: `// C#: heap objects are GC'd\nvar list = new List<int> { 1, 2, 3 };\nvar ref = list;  // shared reference\n// no Box — heap allocation is default for classes\n// no Rc — GC handles shared ownership`,
-                        notes:
-                            "C# classes are always heap-allocated. Structs are value types (stack). No Box/Rc distinction — GC handles everything.",
-                    },
-                    cpp: {
-                        code: `// C++: explicit smart pointers\n// Box → std::unique_ptr\nauto b = std::make_unique<int>(42);\n\n// Rc → std::shared_ptr\nauto a = std::make_shared<std::vector<int>>(\n    std::initializer_list<int>{1, 2, 3});\nauto b2 = a;  // reference count = 2`,
-                        notes:
-                            "unique_ptr ≈ Box, shared_ptr ≈ Rc, weak_ptr ≈ Weak. No built-in RefCell — std::vector is always mutable, no runtime borrow checking.",
-                    },
-                },
+                conceptId: "smart-pointers",
             },
             {
                 kind: "analogy",
