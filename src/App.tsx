@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, Code2, ArrowLeftRight, ListChecks, Trophy, type LucideIcon } from "lucide-react";
+import { BookOpen, Code2, ArrowLeftRight, Braces, ListChecks, Trophy, type LucideIcon } from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
 import {
     shell,
@@ -28,16 +28,24 @@ import { useUserProfile } from "./settings/useUserProfile.ts";
 import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
 import { joinLanguageFamiliarities } from "./data/languages.ts";
 import { ComparisonView } from "./references/ComparisonView.tsx";
+import { SyntaxView } from "./references/SyntaxView.tsx";
+import { SYNTAX_REFERENCES } from "./data/syntax-references.ts";
 import { CONCEPTS } from "./data/concepts.ts";
 
-type Mode = "learn" | "challenge" | "compare" | "cheatsheet";
+type Mode = "learn" | "challenge" | "compare" | "syntax" | "cheatsheet";
 
 const TABS: readonly { readonly id: Mode; readonly label: string; readonly icon: LucideIcon }[] = [
     { id: "learn", label: "Learn", icon: BookOpen },
     { id: "challenge", label: "Will it compile?", icon: ListChecks },
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
+    { id: "syntax", label: "Syntax", icon: Braces },
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
 ];
+
+const ALL_TOPICS = SYNTAX_REFERENCES.reduce<string[]>((acc, entry) => {
+    if (!acc.includes(entry.topic)) acc.push(entry.topic);
+    return acc;
+}, []);
 
 const FIRST_LESSON_ID = LESSONS[0]?.id ?? "ownership";
 const FIRST_CONCEPT_ID = (() => {
@@ -53,6 +61,13 @@ export function App() {
     const [active, setActive] = useState(FIRST_LESSON_ID);
     const [viewed, setViewed] = useState(() => new Set([FIRST_LESSON_ID]));
     const [concept, setConcept] = useState(FIRST_CONCEPT_ID);
+    const [syntaxTopic, setSyntaxTopic] = useState<string>(() => {
+        const first = ALL_TOPICS[0];
+        if (first === undefined) {
+            throw new Error("No syntax topics configured");
+        }
+        return first;
+    });
     const [challenge, setChallenge] = useState<ChallengeState>({
         index: 0,
         answered: false,
@@ -177,6 +192,13 @@ export function App() {
                             active={concept}
                             onSelect={setConcept}
                             onOpenLesson={selectLesson}
+                        />
+                    ) : null}
+                    {mode === "syntax" ? (
+                        <SyntaxView
+                            profile={profile}
+                            active={syntaxTopic}
+                            onSelect={setSyntaxTopic}
                         />
                     ) : null}
                     {mode === "cheatsheet" ? <CheatsheetView onOpenReferences={() => setMode("references")} /> : null}
