@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Check, ChevronRight, RotateCcw, Trophy, X } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
@@ -13,8 +14,10 @@ import {
 } from "../theme/styles.css.ts";
 import { CodeBlock } from "../highlight/CodeBlock.tsx";
 import { CompileOutput } from "../compiler/CompileOutput.tsx";
-import { CHALLENGES } from "./challenges.ts";
+import { CHALLENGES, getFilteredChallenges } from "./challenges.ts";
+import type { Challenge } from "./challenges.ts";
 import type { CompileResult } from "../compiler/types.ts";
+import type { BackgroundLanguage, UserProfile } from "../settings/types.ts";
 
 interface ChallengeState {
     readonly index: number;
@@ -29,15 +32,21 @@ type ChallengeAction =
     | { readonly type: "next" }
     | { readonly type: "reset" };
 
-function challengeReducer(state: ChallengeState, action: ChallengeAction): ChallengeState {
+function challengeReducer(
+    state: ChallengeState,
+    action: ChallengeAction,
+    challenges: readonly Challenge[] = CHALLENGES,
+): ChallengeState {
     if (action.type === "answer") {
-        const ch = CHALLENGES[state.index];
+        const ch = challenges[state.index];
         return {
             ...state,
             answered: true,
             guess: action.guess,
             total: state.total + 1,
-            correct: state.correct + (ch !== undefined && action.guess === ch.compiles ? 1 : 0),
+            correct:
+                state.correct +
+                (ch !== undefined && action.guess === ch.compiles ? 1 : 0),
         };
     }
     if (action.type === "next") {
@@ -55,22 +64,90 @@ function levelColour(level: string): string {
     return vars.colour.bad;
 }
 
-interface ChallengeViewProps {
-    readonly state: ChallengeState;
-    readonly dispatch: (action: ChallengeAction) => void;
-    readonly compiling: boolean;
-    readonly compileResult: CompileResult | null;
-    onCompile: (code: string) => void;
-    onClearCompile: () => void;
+function backgroundDisplayName(
+    bg: Exclude<BackgroundLanguage, "none">,
+): string {
+    switch (bg) {
+        case "python":
+            return "Python";
+        case "typescript":
+            return "TypeScript";
+        case "java":
+            return "Java";
+        case "kotlin":
+            return "Kotlin";
+        case "go":
+            return "Go";
+        case "csharp":
+            return "C#";
+        case "cpp":
+            return "C++";
+    }
 }
 
-function Results({ state, dispatch }: { readonly state: ChallengeState; readonly dispatch: (a: ChallengeAction) => void }) {
-    const pct = state.total === 0 ? 0 : Math.round((state.correct / state.total) * 100);
+function PerLanguageNote({
+    challenge,
+    background,
+}: {
+    readonly challenge: Challenge;
+    readonly background: Exclude<BackgroundLanguage, "none">;
+}) {
+    const explanation = challenge.whyPerLanguage?.[background];
+    if (explanation === undefined) return null;
+    return (
+        <div
+            style={{
+                borderTop: `1px solid ${vars.colour.borderSoft}`,
+                paddingTop: "0.5rem",
+            }}
+        >
+            <p
+                style={{
+                    fontSize: "0.875rem",
+                    lineHeight: 1.625,
+                    margin: 0,
+                    color: vars.colour.text,
+                }}
+            >
+                <span
+                    style={{
+                        color: vars.colour.accentSoft,
+                        fontWeight: 600,
+                    }}
+                >
+                    Coming from {backgroundDisplayName(background)}:{" "}
+                </span>
+                {explanation}
+            </p>
+        </div>
+    );
+}
+
+function Results({
+    state,
+    dispatch,
+    totalChallenges,
+}: {
+    readonly state: ChallengeState;
+    readonly dispatch: (a: ChallengeAction) => void;
+    readonly totalChallenges: number;
+}) {
+    const pct =
+        totalChallenges === 0
+            ? 0
+            : Math.round((state.correct / totalChallenges) * 100);
     return (
         <div className={challengeResult}>
             <Trophy size={44} style={{ color: vars.colour.accent }} />
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, color: vars.colour.text }}>
-                {state.correct} / {state.total} correct
+            <h2
+                style={{
+                    fontSize: "1.5rem",
+                    fontWeight: 700,
+                    margin: 0,
+                    color: vars.colour.text,
+                }}
+            >
+                {state.correct} / {totalChallenges} correct
             </h2>
             <p style={{ fontSize: "0.875rem", margin: 0, color: vars.colour.dim }}>
                 {pct >= 80
@@ -89,29 +166,91 @@ function Results({ state, dispatch }: { readonly state: ChallengeState; readonly
     );
 }
 
-export function ChallengeView({ state, dispatch, compiling, compileResult, onCompile, onClearCompile }: ChallengeViewProps) {
-    const done = state.index >= CHALLENGES.length;
+interface ChallengeViewProps {
+    readonly state: ChallengeState;
+    readonly dispatch: (action: ChallengeAction) => void;
+    readonly profile: UserProfile;
+    readonly compiling: boolean;
+    readonly compileResult: CompileResult | null;
+    onCompile: (code: string) => void;
+    onClearCompile: () => void;
+}
+
+function ChallengeView({
+    state,
+    dispatch,
+    profile,
+    compiling,
+    compileResult,
+    onCompile,
+    onClearCompile,
+}: ChallengeViewProps) {
+    const filtered = useMemo(
+        () => getFilteredChallenges(profile),
+        [profile],
+    );
+
+    const done = state.index >= filtered.length;
 
     if (done) {
-        return <Results state={state} dispatch={dispatch} />;
+        return (
+            <Results
+                state={state}
+                dispatch={dispatch}
+                totalChallenges={filtered.length}
+            />
+        );
     }
 
-    const ch = CHALLENGES[state.index];
+    const ch = filtered[state.index];
     if (ch === undefined) return null;
 
     const isCorrect = state.answered && state.guess === ch.compiles;
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "42rem", margin: "0 auto", width: "100%" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }} className={monoSm}>
-                <span>challenge {state.index + 1} / {CHALLENGES.length}</span>
-                <span style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <span style={{ color: levelColour(ch.level) }}>{ch.level}</span>
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
+                maxWidth: "42rem",
+                margin: "0 auto",
+                width: "100%",
+            }}
+        >
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
+                className={monoSm}
+            >
+                <span>
+                    challenge {state.index + 1} / {filtered.length}
+                </span>
+                <span
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                    }}
+                >
+                    <span style={{ color: levelColour(ch.level) }}>
+                        {ch.level}
+                    </span>
                     <span className={dimSm}>{ch.topic}</span>
                 </span>
             </div>
 
-            <h2 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0, color: vars.colour.text }}>
+            <h2
+                style={{
+                    fontSize: "1.25rem",
+                    fontWeight: 700,
+                    margin: 0,
+                    color: vars.colour.text,
+                }}
+            >
                 Will this compile?
             </h2>
 
@@ -122,7 +261,11 @@ export function ChallengeView({ state, dispatch, compiling, compileResult, onCom
                 compiling={compiling}
             />
 
-            <CompileOutput result={compileResult} compiling={compiling} onClear={onClearCompile} />
+            <CompileOutput
+                result={compileResult}
+                compiling={compiling}
+                onClear={onClearCompile}
+            />
 
             {!state.answered ? (
                 <div className={answerGrid}>
@@ -138,29 +281,82 @@ export function ChallengeView({ state, dispatch, compiling, compileResult, onCom
                         className={answerButton}
                         style={{ color: vars.colour.bad }}
                     >
-                        <X size={17} /> Won't compile
+                        <X size={17} /> Won&apos;t compile
                     </button>
                 </div>
             ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                    <div className={`${feedbackBox} ${isCorrect ? feedbackCorrect : feedbackIncorrect}`}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", fontWeight: 600, color: isCorrect ? vars.colour.good : vars.colour.bad }}>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                    }}
+                >
+                    <div
+                        className={`${feedbackBox} ${isCorrect ? feedbackCorrect : feedbackIncorrect}`}
+                    >
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                fontSize: "0.875rem",
+                                fontWeight: 600,
+                                color: isCorrect
+                                    ? vars.colour.good
+                                    : vars.colour.bad,
+                            }}
+                        >
                             {isCorrect ? <Check size={16} /> : <X size={16} />}
                             {isCorrect ? "Correct" : "Not quite"}
-                            <span style={{ color: vars.colour.dim, fontWeight: 400 }}>
-                                — this code {ch.compiles ? "compiles" : "does not compile"}.
+                            <span
+                                style={{
+                                    color: vars.colour.dim,
+                                    fontWeight: 400,
+                                }}
+                            >
+                                — this code{" "}
+                                {ch.compiles ? "compiles" : "does not compile"}.
                             </span>
                         </div>
-                        <p style={{ fontSize: "0.875rem", lineHeight: 1.625, margin: 0, color: vars.colour.text }}>
+                        <p
+                            style={{
+                                fontSize: "0.875rem",
+                                lineHeight: 1.625,
+                                margin: 0,
+                                color: vars.colour.text,
+                            }}
+                        >
                             {ch.why}
                         </p>
+                        {profile.background !== "none" ? (
+                            <PerLanguageNote
+                                challenge={ch}
+                                background={profile.background}
+                            />
+                        ) : null}
                     </div>
 
                     {ch.fix ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
+                            }}
+                        >
                             <span className={monoSm}>one way to fix it</span>
-                            <CodeBlock code={ch.fix} label="fixed.rs" onRun={() => onCompile(ch.fix ?? "")} compiling={compiling} />
-                            <CompileOutput result={compileResult} compiling={compiling} onClear={onClearCompile} />
+                            <CodeBlock
+                                code={ch.fix}
+                                label="fixed.rs"
+                                onRun={() => onCompile(ch.fix ?? "")}
+                                compiling={compiling}
+                            />
+                            <CompileOutput
+                                result={compileResult}
+                                compiling={compiling}
+                                onClear={onClearCompile}
+                            />
                         </div>
                     ) : null}
 
@@ -168,7 +364,9 @@ export function ChallengeView({ state, dispatch, compiling, compileResult, onCom
                         onClick={() => dispatch({ type: "next" })}
                         className={nextButton}
                     >
-                        {state.index + 1 >= CHALLENGES.length ? "See results" : "Next challenge"}
+                        {state.index + 1 >= filtered.length
+                            ? "See results"
+                            : "Next challenge"}
                         <ChevronRight size={16} />
                     </button>
                 </div>
@@ -177,5 +375,5 @@ export function ChallengeView({ state, dispatch, compiling, compileResult, onCom
     );
 }
 
-export { challengeReducer };
+export { challengeReducer, ChallengeView };
 export type { ChallengeState, ChallengeAction };

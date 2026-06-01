@@ -9,13 +9,28 @@ import {
 } from "../theme/styles.css.ts";
 import { Block } from "./Block.tsx";
 import { LESSONS } from "./lessons.ts";
-import type { Lesson } from "./lessons.ts";
+import type { Lesson, LessonBlock } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
+import type { UserProfile, ExperienceLevel } from "../settings/types.ts";
+
+const LEVEL_ORDER: Record<ExperienceLevel, number> = {
+    beginner: 0,
+    intermediate: 1,
+    advanced: 2,
+};
+
+function blockVisible(block: LessonBlock, level: ExperienceLevel): boolean {
+    if (!("level" in block)) return true;
+    const blockLevel = block.level;
+    if (blockLevel === undefined) return true;
+    return LEVEL_ORDER[blockLevel] <= LEVEL_ORDER[level];
+}
 
 interface LearnViewProps {
     readonly active: string;
     readonly setActive: (id: string) => void;
     readonly viewed: ReadonlySet<string>;
+    readonly profile: UserProfile;
     readonly compiling: boolean;
     readonly compileResult: CompileResult | null;
     onCompile: (code: string) => void;
@@ -28,7 +43,7 @@ function findLesson(id: string): Lesson {
     return lesson;
 }
 
-export function LearnView({ active, setActive, viewed, compiling, compileResult, onCompile, onClearCompile }: LearnViewProps) {
+export function LearnView({ active, setActive, viewed, profile, compiling, compileResult, onCompile, onClearCompile }: LearnViewProps) {
     const lesson = findLesson(active);
     return (
         <div className={learnGrid}>
@@ -58,16 +73,19 @@ export function LearnView({ active, setActive, viewed, compiling, compileResult,
                     <h2 className={lessonTitle}>{lesson.title}</h2>
                     <p className={lessonTagline}>{lesson.tagline}</p>
                 </header>
-                {lesson.blocks.map((b, i) => (
-                    <Block
-                        key={i}
-                        block={b}
-                        compiling={compiling}
-                        onRun={b.kind === "code" ? () => onCompile(b.code) : undefined}
-                        compileResult={compileResult}
-                        onClearCompile={onClearCompile}
-                    />
-                ))}
+                {lesson.blocks
+                    .filter((b) => blockVisible(b, profile.experience))
+                    .map((b, i) => (
+                        <Block
+                            key={i}
+                            block={b}
+                            profile={profile}
+                            compiling={compiling}
+                            onRun={b.kind === "code" ? () => onCompile(b.code) : undefined}
+                            compileResult={compileResult}
+                            onClearCompile={onClearCompile}
+                        />
+                    ))}
             </article>
         </div>
     );

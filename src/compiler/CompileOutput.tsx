@@ -4,7 +4,6 @@ import {
     outputPanel,
     outputHeader,
     outputPre,
-    runButton,
     clearButton,
 } from "../theme/styles.css.ts";
 import type { CompileResult } from "../compiler/types.ts";

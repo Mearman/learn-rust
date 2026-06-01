@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BookOpen, Code2, ListChecks, Trophy } from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
 import {
@@ -15,10 +15,16 @@ import {
 } from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
 import { LearnView } from "./learn/LearnView.tsx";
-import { ChallengeView, challengeReducer } from "./challenge/ChallengeView.tsx";
+import {
+    ChallengeView,
+    challengeReducer,
+} from "./challenge/ChallengeView.tsx";
 import type { ChallengeState, ChallengeAction } from "./challenge/ChallengeView.tsx";
+import { getFilteredChallenges } from "./challenge/challenges.ts";
 import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
+import { SettingsPanel } from "./settings/SettingsPanel.tsx";
+import { useUserProfile } from "./settings/useUserProfile.ts";
 
 type Mode = "learn" | "challenge" | "cheatsheet";
 
@@ -42,10 +48,21 @@ export function App() {
         total: 0,
     });
     const { compiling, result: compileResult, compile, clear: clearCompile } = useCompiler();
+    const [profile, setProfile] = useUserProfile();
+
+    useEffect(() => {
+        setChallenge({
+            index: 0,
+            answered: false,
+            guess: null,
+            correct: 0,
+            total: 0,
+        });
+    }, [profile.experience]);
 
     const dispatch = useCallback((action: ChallengeAction) => {
-        setChallenge((s) => challengeReducer(s, action));
-    }, []);
+        setChallenge((s) => challengeReducer(s, action, getFilteredChallenges(profile)));
+    }, [profile]);
 
     const selectLesson = useCallback((id: string) => {
         setActive(id);
@@ -79,6 +96,7 @@ export function App() {
                                 <Trophy size={13} style={{ color: vars.colour.accent }} />
                                 {challenge.correct}/{challenge.total}
                             </span>
+                            <SettingsPanel profile={profile} setProfile={setProfile} />
                         </div>
                     </div>
 
@@ -106,6 +124,7 @@ export function App() {
                             active={active}
                             setActive={selectLesson}
                             viewed={viewed}
+                            profile={profile}
                             compiling={compiling}
                             compileResult={compileResult}
                             onCompile={compile}
@@ -116,6 +135,7 @@ export function App() {
                         <ChallengeView
                             state={challenge}
                             dispatch={dispatch}
+                            profile={profile}
                             compiling={compiling}
                             compileResult={compileResult}
                             onCompile={compile}

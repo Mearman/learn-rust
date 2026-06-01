@@ -35,7 +35,7 @@ export class PlaygroundBackend implements CompilerBackend {
             edition: "2021",
             crateType: "bin",
             tests: false,
-            code,
+            code: wrapped,
             backtrace: false,
         };
 
