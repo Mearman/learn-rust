@@ -849,6 +849,54 @@ export const searchResults = style({
     gap: "0.5rem",
 });
 
+export const searchResultItem = style({
+    cursor: "pointer",
+    textAlign: "left",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.25rem",
+    borderRadius: "0.5rem",
+    padding: "0.75rem",
+    background: vars.colour.panel2,
+    border: `1px solid ${vars.colour.border}`,
+    width: "100%",
+    transition: "border-color 0.1s, background 0.1s",
+    selectors: {
+        "&:hover": {
+            borderColor: vars.colour.accent,
+        },
+    },
+});
+
+export const searchResultItemActive = style({
+    borderColor: vars.colour.accent,
+    background: vars.colour.accentDim,
+});
+
+export const searchCloseButton = style({
+    background: "transparent",
+    border: "none",
+    color: vars.colour.dim,
+    cursor: "pointer",
+    padding: "0.75rem",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    transition: "color 0.15s",
+    selectors: {
+        "&:hover": {
+            color: vars.colour.text,
+        },
+    },
+});
+
+export const searchHeaderBar = style({
+    display: "flex",
+    alignItems: "center",
+    borderBottom: `1px solid ${vars.colour.borderSoft}`,
+});
+
 export const hideOnMobile = style({
     display: "none",
     "@media": { [md]: { display: "inline" } },
