@@ -1,7 +1,7 @@
 import { SegmentedControl } from "@mantine/core";
 import { vars } from "../theme/theme.css.ts";
 import { settingsLabel } from "../theme/styles.css.ts";
-import type { ThemeMode } from "../theme/useThemeMode.ts";
+import { isThemeMode, type ThemeMode } from "../theme/useThemeMode.ts";
 
 interface ThemeToggleProps {
     readonly mode: ThemeMode;
@@ -19,15 +19,15 @@ const THEME_OPTIONS = [
 
 export function ThemeToggle({ mode, onChange }: ThemeToggleProps) {
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+        <div
+            style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
+        >
             <label className={settingsLabel}>Theme</label>
             <SegmentedControl
                 data={[...THEME_OPTIONS]}
                 value={mode}
                 onChange={(value) => {
-                    if (value === "auto" || value === "dark" || value === "light") {
-                        onChange(value);
-                    }
+                    if (isThemeMode(value)) onChange(value);
                 }}
                 size="xs"
                 styles={{

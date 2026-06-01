@@ -6,14 +6,14 @@ type ResolvedTheme = "dark" | "light";
 
 const STORAGE_KEY = "rbc-theme-v1";
 
+export function isThemeMode(value: string): value is ThemeMode {
+    return value === "auto" || value === "dark" || value === "light";
+}
+
 function readStoredMode(): ThemeMode {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (
-            stored === "auto" ||
-            stored === "dark" ||
-            stored === "light"
-        ) {
+        if (stored !== null && isThemeMode(stored)) {
             return stored;
         }
     } catch {
@@ -66,7 +66,7 @@ export function useThemeMode(): {
             };
         },
         () => currentMode,
-        () => "auto" as ThemeMode
+        () => "auto"
     );
 
     const resolved = resolveTheme(mode);
