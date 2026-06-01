@@ -10,7 +10,6 @@ interface PlaygroundRequest {
     readonly backtrace: boolean;
 }
 
-
 const ENDPOINT = "https://play.rust-lang.org/execute";
 
 export class PlaygroundBackend implements CompilerBackend {
@@ -57,8 +56,7 @@ export class PlaygroundBackend implements CompilerBackend {
                 exitDetail: "",
             };
         }
-        const obj = raw;
-        if (!("success" in obj) || !("stdout" in obj) || !("stderr" in obj)) {
+        if (!("success" in raw) || !("stdout" in raw) || !("stderr" in raw)) {
             return {
                 success: false,
                 stdout: "",
@@ -66,11 +64,10 @@ export class PlaygroundBackend implements CompilerBackend {
                 exitDetail: "",
             };
         }
-        const data = obj;
         if (
-            typeof data.success !== "boolean" ||
-            typeof data.stdout !== "string" ||
-            typeof data.stderr !== "string"
+            typeof raw.success !== "boolean" ||
+            typeof raw.stdout !== "string" ||
+            typeof raw.stderr !== "string"
         ) {
             return {
                 success: false,
@@ -80,12 +77,12 @@ export class PlaygroundBackend implements CompilerBackend {
             };
         }
         return {
-            success: data.success,
-            stdout: data.stdout,
-            stderr: data.stderr,
+            success: raw.success,
+            stdout: raw.stdout,
+            stderr: raw.stderr,
             exitDetail:
-                "exitDetail" in data && typeof data.exitDetail === "string"
-                    ? data.exitDetail
+                "exitDetail" in raw && typeof raw.exitDetail === "string"
+                    ? raw.exitDetail
                     : "",
         };
     }

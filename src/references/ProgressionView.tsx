@@ -121,7 +121,7 @@ export function ProgressionView({
                         >
                             {layerIndex === 0
                                 ? "Start here"
-                                : `Layer ${layerIndex + 1}`}
+                                : `Layer ${String(layerIndex + 1)}`}
                         </span>
                     </div>
                     <div
