@@ -6,6 +6,9 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 import eslintPluginPrettier from "eslint-plugin-prettier";
 import { defineConfig, globalIgnores } from "eslint/config";
 import type { Rule } from "eslint";
+import type { RuleModule } from "@typescript-eslint/utils/ts-eslint";
+import type { TSESTree } from "@typescript-eslint/utils";
+
 
 // ---------------------------------------------------------------------------
 // Custom rule: no-pointless-reassignments
@@ -14,7 +17,7 @@ import type { Rule } from "eslint";
 // all reads of the alias with the original name and removes the declaration.
 // ---------------------------------------------------------------------------
 
-const noPointlessReassignments = {
+const noPointlessReassignments: RuleModule = {
     meta: {
         type: "problem",
         fixable: "code",
@@ -117,7 +120,7 @@ const noPointlessReassignments = {
 // by its own name, not re-exported through a barrel.
 // ---------------------------------------------------------------------------
 
-const noBarrelFiles = {
+const noBarrelFiles: RuleModule = {
     meta: {
         type: "problem",
         messages: {
@@ -149,7 +152,7 @@ const noBarrelFiles = {
 // the source module instead. Autofix removes the re-export statement.
 // ---------------------------------------------------------------------------
 
-const noReExports = {
+const noReExports: RuleModule = {
     meta: {
         type: "problem",
         fixable: "code",
@@ -235,7 +238,7 @@ const noReExports = {
 // Bans dynamic import() expressions. Use static imports instead.
 // ---------------------------------------------------------------------------
 
-const noDynamicImports = {
+const noDynamicImports: RuleModule = {
     meta: {
         type: "problem",
         messages: {

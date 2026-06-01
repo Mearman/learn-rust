@@ -103,6 +103,3 @@ export function joinLanguageFamiliarities(
         type: "conjunction",
     }).format(familiarities.map(languageNameForId));
 }
-
-/** @deprecated Use languageNameForId instead. */
-export 

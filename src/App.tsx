@@ -118,13 +118,6 @@ export function App() {
     });
     const [glossaryId, setGlossaryId] = useState(FIRST_GLOSSARY_ID);
     const [errorId, setErrorId] = useState(FIRST_ERROR_ID);
-    const [challenge, setChallenge] = useState<ChallengeState>({
-        index: 0,
-        answered: false,
-        guess: null,
-        correct: 0,
-        total: 0,
-    });
     const {
         compiling,
         result: compileResult,

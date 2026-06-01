@@ -64,7 +64,9 @@ export function SearchView({
                     type: "lesson",
                     label: lesson.title,
                     description: lesson.tagline,
-                    action: () => onOpenLesson(lesson.id),
+                    action: () => {
+                        onOpenLesson(lesson.id);
+                    },
                 });
             }
         }
@@ -79,7 +81,9 @@ export function SearchView({
                     type: "concept",
                     label: concept.title,
                     description: concept.description,
-                    action: () => onOpenConcept(concept.id),
+                    action: () => {
+                        onOpenConcept(concept.id);
+                    },
                 });
             }
         }
@@ -93,7 +97,9 @@ export function SearchView({
                     type: "glossary",
                     label: term.term,
                     description: term.definition.slice(0, 120) + "...",
-                    action: () => onOpenGlossary(term.id),
+                    action: () => {
+                        onOpenGlossary(term.id);
+                    },
                 });
             }
         }
@@ -108,7 +114,9 @@ export function SearchView({
                     type: "error",
                     label: `${error.code}: ${error.title}`,
                     description: error.explanation.slice(0, 120) + "...",
-                    action: () => onOpenError(error.id),
+                    action: () => {
+                        onOpenError(error.id);
+                    },
                 });
             }
         }
@@ -119,7 +127,9 @@ export function SearchView({
                     type: "syntax",
                     label: `Syntax: ${topic}`,
                     description: `Side-by-side syntax comparison for ${topic}.`,
-                    action: () => onOpenSyntax(topic),
+                    action: () => {
+                        onOpenSyntax(topic);
+                    },
                 });
             }
         }
@@ -166,7 +176,9 @@ export function SearchView({
                 <input
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                        setQuery(e.target.value);
+                    }}
                     placeholder="Search lessons, concepts, syntax, glossary, errors..."
                     style={{
                         flex: 1,
