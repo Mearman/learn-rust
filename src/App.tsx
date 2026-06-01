@@ -35,9 +35,14 @@ import {
     hideOnMobile,
 } from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
+import { useViewedLessons } from "./learn/useViewedLessons.ts";
 import { LearnView } from "./learn/LearnView.tsx";
 import { ChallengeView } from "./challenge/ChallengeView.tsx";
 import { challengeReducer } from "./challenge/challengeReducer.ts";
+import {
+    loadChallengeScore,
+    useChallengeScore,
+} from "./challenge/useChallengeScore.ts";
 import type {
     ChallengeState,
     ChallengeAction,
@@ -93,7 +98,7 @@ export function App() {
     const subIds = subSections.map((s) => s.id);
     const activeSub = useActiveSubSection(subIds);
 
-    const [viewed, setViewed] = useState<ReadonlySet<string>>(() => new Set());
+    const [viewed, markViewed] = useViewedLessons();
     const {
         compiling,
         result: compileResult,
@@ -103,31 +108,28 @@ export function App() {
     const [profile, setProfile] = useUserProfile();
     const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
 
-    const [challenge, setChallenge] = useState<ChallengeState>({
-        index: 0,
-        answered: false,
-        guess: null,
-        correct: 0,
-        total: 0,
+    const saveScore = useChallengeScore();
+    const [challenge, setChallenge] = useState<ChallengeState>(() => {
+        const { correct, total } = loadChallengeScore();
+        return { index: 0, answered: false, guess: null, correct, total };
     });
 
     const dispatch = useCallback(
         (action: ChallengeAction) => {
-            setChallenge((s) =>
-                challengeReducer(s, action, getFilteredChallenges(profile))
-            );
+            setChallenge((s) => {
+                const next = challengeReducer(
+                    s,
+                    action,
+                    getFilteredChallenges(profile)
+                );
+                // Persist only the cumulative score; per-session fields
+                // (index, answered, guess) reset on the next load.
+                saveScore(next.correct, next.total);
+                return next;
+            });
         },
-        [profile]
+        [profile, saveScore]
     );
-
-    const markViewed = useCallback((id: string) => {
-        setViewed((prev) => {
-            if (prev.has(id)) return prev;
-            const next = new Set(prev);
-            next.add(id);
-            return next;
-        });
-    }, []);
 
     const {
         openLesson,
