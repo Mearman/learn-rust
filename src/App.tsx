@@ -1,23 +1,27 @@
 import { useState, useCallback } from "react";
 import { BookOpen, Code2, ListChecks, Trophy } from "lucide-react";
-import { C } from "./theme/colours.ts";
-import { LAYOUT_CSS } from "./theme/layout.ts";
+import { vars } from "./theme/theme.css.ts";
+import {
+    shell,
+    shellInner,
+    headerFlex,
+    heading,
+    mainPanel,
+    tabNav,
+    tabButton,
+    tabButtonActive,
+    footer,
+    monoSm,
+} from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
 import { LearnView } from "./learn/LearnView.tsx";
 import { ChallengeView, challengeReducer } from "./challenge/ChallengeView.tsx";
-import type {
-    ChallengeState,
-    ChallengeAction,
-} from "./challenge/ChallengeView.tsx";
+import type { ChallengeState, ChallengeAction } from "./challenge/ChallengeView.tsx";
 import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 
 type Mode = "learn" | "challenge" | "cheatsheet";
 
-const TABS: readonly {
-    readonly id: Mode;
-    readonly label: string;
-    readonly icon: typeof BookOpen;
-}[] = [
+const TABS: readonly { readonly id: Mode; readonly label: string; readonly icon: typeof BookOpen }[] = [
     { id: "learn", label: "Learn", icon: BookOpen },
     { id: "challenge", label: "Will it compile?", icon: ListChecks },
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
@@ -51,97 +55,52 @@ export function App() {
     }, []);
 
     return (
-        <div
-            className="font-sans w-full min-h-screen"
-            style={{ background: C.bg, color: C.text }}
-        >
-            <style>{LAYOUT_CSS}</style>
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
-                <header className="flex flex-col gap-4">
-                    <div className="flex items-end justify-between gap-4 flex-wrap">
-                        <div className="flex flex-col gap-1">
-                            <h1
-                                className="text-2xl sm:text-3xl font-bold m-0 tracking-tight"
-                                style={{ color: C.text }}
-                            >
+        <div className={shell}>
+            <div className={shellInner}>
+                <header style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    <div className={headerFlex}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                            <h1 className={heading}>
                                 Rust{" "}
-                                <span style={{ color: C.accent }}>
-                                    by concept
-                                </span>
+                                <span style={{ color: vars.colour.accent }}>by concept</span>
                             </h1>
-                            <p
-                                className="text-sm m-0"
-                                style={{ color: C.faint }}
-                            >
-                                The ten ideas that actually make Rust feel
-                                different.
+                            <p style={{ fontSize: "0.875rem", margin: 0, color: vars.colour.faint }}>
+                                The ten ideas that actually make Rust feel different.
                             </p>
                         </div>
-                        <div
-                            className="flex items-center gap-4 text-xs font-mono"
-                            style={{ color: C.faint }}
-                        >
-                            <span className="flex items-center gap-1.5">
-                                <BookOpen
-                                    size={13}
-                                    style={{ color: C.accent }}
-                                />
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }} className={monoSm}>
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                                <BookOpen size={13} style={{ color: vars.colour.accent }} />
                                 {viewed.size}/{LESSONS.length} read
                             </span>
-                            <span className="flex items-center gap-1.5">
-                                <Trophy size={13} style={{ color: C.accent }} />
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                                <Trophy size={13} style={{ color: vars.colour.accent }} />
                                 {challenge.correct}/{challenge.total}
                             </span>
                         </div>
                     </div>
 
-                    <nav
-                        className="flex gap-1 p-1 rounded-xl self-start"
-                        style={{
-                            background: C.panel,
-                            border: `1px solid ${C.border}`,
-                        }}
-                    >
+                    <nav className={tabNav}>
                         {TABS.map((t) => {
                             const Icon = t.icon;
                             const on = t.id === mode;
                             return (
                                 <button
                                     key={t.id}
-                                    onClick={() => {
-                                        setMode(t.id);
-                                    }}
-                                    className="flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors"
-                                    style={{
-                                        background: on
-                                            ? C.accent
-                                            : "transparent",
-                                        color: on ? "#1a0f08" : C.dim,
-                                    }}
+                                    onClick={() => setMode(t.id)}
+                                    className={`${tabButton} ${on ? tabButtonActive : ""}`}
                                 >
                                     <Icon size={15} />
-                                    <span className="whitespace-nowrap">
-                                        {t.label}
-                                    </span>
+                                    <span>{t.label}</span>
                                 </button>
                             );
                         })}
                     </nav>
                 </header>
 
-                <main
-                    className="rounded-2xl p-4 sm:p-6"
-                    style={{
-                        background: C.panel,
-                        border: `1px solid ${C.border}`,
-                    }}
-                >
+                <main className={mainPanel}>
                     {mode === "learn" ? (
-                        <LearnView
-                            active={active}
-                            setActive={selectLesson}
-                            viewed={viewed}
-                        />
+                        <LearnView active={active} setActive={selectLesson} viewed={viewed} />
                     ) : null}
                     {mode === "challenge" ? (
                         <ChallengeView state={challenge} dispatch={dispatch} />
@@ -149,12 +108,8 @@ export function App() {
                     {mode === "cheatsheet" ? <CheatsheetView /> : null}
                 </main>
 
-                <footer
-                    className="text-center text-xs"
-                    style={{ color: C.faint }}
-                >
-                    Snippets are illustrative. Run them for real at
-                    play.rust-lang.org
+                <footer className={footer}>
+                    Snippets are illustrative. Run them for real at play.rust-lang.org
                 </footer>
             </div>
         </div>

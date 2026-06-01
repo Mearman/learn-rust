@@ -1,4 +1,5 @@
-import { C } from "../theme/colours.ts";
+import { vars } from "../theme/theme.css.ts";
+import { cheatsGrid, cheatCard, cheatTitle } from "../theme/styles.css.ts";
 
 interface CheatSection {
     readonly title: string;
@@ -18,14 +19,8 @@ const CHEATS: readonly CheatSection[] = [
         title: "The borrowing rules",
         rows: [
             ["&T", "Any number of shared (read-only) references."],
-            [
-                "&mut T",
-                "Exactly one exclusive reference, and no &T alongside it.",
-            ],
-            [
-                "scope",
-                "A borrow lasts only until its final use, not the whole block.",
-            ],
+            ["&mut T", "Exactly one exclusive reference, and no &T alongside it."],
+            ["scope", "A borrow lasts only until its final use, not the whole block."],
         ],
     },
     {
@@ -61,32 +56,19 @@ const CHEATS: readonly CheatSection[] = [
 
 export function CheatsheetView() {
     return (
-        <div className="rbc-cheats">
+        <div className={cheatsGrid}>
             {CHEATS.map((c) => (
-                <div
-                    key={c.title}
-                    className="rounded-lg p-4 flex flex-col gap-3"
-                    style={{
-                        background: C.panel2,
-                        border: `1px solid ${C.border}`,
-                    }}
-                >
-                    <h3
-                        className="text-sm font-semibold m-0"
-                        style={{ color: C.accentSoft }}
-                    >
-                        {c.title}
-                    </h3>
-                    <div className="flex flex-col gap-2">
+                <div key={c.title} className={cheatCard}>
+                    <h3 className={cheatTitle}>{c.title}</h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                         {c.rows.map((r, i) => (
-                            <div key={i} className="flex gap-3 text-sm">
+                            <div key={i} style={{ display: "flex", gap: "0.75rem", fontSize: "0.875rem" }}>
                                 <code
-                                    className="font-mono flex-shrink-0"
-                                    style={{ color: C.text, minWidth: 92 }}
+                                    style={{ fontFamily: "ui-monospace, monospace", flexShrink: 0, color: vars.colour.text, minWidth: 92 }}
                                 >
                                     {r[0]}
                                 </code>
-                                <span style={{ color: C.dim }}>{r[1]}</span>
+                                <span style={{ color: vars.colour.dim }}>{r[1]}</span>
                             </div>
                         ))}
                     </div>
