@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, Code2, ArrowLeftRight, Braces, ListChecks, Trophy, type LucideIcon } from "lucide-react";
+import {
+    BookOpen,
+    Code2,
+    ArrowLeftRight,
+    AlertTriangle,
+    Braces,
+    GitBranch,
+    ListChecks,
+    MagnifyingGlass,
+    Trophy,
+    type LucideIcon,
+} from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
 import {
     shell,
@@ -29,16 +40,35 @@ import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
 import { joinLanguageFamiliarities } from "./data/languages.ts";
 import { ComparisonView } from "./references/ComparisonView.tsx";
 import { SyntaxView } from "./references/SyntaxView.tsx";
+import { GlossaryView } from "./references/GlossaryView.tsx";
+import { ErrorCatalogueView } from "./references/ErrorCatalogueView.tsx";
+import { ProgressionView } from "./references/ProgressionView.tsx";
+import { SearchView } from "./references/SearchView.tsx";
 import { SYNTAX_REFERENCES } from "./data/syntax-references.ts";
 import { CONCEPTS } from "./data/concepts.ts";
+import { GLOSSARY } from "./data/glossary.ts";
+import { ERROR_CATALOGUE } from "./data/errors.ts";
 
-type Mode = "learn" | "challenge" | "compare" | "syntax" | "cheatsheet";
+type Mode =
+    | "learn"
+    | "challenge"
+    | "compare"
+    | "syntax"
+    | "glossary"
+    | "errors"
+    | "progression"
+    | "search"
+    | "cheatsheet";
 
 const TABS: readonly { readonly id: Mode; readonly label: string; readonly icon: LucideIcon }[] = [
     { id: "learn", label: "Learn", icon: BookOpen },
     { id: "challenge", label: "Will it compile?", icon: ListChecks },
+    { id: "progression", label: "Path", icon: GitBranch },
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
     { id: "syntax", label: "Syntax", icon: Braces },
+    { id: "glossary", label: "Glossary", icon: BookOpen },
+    { id: "errors", label: "Errors", icon: AlertTriangle },
+    { id: "search", label: "Search", icon: MagnifyingGlass },
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
 ];
 
@@ -55,6 +85,20 @@ const FIRST_CONCEPT_ID = (() => {
     }
     return concept.id;
 })();
+const FIRST_GLOSSARY_ID = (() => {
+    const entry = GLOSSARY[0];
+    if (entry === undefined) {
+        throw new Error("No glossary entries configured");
+    }
+    return entry.id;
+})();
+const FIRST_ERROR_ID = (() => {
+    const entry = ERROR_CATALOGUE[0];
+    if (entry === undefined) {
+        throw new Error("No error entries configured");
+    }
+    return entry.id;
+})();
 
 export function App() {
     const [mode, setMode] = useState<Mode>("learn");
@@ -68,6 +112,8 @@ export function App() {
         }
         return first;
     });
+    const [glossaryId, setGlossaryId] = useState(FIRST_GLOSSARY_ID);
+    const [errorId, setErrorId] = useState(FIRST_ERROR_ID);
     const [challenge, setChallenge] = useState<ChallengeState>({
         index: 0,
         answered: false,
@@ -105,6 +151,21 @@ export function App() {
     const openCompare = useCallback((id: string) => {
         setConcept(id);
         setMode("compare");
+    }, []);
+
+    const openSyntax = useCallback((topic: string) => {
+        setSyntaxTopic(topic);
+        setMode("syntax");
+    }, []);
+
+    const openGlossary = useCallback((id: string) => {
+        setGlossaryId(id);
+        setMode("glossary");
+    }, []);
+
+    const openError = useCallback((id: string) => {
+        setErrorId(id);
+        setMode("errors");
     }, []);
 
     return (
@@ -186,6 +247,13 @@ export function App() {
                             onClearCompile={clearCompile}
                         />
                     ) : null}
+                    {mode === "progression" ? (
+                        <ProgressionView
+                            profile={profile}
+                            onOpenLesson={selectLesson}
+                            onOpenConcept={openCompare}
+                        />
+                    ) : null}
                     {mode === "compare" ? (
                         <ComparisonView
                             profile={profile}
@@ -201,7 +269,38 @@ export function App() {
                             onSelect={setSyntaxTopic}
                         />
                     ) : null}
-                    {mode === "cheatsheet" ? <CheatsheetView onOpenReferences={() => setMode("references")} /> : null}
+                    {mode === "glossary" ? (
+                        <GlossaryView
+                            profile={profile}
+                            active={glossaryId}
+                            onSelect={setGlossaryId}
+                            onOpenConcept={openCompare}
+                        />
+                    ) : null}
+                    {mode === "errors" ? (
+                        <ErrorCatalogueView
+                            profile={profile}
+                            active={errorId}
+                            onSelect={setErrorId}
+                            onOpenConcept={openCompare}
+                        />
+                    ) : null}
+                    {mode === "search" ? (
+                        <SearchView
+                            profile={profile}
+                            onOpenLesson={selectLesson}
+                            onOpenConcept={openCompare}
+                            onOpenSyntax={openSyntax}
+                            onOpenGlossary={openGlossary}
+                            onOpenError={openError}
+                        />
+                    ) : null}
+                    {mode === "cheatsheet" ? (
+                        <CheatsheetView
+                            onOpenReferences={() => setMode("compare")}
+                            onOpenConcept={openCompare}
+                        />
+                    ) : null}
                 </main>
 
                 <footer className={footer}>
