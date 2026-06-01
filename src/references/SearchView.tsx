@@ -1,13 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { vars } from "../theme/theme.css.ts";
-import { cheatCard, noteBlock } from "../theme/styles.css.ts";
-import { CONCEPTS } from "../data/concepts.ts";
-import { LESSONS } from "../learn/lessons.ts";
-import { GLOSSARY } from "../data/glossary.ts";
-import { ERROR_CATALOGUE } from "../data/errors.ts";
-import { SYNTAX_REFERENCES } from "../data/syntax-references.ts";
+import {
+    noteBlock,
+    searchResultItem,
+    searchResultItemActive,
+} from "../theme/styles.css.ts";
+import { buildSearchResults } from "./searchResults.ts";
 
 interface SearchViewProps {
+    readonly query: string;
+    readonly activeIndex: number;
     readonly onOpenLesson: (lessonId: string) => void;
     readonly onOpenConcept: (conceptId: string) => void;
     readonly onOpenSyntax: (topic: string) => void;
@@ -15,148 +17,36 @@ interface SearchViewProps {
     readonly onOpenError: (errorId: string) => void;
 }
 
-type ResultType = "lesson" | "concept" | "syntax" | "glossary" | "error";
-
-interface SearchResult {
-    readonly type: ResultType;
-    readonly label: string;
-    readonly description: string;
-    readonly action: () => void;
-}
-
-const SYNTAX_TOPICS = SYNTAX_REFERENCES.reduce<string[]>((acc, entry) => {
-    if (!acc.includes(entry.topic)) acc.push(entry.topic);
-    return acc;
-}, []);
-
 export function SearchView({
+    query,
+    activeIndex,
     onOpenLesson,
     onOpenConcept,
     onOpenSyntax,
     onOpenGlossary,
     onOpenError,
 }: SearchViewProps) {
-    const [query, setQuery] = useState("");
-
-    const results = useMemo(() => {
-        if (query.trim().length < 2) return [];
-
-        const q = query.toLowerCase();
-        const found: SearchResult[] = [];
-
-        for (const lesson of LESSONS) {
-            if (
-                lesson.title.toLowerCase().includes(q) ||
-                lesson.tagline.toLowerCase().includes(q) ||
-                lesson.id.toLowerCase().includes(q)
-            ) {
-                found.push({
-                    type: "lesson",
-                    label: lesson.title,
-                    description: lesson.tagline,
-                    action: () => {
-                        onOpenLesson(lesson.id);
-                    },
-                });
-            }
-        }
-
-        for (const concept of CONCEPTS) {
-            if (
-                concept.title.toLowerCase().includes(q) ||
-                concept.description.toLowerCase().includes(q) ||
-                concept.id.toLowerCase().includes(q)
-            ) {
-                found.push({
-                    type: "concept",
-                    label: concept.title,
-                    description: concept.description,
-                    action: () => {
-                        onOpenConcept(concept.id);
-                    },
-                });
-            }
-        }
-
-        for (const term of GLOSSARY) {
-            if (
-                term.term.toLowerCase().includes(q) ||
-                term.definition.toLowerCase().includes(q)
-            ) {
-                found.push({
-                    type: "glossary",
-                    label: term.term,
-                    description: term.definition.slice(0, 120) + "...",
-                    action: () => {
-                        onOpenGlossary(term.id);
-                    },
-                });
-            }
-        }
-
-        for (const error of ERROR_CATALOGUE) {
-            if (
-                error.code.toLowerCase().includes(q) ||
-                error.title.toLowerCase().includes(q) ||
-                error.explanation.toLowerCase().includes(q)
-            ) {
-                found.push({
-                    type: "error",
-                    label: `${error.code}: ${error.title}`,
-                    description: error.explanation.slice(0, 120) + "...",
-                    action: () => {
-                        onOpenError(error.id);
-                    },
-                });
-            }
-        }
-
-        for (const topic of SYNTAX_TOPICS) {
-            if (topic.toLowerCase().includes(q)) {
-                found.push({
-                    type: "syntax",
-                    label: `Syntax: ${topic}`,
-                    description: `Side-by-side syntax comparison for ${topic}.`,
-                    action: () => {
-                        onOpenSyntax(topic);
-                    },
-                });
-            }
-        }
-
-        return found;
-    }, [
-        query,
-        onOpenLesson,
-        onOpenConcept,
-        onOpenSyntax,
-        onOpenGlossary,
-        onOpenError,
-    ]);
+    const results = useMemo(
+        () =>
+            buildSearchResults(query, {
+                onOpenLesson,
+                onOpenConcept,
+                onOpenSyntax,
+                onOpenGlossary,
+                onOpenError,
+            }),
+        [
+            query,
+            onOpenLesson,
+            onOpenConcept,
+            onOpenSyntax,
+            onOpenGlossary,
+            onOpenError,
+        ]
+    );
 
     return (
         <>
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => {
-                    setQuery(e.target.value);
-                }}
-                className={cheatCard}
-                placeholder="Type to search..."
-                style={{
-                    border: `1px solid ${vars.colour.border}`,
-                    background: vars.colour.panel2,
-                    color: vars.colour.text,
-                    fontSize: "1rem",
-                    fontFamily: "inherit",
-                    padding: "0.75rem",
-                    borderRadius: "0.5rem",
-                    outline: "none",
-                    width: "100%",
-                }}
-            />
-
             {query.trim().length >= 2 && results.length === 0 ? (
                 <div className={noteBlock}>
                     <span>No results for &quot;{query}&quot;.</span>
@@ -167,17 +57,11 @@ export function SearchView({
                 <button
                     key={i}
                     type="button"
+                    id={`search-result-${String(i)}`}
+                    role="option"
+                    aria-selected={i === activeIndex}
                     onClick={result.action}
-                    className={cheatCard}
-                    style={{
-                        cursor: "pointer",
-                        textAlign: "left",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.25rem",
-                        border: "none",
-                        width: "100%",
-                    }}
+                    className={`${searchResultItem} ${i === activeIndex ? searchResultItemActive : ""}`}
                 >
                     <span
                         style={{
