@@ -14,6 +14,7 @@ import type { Lesson, LessonBlock } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { UserProfile, ExperienceLevel } from "../settings/types.ts";
 import { backgroundContextNotes } from "../settings/background-context.ts";
+import { LESSON_REFERENCE_LINKS, REFERENCE_CARDS } from "../references/references.ts";
 
 const LEVEL_ORDER: Record<ExperienceLevel, number> = {
     beginner: 0,
@@ -37,6 +38,7 @@ interface LearnViewProps {
     readonly compileResult: CompileResult | null;
     onCompile: (code: string) => void;
     onClearCompile: () => void;
+    onOpenReference: (id: string) => void;
 }
 
 function findLesson(id: string): Lesson {
@@ -45,7 +47,15 @@ function findLesson(id: string): Lesson {
     return lesson;
 }
 
-export function LearnView({ active, setActive, viewed, profile, compiling, compileResult, onCompile, onClearCompile }: LearnViewProps) {
+function referenceTitleForId(id: string): string {
+    const reference = REFERENCE_CARDS.find((card) => card.id === id);
+    if (reference === undefined) {
+        throw new Error(`Unknown reference: ${id}`);
+    }
+    return reference.title;
+}
+
+export function LearnView({ active, setActive, viewed, profile, compiling, compileResult, onCompile, onClearCompile, onOpenReference }: LearnViewProps) {
     const lesson = findLesson(active);
     return (
         <div className={learnGrid}>
@@ -75,6 +85,25 @@ export function LearnView({ active, setActive, viewed, profile, compiling, compi
                     <h2 className={lessonTitle}>{lesson.title}</h2>
                     <p className={lessonTagline}>{lesson.tagline}</p>
                 </header>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    {(() => {
+                        const related = LESSON_REFERENCE_LINKS[lesson.id];
+                        if (related === undefined) {
+                            throw new Error(`No references configured for lesson: ${lesson.id}`);
+                        }
+                        return related.map((id) => (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => onOpenReference(id)}
+                                className={navButton}
+                                style={{ width: "auto", padding: "0.45rem 0.75rem" }}
+                            >
+                                Open reference: {referenceTitleForId(id)}
+                            </button>
+                        ));
+                    })()}
+                </div>
                 {backgroundContextNotes(profile.backgrounds).map((note) => (
                     <div key={note} className={noteBlock}>
                         <Lightbulb size={16} style={{ color: vars.colour.accent, flexShrink: 0, marginTop: 2 }} />

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, Code2, ListChecks, Trophy } from "lucide-react";
+import { BookOpen, Code2, FileText, ListChecks, Trophy, type LucideIcon } from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
 import {
     shell,
@@ -27,21 +27,32 @@ import { SettingsPanel } from "./settings/SettingsPanel.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
 import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
 import { joinLanguageFamiliarities } from "./settings/languages.ts";
+import { ReferenceView } from "./references/ReferenceView.tsx";
+import { REFERENCE_CARDS } from "./references/references.ts";
 
-type Mode = "learn" | "challenge" | "cheatsheet";
+type Mode = "learn" | "challenge" | "references" | "cheatsheet";
 
-const TABS: readonly { readonly id: Mode; readonly label: string; readonly icon: typeof BookOpen }[] = [
+const TABS: readonly { readonly id: Mode; readonly label: string; readonly icon: LucideIcon }[] = [
     { id: "learn", label: "Learn", icon: BookOpen },
     { id: "challenge", label: "Will it compile?", icon: ListChecks },
+    { id: "references", label: "References", icon: FileText },
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
 ];
 
 const FIRST_LESSON_ID = LESSONS[0]?.id ?? "ownership";
+const FIRST_REFERENCE_ID = (() => {
+    const reference = REFERENCE_CARDS[0];
+    if (reference === undefined) {
+        throw new Error("No reference cards configured");
+    }
+    return reference.id;
+})();
 
 export function App() {
     const [mode, setMode] = useState<Mode>("learn");
     const [active, setActive] = useState(FIRST_LESSON_ID);
     const [viewed, setViewed] = useState(() => new Set([FIRST_LESSON_ID]));
+    const [reference, setReference] = useState(FIRST_REFERENCE_ID);
     const [challenge, setChallenge] = useState<ChallengeState>({
         index: 0,
         answered: false,
@@ -73,6 +84,12 @@ export function App() {
             next.add(id);
             return next;
         });
+        setMode("learn");
+    }, []);
+
+    const openReference = useCallback((id: string) => {
+        setReference(id);
+        setMode("references");
     }, []);
 
     return (
@@ -140,6 +157,7 @@ export function App() {
                             compileResult={compileResult}
                             onCompile={compile}
                             onClearCompile={clearCompile}
+                            onOpenReference={openReference}
                         />
                     ) : null}
                     {mode === "challenge" ? (
@@ -151,6 +169,14 @@ export function App() {
                             compileResult={compileResult}
                             onCompile={compile}
                             onClearCompile={clearCompile}
+                        />
+                    ) : null}
+                    {mode === "references" ? (
+                        <ReferenceView
+                            profile={profile}
+                            active={reference}
+                            onSelect={setReference}
+                            onOpenLesson={selectLesson}
                         />
                     ) : null}
                     {mode === "cheatsheet" ? <CheatsheetView /> : null}
