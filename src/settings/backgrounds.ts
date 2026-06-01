@@ -1,7 +1,6 @@
 import type { DeveloperBackground } from "./types.ts";
 
 export const DEVELOPER_BACKGROUND_OPTIONS = [
-    { value: "none", label: "No specific background" },
     { value: "frontend", label: "Frontend / web" },
     { value: "backend", label: "Backend / API" },
     { value: "mobile", label: "Mobile" },
@@ -15,7 +14,7 @@ export const DEVELOPER_BACKGROUND_OPTIONS = [
     { value: "other", label: "Something else" },
 ] as const;
 
-export function developerBackgroundLabel(background: Exclude<DeveloperBackground, "none">): string {
+export function developerBackgroundLabel(background: DeveloperBackground): string {
     if (background === "frontend") return "Frontend / web";
     if (background === "backend") return "Backend / API";
     if (background === "mobile") return "Mobile";
@@ -27,4 +26,11 @@ export function developerBackgroundLabel(background: Exclude<DeveloperBackground
     if (background === "student") return "Student / new to code";
     if (background === "self-taught") return "Self-taught";
     return "Something else";
+}
+
+export function joinDeveloperBackgrounds(backgrounds: readonly DeveloperBackground[]): string {
+    if (backgrounds.length === 0) return "not set";
+    return new Intl.ListFormat("en-GB", { style: "long", type: "conjunction" }).format(
+        backgrounds.map(developerBackgroundLabel),
+    );
 }

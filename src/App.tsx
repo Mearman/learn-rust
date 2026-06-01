@@ -25,8 +25,8 @@ import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
 import { SettingsPanel } from "./settings/SettingsPanel.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
-import { developerBackgroundLabel } from "./settings/backgrounds.ts";
-import { languageFamiliarityLabel } from "./settings/languages.ts";
+import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
+import { joinLanguageFamiliarities } from "./settings/languages.ts";
 
 type Mode = "learn" | "challenge" | "cheatsheet";
 
@@ -100,17 +100,11 @@ export function App() {
                             </span>
                             <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
                                 <span style={{ color: vars.colour.accent }}>•</span>
-                                Background:
-                                {profile.background === "none"
-                                    ? " not set"
-                                    : ` ${developerBackgroundLabel(profile.background)}`}
+                                Backgrounds: {joinDeveloperBackgrounds(profile.backgrounds)}
                             </span>
                             <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
                                 <span style={{ color: vars.colour.accent }}>•</span>
-                                Familiarity:
-                                {profile.familiarity === "none"
-                                    ? " not set"
-                                    : ` ${languageFamiliarityLabel(profile.familiarity)}`}
+                                Familiarities: {joinLanguageFamiliarities(profile.familiarities)}
                             </span>
                         </div>
                     </div>

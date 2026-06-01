@@ -1,5 +1,4 @@
 export type LanguageFamiliarity =
-    | "none"
     | "python"
     | "typescript"
     | "java"
@@ -9,7 +8,6 @@ export type LanguageFamiliarity =
     | "cpp";
 
 export type DeveloperBackground =
-    | "none"
     | "frontend"
     | "backend"
     | "mobile"
@@ -25,8 +23,8 @@ export type DeveloperBackground =
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
 
 export interface UserProfile {
-    readonly background: DeveloperBackground;
-    readonly familiarity: LanguageFamiliarity;
+    readonly backgrounds: readonly DeveloperBackground[];
+    readonly familiarities: readonly LanguageFamiliarity[];
     readonly experience: ExperienceLevel;
 }
 
@@ -34,8 +32,7 @@ export type UserProfileUpdater = (updater: (prev: UserProfile) => UserProfile) =
 
 export function isLanguageFamiliarity(value: string): value is LanguageFamiliarity {
     return (
-        value === "none"
-        || value === "python"
+        value === "python"
         || value === "typescript"
         || value === "java"
         || value === "kotlin"
@@ -47,8 +44,7 @@ export function isLanguageFamiliarity(value: string): value is LanguageFamiliari
 
 export function isDeveloperBackground(value: string): value is DeveloperBackground {
     return (
-        value === "none"
-        || value === "frontend"
+        value === "frontend"
         || value === "backend"
         || value === "mobile"
         || value === "systems"
@@ -66,9 +62,16 @@ export function isExperienceLevel(value: string): value is ExperienceLevel {
     return value === "beginner" || value === "intermediate" || value === "advanced";
 }
 
+function isStringArray(value: unknown): value is readonly string[] {
+    return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
 export function isUserProfile(value: unknown): value is UserProfile {
     if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-    if (!("background" in value) || !("familiarity" in value) || !("experience" in value)) return false;
-    if (typeof value.background !== "string" || typeof value.familiarity !== "string" || typeof value.experience !== "string") return false;
-    return isDeveloperBackground(value.background) && isLanguageFamiliarity(value.familiarity) && isExperienceLevel(value.experience);
+    if (!("backgrounds" in value) || !("familiarities" in value) || !("experience" in value)) return false;
+    if (!isStringArray(value.backgrounds) || !isStringArray(value.familiarities)) return false;
+    if (typeof value.experience !== "string") return false;
+    return value.backgrounds.every(isDeveloperBackground)
+        && value.familiarities.every(isLanguageFamiliarity)
+        && isExperienceLevel(value.experience);
 }

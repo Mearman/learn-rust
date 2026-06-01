@@ -8,7 +8,7 @@ export interface Challenge {
     readonly why: string;
     readonly fix?: string;
     readonly whyPerLanguage?: Partial<
-        Record<Exclude<LanguageFamiliarity, "none">, string>
+        Record<LanguageFamiliarity, string>
     >;
 }
 

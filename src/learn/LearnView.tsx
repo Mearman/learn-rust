@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Lightbulb } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     learnGrid,
@@ -6,12 +6,14 @@ import {
     lessonTagline,
     navButton,
     navButtonActive,
+    noteBlock,
 } from "../theme/styles.css.ts";
 import { Block } from "./Block.tsx";
 import { LESSONS } from "./lessons.ts";
 import type { Lesson, LessonBlock } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { UserProfile, ExperienceLevel } from "../settings/types.ts";
+import { backgroundContextNotes } from "../settings/background-context.ts";
 
 const LEVEL_ORDER: Record<ExperienceLevel, number> = {
     beginner: 0,
@@ -73,6 +75,12 @@ export function LearnView({ active, setActive, viewed, profile, compiling, compi
                     <h2 className={lessonTitle}>{lesson.title}</h2>
                     <p className={lessonTagline}>{lesson.tagline}</p>
                 </header>
+                {backgroundContextNotes(profile.backgrounds).map((note) => (
+                    <div key={note} className={noteBlock}>
+                        <Lightbulb size={16} style={{ color: vars.colour.accent, flexShrink: 0, marginTop: 2 }} />
+                        <span>{note}</span>
+                    </div>
+                ))}
                 {lesson.blocks
                     .filter((b) => blockVisible(b, profile.experience))
                     .map((b, i) => (

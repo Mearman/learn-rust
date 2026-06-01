@@ -1,4 +1,4 @@
-import { Select, SegmentedControl } from "@mantine/core";
+import { MultiSelect, SegmentedControl } from "@mantine/core";
 import { vars } from "../theme/theme.css.ts";
 import {
     settingsPanel,
@@ -10,14 +10,18 @@ import {
 } from "../theme/styles.css.ts";
 import {
     DEVELOPER_BACKGROUND_OPTIONS,
-    developerBackgroundLabel,
+    joinDeveloperBackgrounds,
 } from "./backgrounds.ts";
 import {
     LANGUAGE_FAMILIARITY_OPTIONS,
-    languageFamiliarityLabel,
+    joinLanguageFamiliarities,
 } from "./languages.ts";
 import type { UserProfile, UserProfileUpdater } from "./types.ts";
-import { isDeveloperBackground, isLanguageFamiliarity, isExperienceLevel } from "./types.ts";
+import {
+    isDeveloperBackground,
+    isLanguageFamiliarity,
+    isExperienceLevel,
+} from "./types.ts";
 
 const EXPERIENCE_OPTIONS = [
     { value: "beginner", label: "Beginner" },
@@ -30,26 +34,28 @@ interface SettingsPanelProps {
     readonly setProfile: UserProfileUpdater;
 }
 
-export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
-    const handleBackground = (value: string | null) => {
-        if (value === null) return;
-        if (!isDeveloperBackground(value)) {
-            throw new Error(`Unknown developer background: ${value}`);
+function validateSelections(values: readonly string[], validator: (value: string) => boolean): void {
+    for (const value of values) {
+        if (!validator(value)) {
+            throw new Error(`Invalid selection: ${value}`);
         }
+    }
+}
+
+export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
+    const handleBackgrounds = (values: string[]) => {
+        validateSelections(values, isDeveloperBackground);
         setProfile((prev) => ({
             ...prev,
-            background: value,
+            backgrounds: values,
         }));
     };
 
-    const handleFamiliarity = (value: string | null) => {
-        if (value === null) return;
-        if (!isLanguageFamiliarity(value)) {
-            throw new Error(`Unknown language familiarity: ${value}`);
-        }
+    const handleFamiliarities = (values: string[]) => {
+        validateSelections(values, isLanguageFamiliarity);
         setProfile((prev) => ({
             ...prev,
-            familiarity: value,
+            familiarities: values,
         }));
     };
 
@@ -70,7 +76,7 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                     Tailor the examples
                 </div>
                 <div className={settingsHelp}>
-                    Pick your actual background, the language you know best, and how much detail you want.
+                    Pick your actual background, the languages you know best, and how much detail you want.
                     They’re independent on purpose.
                 </div>
             </div>
@@ -80,13 +86,13 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                     <label className={settingsLabel} htmlFor="developer-background">
                         Actual background
                     </label>
-                    <Select
+                    <MultiSelect
                         id="developer-background"
                         data={DEVELOPER_BACKGROUND_OPTIONS}
-                        value={profile.background}
-                        onChange={handleBackground}
-                        allowDeselect={false}
+                        value={profile.backgrounds}
+                        onChange={handleBackgrounds}
                         aria-label="Actual background"
+                        placeholder="Select one or more"
                         styles={{
                             input: {
                                 background: vars.colour.panel,
@@ -107,12 +113,22 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                                     background: vars.colour.borderSoft,
                                 },
                             },
+                            pill: {
+                                background: vars.colour.accentDim,
+                                color: vars.colour.text,
+                            },
+                            pillLabel: {
+                                color: vars.colour.text,
+                            },
+                            pillsList: {
+                                gap: "0.375rem",
+                            },
                         }}
                     />
                     <div className={settingsHelp}>
-                        {profile.background === "none"
+                        {profile.backgrounds.length === 0
                             ? "No background selected yet."
-                            : `We’ll keep this separate from language familiarity: ${developerBackgroundLabel(profile.background)}`}
+                            : `Selected: ${joinDeveloperBackgrounds(profile.backgrounds)}`}
                     </div>
                 </div>
 
@@ -120,13 +136,13 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                     <label className={settingsLabel} htmlFor="language-familiarity">
                         Language familiarity
                     </label>
-                    <Select
+                    <MultiSelect
                         id="language-familiarity"
                         data={LANGUAGE_FAMILIARITY_OPTIONS}
-                        value={profile.familiarity}
-                        onChange={handleFamiliarity}
-                        allowDeselect={false}
+                        value={profile.familiarities}
+                        onChange={handleFamiliarities}
                         aria-label="Language familiarity"
+                        placeholder="Select one or more"
                         styles={{
                             input: {
                                 background: vars.colour.panel,
@@ -147,12 +163,22 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                                     background: vars.colour.borderSoft,
                                 },
                             },
+                            pill: {
+                                background: vars.colour.accentDim,
+                                color: vars.colour.text,
+                            },
+                            pillLabel: {
+                                color: vars.colour.text,
+                            },
+                            pillsList: {
+                                gap: "0.375rem",
+                            },
                         }}
                     />
                     <div className={settingsHelp}>
-                        {profile.familiarity === "none"
+                        {profile.familiarities.length === 0
                             ? "No language selected yet."
-                            : `Examples will lean on ${languageFamiliarityLabel(profile.familiarity)}.`}
+                            : `Examples will lean on ${joinLanguageFamiliarities(profile.familiarities)}.`}
                     </div>
                 </div>
 

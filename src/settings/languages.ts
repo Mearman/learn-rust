@@ -1,7 +1,6 @@
 import type { LanguageFamiliarity } from "./types.ts";
 
 export const LANGUAGE_FAMILIARITY_OPTIONS = [
-    { value: "none", label: "Skip for now" },
     { value: "python", label: "Python" },
     { value: "typescript", label: "TypeScript" },
     { value: "java", label: "Java" },
@@ -11,9 +10,7 @@ export const LANGUAGE_FAMILIARITY_OPTIONS = [
     { value: "cpp", label: "C++" },
 ] as const;
 
-export function languageFamiliarityLabel(
-    familiarity: Exclude<LanguageFamiliarity, "none">,
-): string {
+export function languageFamiliarityLabel(familiarity: LanguageFamiliarity): string {
     if (familiarity === "python") return "Python";
     if (familiarity === "typescript") return "TypeScript";
     if (familiarity === "java") return "Java";
@@ -21,4 +18,11 @@ export function languageFamiliarityLabel(
     if (familiarity === "go") return "Go";
     if (familiarity === "csharp") return "C#";
     return "C++";
+}
+
+export function joinLanguageFamiliarities(familiarities: readonly LanguageFamiliarity[]): string {
+    if (familiarities.length === 0) return "not set";
+    return new Intl.ListFormat("en-GB", { style: "long", type: "conjunction" }).format(
+        familiarities.map(languageFamiliarityLabel),
+    );
 }

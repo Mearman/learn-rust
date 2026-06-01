@@ -48,7 +48,7 @@ export interface AnalogyBlock extends LessonBlockBase {
     readonly kind: "analogy";
     readonly text: string;
     readonly comparisons?: Partial<
-        Record<Exclude<LanguageFamiliarity, "none">, string>
+        Record<LanguageFamiliarity, string>
     >;
 }
 
@@ -57,7 +57,7 @@ export interface ComparisonBlock extends LessonBlockBase {
     readonly rustCode: string;
     readonly comparisons: Partial<
         Record<
-            Exclude<LanguageFamiliarity, "none">,
+            LanguageFamiliarity,
             {
                 readonly code: string;
                 readonly notes?: string;

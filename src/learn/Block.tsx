@@ -23,7 +23,7 @@ import type {
     DeepDiveBlock as DeepDiveBlockType,
 } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
-import type { UserProfile } from "../settings/types.ts";
+import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
 import { languageFamiliarityLabel } from "../settings/languages.ts";
 
 interface BlockProps {
@@ -49,23 +49,44 @@ function isVisible(
     return LEVEL_ORDER[blockLevel] <= LEVEL_ORDER[userLevel];
 }
 
+function matchingFamiliarities<T>(
+    familiarities: readonly LanguageFamiliarity[],
+    options: Partial<Record<LanguageFamiliarity, T>>,
+): readonly { readonly familiarity: LanguageFamiliarity; readonly value: T }[] {
+    const matches: { readonly familiarity: LanguageFamiliarity; readonly value: T }[] = [];
+    for (const familiarity of familiarities) {
+        const value = options[familiarity];
+        if (value !== undefined) {
+            matches.push({ familiarity, value });
+        }
+    }
+    return matches;
+}
+
 function AnalogySection({ block, profile }: {
     readonly block: AnalogyBlockType;
     readonly profile: UserProfile;
 }) {
-    const comparison =
-        profile.familiarity !== "none"
-            ? block.comparisons?.[profile.familiarity]
-            : undefined;
-    const label =
-        profile.familiarity === "none"
-            ? "If you know other languages"
-            : `If you're familiar with ${languageFamiliarityLabel(profile.familiarity)}`;
+    const matches = matchingFamiliarities(profile.familiarities, block.comparisons ?? {});
+    const label = profile.familiarities.length === 0
+        ? "If you know other languages"
+        : "If you’re familiar with these languages";
 
     return (
         <div className={analogyBlock}>
-            <span className={accentLabel}>{label} &nbsp;</span>
-            {comparison ?? block.text}
+            <span className={accentLabel}>{label}</span>
+            {matches.length === 0 ? (
+                <div style={{ marginTop: "0.25rem" }}>{block.text}</div>
+            ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.25rem" }}>
+                    <div>{block.text}</div>
+                    {matches.map(({ familiarity, value }) => (
+                        <div key={familiarity} style={{ color: vars.colour.faint }}>
+                            {languageFamiliarityLabel(familiarity)}: {value}
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -74,9 +95,7 @@ function ComparisonSection({ block, profile }: {
     readonly block: ComparisonBlockType;
     readonly profile: UserProfile;
 }) {
-    const lang = profile.familiarity;
-    const comparison = lang !== "none" ? block.comparisons[lang] : undefined;
-    const langLabel = lang === "none" ? "Your familiar language" : languageFamiliarityLabel(lang);
+    const matches = matchingFamiliarities(profile.familiarities, block.comparisons);
 
     return (
         <div className={comparisonGrid}>
@@ -85,21 +104,26 @@ function ComparisonSection({ block, profile }: {
                 <CodeBlock code={block.rustCode} label="rust" />
             </div>
             <div className={comparisonColumn}>
-                <span className={comparisonLabel}>{langLabel}</span>
-                {comparison ? (
-                    <>
-                        <CodeBlock code={comparison.code} label={lang} />
-                        {comparison.notes ? (
-                            <span className={comparisonNotes}>{comparison.notes}</span>
-                        ) : null}
-                    </>
-                ) : lang === "none" ? (
+                <span className={comparisonLabel}>
+                    {profile.familiarities.length === 0 ? "Your familiar language" : "Your familiar languages"}
+                </span>
+                {matches.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                        {matches.map(({ familiarity, value }) => (
+                            <div key={familiarity} style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+                                <span className={comparisonLabel} style={{ color: vars.colour.accentSoft }}>{languageFamiliarityLabel(familiarity)}</span>
+                                <CodeBlock code={value.code} label={familiarity} />
+                                {value.notes ? <span className={comparisonNotes}>{value.notes}</span> : null}
+                            </div>
+                        ))}
+                    </div>
+                ) : profile.familiarities.length === 0 ? (
                     <span className={comparisonUnavailable}>
-                        Pick a language familiarity to see the comparison.
+                        Pick one or more languages to see the comparison.
                     </span>
                 ) : (
                     <span className={comparisonUnavailable}>
-                        No {langLabel} comparison available yet.
+                        No matching comparison available yet.
                     </span>
                 )}
             </div>

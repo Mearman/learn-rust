@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Check, ChevronRight, RotateCcw, Trophy, X } from "lucide-react";
+import { Check, ChevronRight, Lightbulb, RotateCcw, Trophy, X } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     challengeResult,
@@ -11,6 +11,7 @@ import {
     nextButton,
     monoSm,
     dimSm,
+    noteBlock,
 } from "../theme/styles.css.ts";
 import { CodeBlock } from "../highlight/CodeBlock.tsx";
 import { CompileOutput } from "../compiler/CompileOutput.tsx";
@@ -19,6 +20,7 @@ import type { Challenge } from "./challenges.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
 import { languageFamiliarityLabel } from "../settings/languages.ts";
+import { backgroundContextNotes } from "../settings/background-context.ts";
 
 interface ChallengeState {
     readonly index: number;
@@ -65,40 +67,37 @@ function levelColour(level: string): string {
     return vars.colour.bad;
 }
 
-function PerLanguageNote({
+function PerLanguageNotes({
     challenge,
-    familiarity,
+    familiarities,
 }: {
     readonly challenge: Challenge;
-    readonly familiarity: Exclude<LanguageFamiliarity, "none">;
+    readonly familiarities: readonly LanguageFamiliarity[];
 }) {
-    const explanation = challenge.whyPerLanguage?.[familiarity];
-    if (explanation === undefined) return null;
+    const notes = familiarities
+        .map((familiarity) => ({ familiarity, explanation: challenge.whyPerLanguage?.[familiarity] }))
+        .filter((note): note is { readonly familiarity: LanguageFamiliarity; readonly explanation: string } => note.explanation !== undefined);
+    if (notes.length === 0) return null;
     return (
-        <div
-            style={{
-                borderTop: `1px solid ${vars.colour.borderSoft}`,
-                paddingTop: "0.5rem",
-            }}
-        >
-            <p
-                style={{
-                    fontSize: "0.875rem",
-                    lineHeight: 1.625,
-                    margin: 0,
-                    color: vars.colour.text,
-                }}
-            >
-                <span
-                    style={{
-                        color: vars.colour.accentSoft,
-                        fontWeight: 600,
-                    }}
-                >
-                    If you're familiar with {languageFamiliarityLabel(familiarity)}:{" "}
-                </span>
-                {explanation}
-            </p>
+        <div style={{ borderTop: `1px solid ${vars.colour.borderSoft}`, paddingTop: "0.5rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {notes.map((note) => (
+                    <p
+                        key={note.familiarity}
+                        style={{
+                            fontSize: "0.875rem",
+                            lineHeight: 1.625,
+                            margin: 0,
+                            color: vars.colour.text,
+                        }}
+                    >
+                        <span style={{ color: vars.colour.accentSoft, fontWeight: 600 }}>
+                            If you&apos;re familiar with {languageFamiliarityLabel(note.familiarity)}:{" "}
+                        </span>
+                        {note.explanation}
+                    </p>
+                ))}
+            </div>
         </div>
     );
 }
@@ -234,6 +233,13 @@ function ChallengeView({
                 Will this compile?
             </h2>
 
+            {backgroundContextNotes(profile.backgrounds).map((note) => (
+                <div key={note} className={noteBlock}>
+                    <Lightbulb size={16} style={{ color: vars.colour.accent, flexShrink: 0, marginTop: 2 }} />
+                    <span>{note}</span>
+                </div>
+            ))}
+
             <CodeBlock
                 code={ch.code}
                 label="snippet.rs"
@@ -309,10 +315,10 @@ function ChallengeView({
                         >
                             {ch.why}
                         </p>
-                        {profile.familiarity !== "none" ? (
-                            <PerLanguageNote
+                        {profile.familiarities.length > 0 ? (
+                            <PerLanguageNotes
                                 challenge={ch}
-                                familiarity={profile.familiarity}
+                                familiarities={profile.familiarities}
                             />
                         ) : null}
                     </div>
