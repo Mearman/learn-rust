@@ -16,7 +16,9 @@ import {
 } from "../theme/styles.css.ts";
 import type { ReferenceViewProps } from "./types.ts";
 import { REFERENCE_CARDS } from "./references.ts";
+import { LANGUAGE_SYNTAX } from "./language-syntax.ts";
 import { languageFamiliarityLabel } from "../settings/languages.ts";
+import type { LanguageSyntax } from "./types.ts";
 
 function findReference(id: string) {
     const reference = REFERENCE_CARDS.find((card) => card.id === id);
@@ -24,6 +26,14 @@ function findReference(id: string) {
         throw new Error(`Unknown reference: ${id}`);
     }
     return reference;
+}
+
+function findSyntaxEntry(id: string): LanguageSyntax {
+    const entry = LANGUAGE_SYNTAX.find((item) => item.id === id);
+    if (entry === undefined) {
+        throw new Error(`Unknown language syntax entry: ${id}`);
+    }
+    return entry;
 }
 
 function lessonTitleForId(id: string): string {
@@ -36,17 +46,19 @@ function lessonTitleForId(id: string): string {
 
 export function ReferenceView({ profile, active, onSelect, onOpenLesson }: ReferenceViewProps) {
     const reference = findReference(active);
-    const sortedMappings = useMemo(() => {
+
+    const resolvedSyntax = useMemo(() => {
         const selected = new Set(profile.familiarities);
-        const mappings = [...reference.mappings];
-        mappings.sort((a, b) => {
-            const aSelected = selected.has(a.familiarity) ? 0 : 1;
-            const bSelected = selected.has(b.familiarity) ? 0 : 1;
+        const entries = reference.syntaxIds.map(findSyntaxEntry);
+        const sorted = [...entries];
+        sorted.sort((a, b) => {
+            const aSelected = selected.has(a.language) ? 0 : 1;
+            const bSelected = selected.has(b.language) ? 0 : 1;
             if (aSelected !== bSelected) return aSelected - bSelected;
-            return a.familiarity.localeCompare(b.familiarity);
+            return a.language.localeCompare(b.language);
         });
-        return mappings;
-    }, [profile.familiarities, reference.mappings]);
+        return sorted;
+    }, [profile.familiarities, reference.syntaxIds]);
 
     return (
         <div className={learnGrid}>
@@ -94,17 +106,17 @@ export function ReferenceView({ profile, active, onSelect, onOpenLesson }: Refer
                 </div>
 
                 <section className={cheatCard}>
-                    <h3 className={cheatTitle}>Cross-language mapping</h3>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        {sortedMappings.map((mapping) => {
-                            const selected = profile.familiarities.includes(mapping.familiarity);
+                    <h3 className={cheatTitle}>Cross-language syntax</h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                        {resolvedSyntax.map((entry) => {
+                            const selected = profile.familiarities.includes(entry.language);
                             return (
                                 <div
-                                    key={mapping.familiarity}
+                                    key={entry.id}
                                     style={{
                                         display: "flex",
                                         flexDirection: "column",
-                                        gap: "0.25rem",
+                                        gap: "0.5rem",
                                         padding: "0.75rem",
                                         borderRadius: "0.5rem",
                                         border: `1px solid ${selected ? vars.colour.accent : vars.colour.border}`,
@@ -112,10 +124,11 @@ export function ReferenceView({ profile, active, onSelect, onOpenLesson }: Refer
                                     }}
                                 >
                                     <strong style={{ color: vars.colour.text, fontSize: "0.875rem" }}>
-                                        {languageFamiliarityLabel(mapping.familiarity)}
+                                        {languageFamiliarityLabel(entry.language)} — {entry.title}
                                     </strong>
+                                    <CodeBlock code={entry.code} label={`${entry.id}.${entry.language === "cpp" ? "cpp" : entry.language === "csharp" ? "cs" : entry.language === "typescript" ? "ts" : entry.language === "go" ? "go" : entry.language === "kotlin" ? "kt" : entry.language === "java" ? "java" : "py"}`} />
                                     <span style={{ color: vars.colour.dim, fontSize: "0.875rem", lineHeight: 1.5 }}>
-                                        {mapping.summary}
+                                        {entry.explanation}
                                     </span>
                                 </div>
                             );

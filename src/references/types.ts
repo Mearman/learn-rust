@@ -1,9 +1,22 @@
 import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
 
-export interface CrossLanguageMapping {
-    readonly familiarity: LanguageFamiliarity;
-    readonly summary: string;
+// ---------------------------------------------------------------------------
+// Standalone language syntax entries
+// ---------------------------------------------------------------------------
+
+/** A single language's take on a Rust concept, with actual code. */
+export interface LanguageSyntax {
+    readonly id: string;
+    readonly language: LanguageFamiliarity;
+    readonly conceptIds: readonly string[];
+    readonly title: string;
+    readonly code: string;
+    readonly explanation: string;
 }
+
+// ---------------------------------------------------------------------------
+// Reference cards
+// ---------------------------------------------------------------------------
 
 export interface ReferenceSection {
     readonly title: string;
@@ -18,7 +31,8 @@ export interface ReferenceCard {
     readonly syntax: ReferenceSection;
     readonly pattern: ReferenceSection;
     readonly example: ReferenceSection;
-    readonly mappings: readonly CrossLanguageMapping[];
+    /** IDs of LanguageSyntax entries for this concept. */
+    readonly syntaxIds: readonly string[];
 }
 
 export interface ReferenceViewProps {
