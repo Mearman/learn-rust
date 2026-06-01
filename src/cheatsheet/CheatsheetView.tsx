@@ -9,6 +9,7 @@ import {
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
 import { LANGUAGE_CONCEPTS } from "../data/language-concepts.ts";
+import { CodeBlock } from "../highlight/CodeBlock.tsx";
 
 interface CheatsheetViewProps {
     readonly onOpenReferences: () => void;
@@ -78,22 +79,10 @@ export function CheatsheetView({
                                 {concept.description}
                             </p>
                             {rustEntry !== undefined ? (
-                                <pre
-                                    style={{
-                                        margin: 0,
-                                        padding: "0.5rem",
-                                        borderRadius: "0.375rem",
-                                        background: vars.colour.code,
-                                        color: vars.colour.text,
-                                        fontFamily: "ui-monospace, monospace",
-                                        fontSize: "0.8rem",
-                                        lineHeight: 1.5,
-                                        overflow: "auto",
-                                        whiteSpace: "pre-wrap",
-                                    }}
-                                >
-                                    {rustEntry.code}
-                                </pre>
+                                <CodeBlock
+                                    code={rustEntry.code}
+                                    label={"rust"}
+                                />
                             ) : null}
                         </div>
                     );
