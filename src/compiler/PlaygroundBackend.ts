@@ -25,7 +25,7 @@ export class PlaygroundBackend implements CompilerBackend {
         const body: PlaygroundRequest = {
             channel: "stable",
             mode: "debug",
-            edition: "2021",
+            edition: "2024",
             crateType: "bin",
             tests: false,
             code: wrapped,
