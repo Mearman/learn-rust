@@ -45,38 +45,39 @@ export function SubSectionToc({
         <>
             {/* Desktop sidebar */}
             <aside className={tocSidebar}>
-                <ScrollArea.Autosize
-                    mah="calc(100vh - 120px)"
-                    offsetScrollbars
-                    styles={{
-                        root: { minWidth: 0 },
-                        scrollbar: { "&": { display: "none" } },
-                    }}
-                >
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "0.125rem",
+                {items.length > 0 ? (
+                    <ScrollArea.Autosize
+                        mah="calc(100vh - 120px)"
+                        offsetScrollbars
+                        styles={{
+                            root: { minWidth: 0 },
                         }}
                     >
-                        {items.map((item) => {
-                            const isActive = item.id === activeId;
-                            return (
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => {
-                                        handleSelect(item.id);
-                                    }}
-                                    className={`${tocItem} ${isActive ? tocItemActive : ""}`}
-                                >
-                                    {item.label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </ScrollArea.Autosize>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.125rem",
+                            }}
+                        >
+                            {items.map((item) => {
+                                const isActive = item.id === activeId;
+                                return (
+                                    <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => {
+                                            handleSelect(item.id);
+                                        }}
+                                        className={`${tocItem} ${isActive ? tocItemActive : ""}`}
+                                    >
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </ScrollArea.Autosize>
+                ) : null}
             </aside>
 
             {/* Mobile FAB */}

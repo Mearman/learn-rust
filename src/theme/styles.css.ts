@@ -410,14 +410,16 @@ export const tocSidebar = style({
     display: "none",
     "@media": {
         [lg]: {
-            display: "block",
+            display: "flex",
+            flexDirection: "column",
             position: "sticky",
-            top: "80px",
+            top: "4.5rem",
             width: "200px",
             minWidth: "200px",
-            maxHeight: "calc(100vh - 100px)",
+            maxHeight: "calc(100vh - 6rem)",
             overflowY: "auto",
             flexShrink: 0,
+            alignSelf: "flex-start",
         },
     },
 });
