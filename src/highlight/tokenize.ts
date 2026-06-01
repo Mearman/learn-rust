@@ -85,9 +85,12 @@ const TOKEN_RE = new RegExp(
         // 4 — attributes (#![…] or #[…])
         "(#!?\\[[^\\]]*\\])",
         // 5 — raw byte strings: br"…" / rb"…" with 0–4 # delimiters
-        '((?:br|rb)(?:"[^"]*"|#{1}"[^"]*"#{1}|#{2}"[^"]*"#{2}|#{3}"[^"]*"#{3}|#{4}"[^"]*"#{4}))',
+        // The 0-hash variant uses [^"]* (content cannot contain ").
+        // Hash-delimited variants use [\s\S]*? so content may contain " — and
+        // (?!#) lookaheads prevent a shorter hash count from consuming a longer one.
+        '((?:br|rb)(?:"[^"]*"|####"[\\s\\S]*?"####|###"[\\s\\S]*?"###(?!#)|##"[\\s\\S]*?"##(?!#)|#"[\\s\\S]*?"#(?!#)))',
         // 6 — raw strings: r"…" / r#"…"# / r##"…"## (0–4 # delimiters)
-        '(r(?:"[^"]*"|#{1}"[^"]*"#{1}|#{2}"[^"]*"#{2}|#{3}"[^"]*"#{3}|#{4}"[^"]*"#{4}))',
+        '(r(?:"[^"]*"|####"[\\s\\S]*?"####|###"[\\s\\S]*?"###(?!#)|##"[\\s\\S]*?"##(?!#)|#"[\\s\\S]*?"#(?!#)))',
         // 7 — byte strings: b"…"
         '(b"(?:\\\\.|[^"\\\\])*")',
         // 8 — regular strings
