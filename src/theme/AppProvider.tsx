@@ -1,8 +1,9 @@
 import { useEffect, type ReactNode } from "react";
 import "@mantine/core/styles.css";
 import { MantineProvider, createTheme } from "@mantine/core";
-import { vars, darkTheme } from "./theme.css.js";
-import "./styles.css.js";
+import { vars, darkTheme, lightTheme } from "./theme.css.ts";
+import { useThemeMode } from "./useThemeMode.ts";
+import "./styles.css.ts";
 
 const rbcTheme = createTheme({
     primaryColor: "rbc",
@@ -25,16 +26,27 @@ const rbcTheme = createTheme({
 });
 
 function ThemeSync({ children }: { children: ReactNode }) {
+    const { resolved } = useThemeMode();
+
     useEffect(() => {
-        document.documentElement.classList.add(darkTheme);
-    }, []);
+        const root = document.documentElement;
+        // Remove both theme classes, then apply the resolved one
+        root.classList.remove(darkTheme, lightTheme);
+        root.classList.add(resolved === "dark" ? darkTheme : lightTheme);
+    }, [resolved]);
 
     return <>{children}</>;
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+    const { resolved } = useThemeMode();
+
     return (
-        <MantineProvider theme={rbcTheme} defaultColorScheme="dark">
+        <MantineProvider
+            theme={rbcTheme}
+            defaultColorScheme="dark"
+            forceColorScheme={resolved}
+        >
             <ThemeSync>{children}</ThemeSync>
         </MantineProvider>
     );

@@ -49,6 +49,8 @@ import { SYNTAX_REFERENCES } from "./data/syntax-references.ts";
 import { CONCEPTS } from "./data/concepts.ts";
 import { GLOSSARY } from "./data/glossary.ts";
 import { ERROR_CATALOGUE } from "./data/errors.ts";
+import { ThemeToggle } from "./theme/ThemeToggle.tsx";
+import { useThemeMode } from "./theme/useThemeMode.ts";
 
 type Mode =
     | "learn"
@@ -126,6 +128,7 @@ export function App() {
         clear: clearCompile,
     } = useCompiler();
     const [profile, setProfile] = useUserProfile();
+    const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
 
     const [challenge, setChallenge] = useState<ChallengeState>({
         index: 0,
@@ -276,6 +279,8 @@ export function App() {
                     </div>
 
                     <SettingsPanel profile={profile} setProfile={setProfile} />
+
+                    <ThemeToggle mode={themeMode} onChange={setThemeMode} />
 
                     <nav className={tabNav}>
                         {TABS.map((t) => {

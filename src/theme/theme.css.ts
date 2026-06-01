@@ -61,3 +61,34 @@ export const darkTheme = createTheme(vars, {
         number: "#e89a6a",
     },
 });
+
+export const lightTheme = createTheme(vars, {
+    colour: {
+        bg: "#f8f6f3",
+        panel: "#ffffff",
+        panel2: "#f0ede8",
+        code: "#f5f3ef",
+        border: "#ddd8d0",
+        borderSoft: "#e8e4dc",
+        text: "#1c1917",
+        dim: "#57534e",
+        faint: "#a8a29e",
+        accent: "#d45a25",
+        accentSoft: "#e87040",
+        accentDim: "#fde8df",
+        good: "#16a34a",
+        goodDim: "#dcfce7",
+        bad: "#dc2626",
+        badDim: "#fee2e2",
+    },
+    tok: {
+        default: "#1c1917",
+        comment: "#9ca3af",
+        string: "#65a30d",
+        lifetime: "#c026d3",
+        macro: "#0891b2",
+        keyword: "#d45a25",
+        type: "#b45309",
+        number: "#d97706",
+    },
+});
