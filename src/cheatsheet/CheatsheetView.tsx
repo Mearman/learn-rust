@@ -1,69 +1,20 @@
+import { ArrowLeftRight } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import { cheatsGrid, cheatCard, cheatTitle, navButton, noteBlock } from "../theme/styles.css.ts";
-
-interface CheatSection {
-    readonly title: string;
-    readonly rows: readonly (readonly [string, string])[];
-}
-
-const CHEATS: readonly CheatSection[] = [
-    {
-        title: "The three ownership rules",
-        rows: [
-            ["1", "Each value has a single owner."],
-            ["2", "There is only one owner at a time."],
-            ["3", "When the owner goes out of scope, the value is dropped."],
-        ],
-    },
-    {
-        title: "The borrowing rules",
-        rows: [
-            ["&T", "Any number of shared (read-only) references."],
-            ["&mut T", "Exactly one exclusive reference, and no &T alongside it."],
-            ["scope", "A borrow lasts only until its final use, not the whole block."],
-        ],
-    },
-    {
-        title: "Option<T> in practice",
-        rows: [
-            ["map(f)", "Transform the Some value, leave None untouched."],
-            ["and_then(f)", "Chain another Option-returning step."],
-            ["unwrap_or(d)", "Value if Some, else fallback d."],
-            ["ok_or(e)", "Convert to Result, using e for the None case."],
-            ["?", "Return None early from an Option-returning fn."],
-        ],
-    },
-    {
-        title: "Result<T, E> in practice",
-        rows: [
-            ["?", "Unwrap Ok or return Err early."],
-            ["map / map_err", "Transform the Ok value or the Err value."],
-            ["unwrap_or_else", "Compute a fallback from the error."],
-            ["ok()", "Discard the error, becoming Option<T>."],
-            ["expect(msg)", "Unwrap or panic with your own message."],
-        ],
-    },
-    {
-        title: "String <-> &str",
-        rows: [
-            ['"lit"', "A string literal is already &'static str."],
-            [".to_string()", "&str to an owned String."],
-            ["&s / s.as_str()", "String to a borrowed &str."],
-            ["param: &str", "Accept both String and literals."],
-        ],
-    },
-];
+import { CONCEPTS } from "../data/concepts.ts";
+import { LANGUAGE_CONCEPTS } from "../data/language-concepts.ts";
 
 interface CheatsheetViewProps {
     readonly onOpenReferences: () => void;
+    readonly onOpenConcept: (conceptId: string) => void;
 }
 
-export function CheatsheetView({ onOpenReferences }: CheatsheetViewProps) {
+export function CheatsheetView({ onOpenReferences, onOpenConcept }: CheatsheetViewProps) {
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div className={noteBlock}>
                 <span>
-                    These are the short-form notes. The standalone reference cards are the source of truth.
+                    Quick-reference summaries. The Compare tab has the full cross-language details.
                 </span>
                 <button
                     type="button"
@@ -75,23 +26,45 @@ export function CheatsheetView({ onOpenReferences }: CheatsheetViewProps) {
                 </button>
             </div>
             <div className={cheatsGrid}>
-                {CHEATS.map((c) => (
-                    <div key={c.title} className={cheatCard}>
-                        <h3 className={cheatTitle}>{c.title}</h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                            {c.rows.map((r, i) => (
-                                <div key={i} style={{ display: "flex", gap: "0.75rem", fontSize: "0.875rem" }}>
-                                    <code
-                                        style={{ fontFamily: "ui-monospace, monospace", flexShrink: 0, color: vars.colour.text, minWidth: 92 }}
-                                    >
-                                        {r[0]}
-                                    </code>
-                                    <span style={{ color: vars.colour.dim }}>{r[1]}</span>
-                                </div>
-                            ))}
+                {CONCEPTS.map((concept) => {
+                    const rustEntry = LANGUAGE_CONCEPTS.find(
+                        (lc) => lc.languageId === "rust" && lc.conceptId === concept.id,
+                    );
+                    return (
+                        <div key={concept.id} className={cheatCard}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                                <h3 className={cheatTitle}>{concept.title}</h3>
+                                <button
+                                    type="button"
+                                    onClick={() => onOpenConcept(concept.id)}
+                                    className={navButton}
+                                    style={{ width: "auto", padding: "0.3rem 0.5rem", fontSize: "0.75rem" }}
+                                >
+                                    <ArrowLeftRight size={12} /> Compare
+                                </button>
+                            </div>
+                            <p style={{ margin: "0 0 0.5rem", fontSize: "0.85rem", lineHeight: 1.5, color: vars.colour.dim }}>
+                                {concept.description}
+                            </p>
+                            {rustEntry !== undefined ? (
+                                <pre style={{
+                                    margin: 0,
+                                    padding: "0.5rem",
+                                    borderRadius: "0.375rem",
+                                    background: vars.colour.codeBackground,
+                                    color: vars.colour.text,
+                                    fontFamily: "ui-monospace, monospace",
+                                    fontSize: "0.8rem",
+                                    lineHeight: 1.5,
+                                    overflow: "auto",
+                                    whiteSpace: "pre-wrap",
+                                }}>
+                                    {rustEntry.code}
+                                </pre>
+                            ) : null}
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
