@@ -18,15 +18,13 @@ import {
     shellInner,
     headerFlex,
     heading,
-    stickyNavContainer,
     stickyNav,
     tabButton,
     tabButtonActive,
     tabButtonLabel,
-    subNav,
-    subNavButton,
-    subNavButtonActive,
     contentSection,
+    tocLayout,
+    tocContent,
     sectionHeading,
     footer,
     monoSm,
@@ -66,6 +64,7 @@ import {
 } from "./layout/useActiveSection.ts";
 import { getSubSections } from "./layout/subSections.ts";
 import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
+import { SubSectionToc } from "./layout/SubSectionToc.tsx";
 
 const SECTIONS: readonly {
     readonly id: SectionId;
@@ -162,6 +161,13 @@ export function App() {
 
     const openError = useCallback((id: string) => {
         const el = document.getElementById(`error-${id}`);
+        if (el !== null) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, []);
+
+    const scrollToSubSection = useCallback((id: string) => {
+        const el = document.getElementById(id);
         if (el !== null) {
             el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
@@ -273,131 +279,113 @@ export function App() {
                     <ThemeToggle mode={themeMode} onChange={setThemeMode} />
                 </header>
 
-                <div className={stickyNavContainer}>
-                    <nav className={stickyNav}>
-                        {SECTIONS.map((s) => {
-                            const Icon = s.icon;
-                            const on = s.id === activeSection;
-                            return (
-                                <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => {
-                                        scrollToSection(s.id);
-                                    }}
-                                    className={`${tabButton} ${on ? tabButtonActive : ""}`}
-                                >
-                                    <Icon size={15} />
-                                    <span className={tabButtonLabel}>
-                                        {s.label}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setShowSearch(true);
-                            }}
-                            className={tabButton}
-                        >
-                            <Search size={15} />
-                            <span className={tabButtonLabel}>Search</span>
-                        </button>
-                    </nav>
-
-                    {subSections.length > 0 ? (
-                        <nav className={subNav}>
-                            {subSections.map((sub) => (
-                                <button
-                                    key={sub.id}
-                                    type="button"
-                                    onClick={() => {
-                                        const el = document.getElementById(
-                                            sub.id
-                                        );
-                                        if (el !== null) {
-                                            el.scrollIntoView({
-                                                behavior: "smooth",
-                                                block: "start",
-                                            });
-                                        }
-                                    }}
-                                    className={`${subNavButton} ${sub.id === activeSub ? subNavButtonActive : ""}`}
-                                >
-                                    {sub.label}
-                                </button>
-                            ))}
-                        </nav>
-                    ) : null}
-                </div>
-
-                <section id="learn" className={contentSection}>
-                    <h2 className={sectionHeading}>Learn</h2>
-                    <LearnView
-                        viewed={viewed}
-                        profile={profile}
-                        compiling={compiling}
-                        compileResult={compileResult}
-                        onCompile={compile}
-                        onClearCompile={clearCompile}
-                        onOpenReference={openConcept}
-                    />
-                </section>
-
-                <section id="challenge" className={contentSection}>
-                    <h2 className={sectionHeading}>Will it compile?</h2>
-                    <ChallengeView
-                        state={challenge}
-                        dispatch={dispatch}
-                        profile={profile}
-                        compiling={compiling}
-                        compileResult={compileResult}
-                        onCompile={compile}
-                        onClearCompile={clearCompile}
-                    />
-                </section>
-
-                <section id="path" className={contentSection}>
-                    <h2 className={sectionHeading}>Learning path</h2>
-                    <ProgressionView
-                        onOpenLesson={openLesson}
-                        onOpenConcept={openConcept}
-                    />
-                </section>
-
-                <section id="compare" className={contentSection}>
-                    <h2 className={sectionHeading}>Compare</h2>
-                    <ComparisonView
-                        profile={profile}
-                        onOpenLesson={openLesson}
-                    />
-                </section>
-
-                <section id="syntax" className={contentSection}>
-                    <h2 className={sectionHeading}>Syntax</h2>
-                    <SyntaxView profile={profile} />
-                </section>
-
-                <section id="glossary" className={contentSection}>
-                    <h2 className={sectionHeading}>Glossary</h2>
-                    <GlossaryView onOpenConcept={openConcept} />
-                </section>
-
-                <section id="errors" className={contentSection}>
-                    <h2 className={sectionHeading}>Errors</h2>
-                    <ErrorCatalogueView onOpenConcept={openConcept} />
-                </section>
-
-                <section id="cheatsheet" className={contentSection}>
-                    <h2 className={sectionHeading}>Cheatsheet</h2>
-                    <CheatsheetView
-                        onOpenReferences={() => {
-                            scrollToSection("compare");
+                <nav className={stickyNav}>
+                    {SECTIONS.map((s) => {
+                        const Icon = s.icon;
+                        const on = s.id === activeSection;
+                        return (
+                            <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => {
+                                    scrollToSection(s.id);
+                                }}
+                                className={`${tabButton} ${on ? tabButtonActive : ""}`}
+                            >
+                                <Icon size={15} />
+                                <span className={tabButtonLabel}>
+                                    {s.label}
+                                </span>
+                            </button>
+                        );
+                    })}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowSearch(true);
                         }}
-                        onOpenConcept={openConcept}
+                        className={tabButton}
+                    >
+                        <Search size={15} />
+                        <span className={tabButtonLabel}>Search</span>
+                    </button>
+                </nav>
+
+                <div className={tocLayout}>
+                    <SubSectionToc
+                        items={subSections}
+                        activeId={activeSub}
+                        onSelect={scrollToSubSection}
                     />
-                </section>
+                    <div className={tocContent}>
+                        <section id="learn" className={contentSection}>
+                            <h2 className={sectionHeading}>Learn</h2>
+                            <LearnView
+                                viewed={viewed}
+                                profile={profile}
+                                compiling={compiling}
+                                compileResult={compileResult}
+                                onCompile={compile}
+                                onClearCompile={clearCompile}
+                                onOpenReference={openConcept}
+                            />
+                        </section>
+
+                        <section id="challenge" className={contentSection}>
+                            <h2 className={sectionHeading}>Will it compile?</h2>
+                            <ChallengeView
+                                state={challenge}
+                                dispatch={dispatch}
+                                profile={profile}
+                                compiling={compiling}
+                                compileResult={compileResult}
+                                onCompile={compile}
+                                onClearCompile={clearCompile}
+                            />
+                        </section>
+
+                        <section id="path" className={contentSection}>
+                            <h2 className={sectionHeading}>Learning path</h2>
+                            <ProgressionView
+                                onOpenLesson={openLesson}
+                                onOpenConcept={openConcept}
+                            />
+                        </section>
+
+                        <section id="compare" className={contentSection}>
+                            <h2 className={sectionHeading}>Compare</h2>
+                            <ComparisonView
+                                profile={profile}
+                                onOpenLesson={openLesson}
+                            />
+                        </section>
+
+                        <section id="syntax" className={contentSection}>
+                            <h2 className={sectionHeading}>Syntax</h2>
+                            <SyntaxView profile={profile} />
+                        </section>
+
+                        <section id="glossary" className={contentSection}>
+                            <h2 className={sectionHeading}>Glossary</h2>
+                            <GlossaryView onOpenConcept={openConcept} />
+                        </section>
+
+                        <section id="errors" className={contentSection}>
+                            <h2 className={sectionHeading}>Errors</h2>
+                            <ErrorCatalogueView onOpenConcept={openConcept} />
+                        </section>
+
+                        <section id="cheatsheet" className={contentSection}>
+                            <h2 className={sectionHeading}>Cheatsheet</h2>
+                            <CheatsheetView
+                                onOpenReferences={() => {
+                                    scrollToSection("compare");
+                                }}
+                                onOpenConcept={openConcept}
+                            />
+                        </section>
+                    </div>
+                </div>
 
                 <footer className={footer}>
                     Snippets are illustrative. Run them for real at

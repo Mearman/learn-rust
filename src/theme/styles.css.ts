@@ -350,6 +350,9 @@ export const sectionHeading = style({
 // ---------------------------------------------------------------------------
 
 export const stickyNav = style({
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
     display: "flex",
     flexWrap: "wrap",
     gap: "0.25rem",
@@ -400,48 +403,117 @@ export const tabButtonLabel = style({
 });
 
 // ---------------------------------------------------------------------------
-// Sticky subsection nav
+// Subsection TOC (sidebar + mobile sheet)
 // ---------------------------------------------------------------------------
 
-export const stickyNavContainer = style({
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.25rem",
+export const tocSidebar = style({
+    display: "none",
+    "@media": {
+        [lg]: {
+            display: "block",
+            position: "sticky",
+            top: "80px",
+            width: "200px",
+            minWidth: "200px",
+            maxHeight: "calc(100vh - 100px)",
+            overflowY: "auto",
+            flexShrink: 0,
+        },
+    },
 });
 
-export const subNav = style({
+export const tocFab = style({
+    position: "fixed",
+    bottom: "1.25rem",
+    left: "1.25rem",
+    zIndex: 15,
     display: "flex",
-    flexWrap: "nowrap",
-    overflowX: "auto",
-    gap: "0.25rem",
-    padding: "0.375rem 0.5rem",
-    borderRadius: "0.5rem",
-    background: vars.colour.panel2,
-    border: `1px solid ${vars.colour.border}`,
-});
-
-export const subNavButton = style({
-    display: "inline-flex",
     alignItems: "center",
-    borderRadius: "0.375rem",
-    padding: "0.25rem 0.5rem",
-    fontSize: "0.75rem",
-    fontWeight: 500,
-    transition: "background 0.15s, color 0.15s",
-    background: "transparent",
-    color: vars.colour.dim,
+    justifyContent: "center",
+    width: 44,
+    height: 44,
+    borderRadius: "50%",
+    background: vars.colour.accent,
+    color: vars.colour.panel,
     border: "none",
     cursor: "pointer",
-    whiteSpace: "nowrap",
-    flexShrink: 0,
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
+    transition: "transform 0.15s",
+    selectors: {
+        "&:hover": {
+            transform: "scale(1.1)",
+        },
+    },
+    "@media": {
+        [lg]: {
+            display: "none",
+        },
+    },
 });
 
-export const subNavButtonActive = style({
+export const tocSheetBackdrop = style({
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.5)",
+    zIndex: 20,
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+});
+
+export const tocSheet = style({
+    width: "100%",
+    maxWidth: "32rem",
+    maxHeight: "70vh",
+});
+
+export const tocSheetContent = style({
+    background: vars.colour.panel,
+    borderRadius: "0.75rem 0.75rem 0 0",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+});
+
+export const tocSheetHeader = style({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0.75rem",
+    borderBottom: `1px solid ${vars.colour.border}`,
+});
+
+export const tocItem = style({
+    display: "block",
+    width: "100%",
+    textAlign: "left",
+    padding: "0.375rem 0.5rem",
+    fontSize: "0.8rem",
+    lineHeight: 1.4,
+    borderRadius: "0.375rem",
+    border: "none",
+    background: "transparent",
+    color: vars.colour.dim,
+    cursor: "pointer",
+    transition: "background 0.15s, color 0.15s",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    selectors: {
+        "&:hover": {
+            background: vars.colour.panel2,
+            color: vars.colour.text,
+        },
+    },
+});
+
+export const tocItemActive = style({
     background: vars.colour.accentDim,
     color: vars.colour.text,
+    fontWeight: 500,
 });
 
 // ---------------------------------------------------------------------------
@@ -453,6 +525,17 @@ export const contentSection = style({
     flexDirection: "column",
     gap: "1rem",
     paddingTop: "0.5rem",
+});
+
+export const tocLayout = style({
+    display: "flex",
+    gap: "1rem",
+    alignItems: "flex-start",
+});
+
+export const tocContent = style({
+    flex: 1,
+    minWidth: 0,
 });
 
 export const subSection = style({
