@@ -10,12 +10,6 @@ interface PlaygroundRequest {
     readonly backtrace: boolean;
 }
 
-interface PlaygroundResponse {
-    readonly success: boolean;
-    readonly stdout: string;
-    readonly stderr: string;
-    readonly exitDetail: string;
-}
 
 const ENDPOINT = "https://play.rust-lang.org/execute";
 
@@ -54,12 +48,45 @@ export class PlaygroundBackend implements CompilerBackend {
             };
         }
 
-        const data: PlaygroundResponse = await response.json();
+        const raw: unknown = await response.json();
+        if (typeof raw !== "object" || raw === null) {
+            return {
+                success: false,
+                stdout: "",
+                stderr: "Invalid response from Rust Playground.",
+                exitDetail: "",
+            };
+        }
+        const obj = raw;
+        if (!("success" in obj) || !("stdout" in obj) || !("stderr" in obj)) {
+            return {
+                success: false,
+                stdout: "",
+                stderr: "Invalid response from Rust Playground.",
+                exitDetail: "",
+            };
+        }
+        const data = obj;
+        if (
+            typeof data.success !== "boolean" ||
+            typeof data.stdout !== "string" ||
+            typeof data.stderr !== "string"
+        ) {
+            return {
+                success: false,
+                stdout: "",
+                stderr: "Invalid response from Rust Playground.",
+                exitDetail: "",
+            };
+        }
         return {
             success: data.success,
             stdout: data.stdout,
             stderr: data.stderr,
-            exitDetail: data.exitDetail ?? "",
+            exitDetail:
+                "exitDetail" in data && typeof data.exitDetail === "string"
+                    ? data.exitDetail
+                    : "",
         };
     }
 }

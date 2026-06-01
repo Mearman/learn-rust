@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
-import {
-    lessonTitle,
-    cheatCard,
-    noteBlock,
-} from "../theme/styles.css.ts";
+import { lessonTitle, cheatCard, noteBlock } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
 import { LESSONS } from "../learn/lessons.ts";
 import { GLOSSARY } from "../data/glossary.ts";

@@ -22,64 +22,15 @@ import {
 } from "../theme/styles.css.ts";
 import { CodeBlock } from "../highlight/CodeBlock.tsx";
 import { CompileOutput } from "../compiler/CompileOutput.tsx";
-import { CHALLENGES, getFilteredChallenges } from "./challenges.ts";
+import { getFilteredChallenges } from "./challenges.ts";
 import type { Challenge } from "./challenges.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { LanguageFamiliarity } from "../data/languages.ts";
 import type { UserProfile } from "../settings/types.ts";
 import { languageNameForId } from "../data/languages.ts";
 import { backgroundContextNotes } from "../settings/background-context.ts";
-
-interface ChallengeState {
-    readonly index: number;
-    readonly answered: boolean;
-    readonly guess: boolean | null;
-    readonly correct: number;
-    readonly total: number;
-}
-
-type ChallengeAction =
-    | { readonly type: "answer"; readonly guess: boolean }
-    | { readonly type: "next" }
-    | { readonly type: "reset" };
-
-function challengeReducer(
-    state: ChallengeState,
-    action: ChallengeAction,
-    challenges: readonly Challenge[] = CHALLENGES
-): ChallengeState {
-    switch (action.type) {
-        case "answer": {
-            const ch = challenges[state.index];
-            return {
-                ...state,
-                answered: true,
-                guess: action.guess,
-                total: state.total + 1,
-                correct:
-                    state.correct +
-                    (ch !== undefined && action.guess === ch.compiles ? 1 : 0),
-            };
-        }
-        case "next": {
-            return {
-                ...state,
-                index: state.index + 1,
-                answered: false,
-                guess: null,
-            };
-        }
-        case "reset": {
-            return {
-                index: 0,
-                answered: false,
-                guess: null,
-                correct: 0,
-                total: 0,
-            };
-        }
-    }
-}
+import type { ChallengeAction } from "./challengeReducer.ts";
+import type { ChallengeState } from "./challengeReducer.ts";
 
 function levelColour(level: string): string {
     if (level === "warm-up") return vars.colour.good;
@@ -303,7 +254,7 @@ function ChallengeView({
                 code={ch.code}
                 label="snippet.rs"
                 onRun={() => {
-                    onCompile(ch.code);
+                    void onCompile(ch.code);
                 }}
                 compiling={compiling}
             />
@@ -401,7 +352,7 @@ function ChallengeView({
                                 code={ch.fix}
                                 label="fixed.rs"
                                 onRun={() => {
-                                    onCompile(ch.fix ?? "");
+                                    void onCompile(ch.fix ?? "");
                                 }}
                                 compiling={compiling}
                             />
@@ -430,5 +381,5 @@ function ChallengeView({
     );
 }
 
-export { challengeReducer, ChallengeView };
+export { ChallengeView };
 export type { ChallengeState, ChallengeAction };

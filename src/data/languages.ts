@@ -73,7 +73,7 @@ export type LanguageId = (typeof LANGUAGES)[number]["id"];
 
 export type LanguageFamiliarity = Exclude<LanguageId, "rust">;
 
-export function languageNameForId(id: LanguageId | string): string {
+export function languageNameForId(id: string): string {
     const language = LANGUAGES.find((l) => l.id === id);
     if (language === undefined) {
         throw new Error(`Unknown language: ${id}`);
@@ -83,15 +83,18 @@ export function languageNameForId(id: LanguageId | string): string {
 
 export const TARGET_LANGUAGE_ID = "rust";
 
+function isLanguageFamiliarity(id: string): id is LanguageFamiliarity {
+    return id !== "rust";
+}
+
 export const LANGUAGE_FAMILIARITY_OPTIONS: readonly {
     readonly value: LanguageFamiliarity;
     readonly label: string;
-}[] = (
-    LANGUAGES.filter(
-        (l) => l.id !== "rust"
-    ) as readonly ((typeof LANGUAGES)[number] & {
-        readonly id: LanguageFamiliarity;
-    })[]
+}[] = LANGUAGES.filter(
+    (
+        l
+    ): l is (typeof LANGUAGES)[number] & { readonly id: LanguageFamiliarity } =>
+        isLanguageFamiliarity(l.id)
 ).map((l) => ({ value: l.id, label: l.name }));
 
 export function joinLanguageFamiliarities(

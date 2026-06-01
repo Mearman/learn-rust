@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
     BookOpen,
     Code2,
@@ -26,7 +26,8 @@ import {
 } from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
 import { LearnView } from "./learn/LearnView.tsx";
-import { ChallengeView, challengeReducer } from "./challenge/ChallengeView.tsx";
+import { ChallengeView } from "./challenge/ChallengeView.tsx";
+import { challengeReducer } from "./challenge/challengeReducer.ts";
 import type {
     ChallengeState,
     ChallengeAction,
@@ -133,18 +134,6 @@ export function App() {
         correct: 0,
         total: 0,
     });
-
-    const prevExperience = useRef(profile.experience);
-    if (prevExperience.current !== profile.experience) {
-        prevExperience.current = profile.experience;
-        setChallenge({
-            index: 0,
-            answered: false,
-            guess: null,
-            correct: 0,
-            total: 0,
-        });
-    }
 
     const dispatch = useCallback(
         (action: ChallengeAction) => {
@@ -335,7 +324,6 @@ export function App() {
                     ) : null}
                     {mode === "progression" ? (
                         <ProgressionView
-                            profile={profile}
                             onOpenLesson={selectLesson}
                             onOpenConcept={openCompare}
                         />
@@ -371,7 +359,6 @@ export function App() {
                     ) : null}
                     {mode === "search" ? (
                         <SearchView
-                            profile={profile}
                             onOpenLesson={selectLesson}
                             onOpenConcept={openCompare}
                             onOpenSyntax={openSyntax}

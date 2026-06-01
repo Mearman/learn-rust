@@ -186,7 +186,7 @@ export function LearnView({
                             onRun={
                                 b.kind === "code"
                                     ? () => {
-                                          onCompile(b.code);
+                                          void onCompile(b.code);
                                       }
                                     : undefined
                             }

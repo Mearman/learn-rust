@@ -101,7 +101,8 @@ export function GlossaryView({
                         <button
                             type="button"
                             onClick={() => {
-                                onOpenConcept(entry.conceptId as string);
+                                if (entry.conceptId !== undefined)
+                                    onOpenConcept(entry.conceptId);
                             }}
                             className={navButton}
                             style={{
