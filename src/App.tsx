@@ -65,6 +65,7 @@ import {
 import { getSubSections } from "./layout/subSections.ts";
 import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
 import { SubSectionToc } from "./layout/SubSectionToc.tsx";
+import { useScrollNavigation } from "./layout/useScrollNavigation.ts";
 
 const SECTIONS: readonly {
     readonly id: SectionId;
@@ -125,53 +126,14 @@ export function App() {
         });
     }, []);
 
-    const openLesson = useCallback(
-        (id: string) => {
-            markViewed(id);
-            const el = document.getElementById(`lesson-${id}`);
-            if (el !== null) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-        },
-        [markViewed]
-    );
-
-    const openConcept = useCallback((id: string) => {
-        const el = document.getElementById(`concept-${id}`);
-        if (el !== null) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, []);
-
-    const openSyntax = useCallback((topic: string) => {
-        const el = document.getElementById(
-            `syntax-${topic.replace(/\s+/g, "-").toLowerCase()}`
-        );
-        if (el !== null) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, []);
-
-    const openGlossary = useCallback((id: string) => {
-        const el = document.getElementById(`glossary-${id}`);
-        if (el !== null) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, []);
-
-    const openError = useCallback((id: string) => {
-        const el = document.getElementById(`error-${id}`);
-        if (el !== null) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, []);
-
-    const scrollToSubSection = useCallback((id: string) => {
-        const el = document.getElementById(id);
-        if (el !== null) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, []);
+    const {
+        openLesson,
+        openConcept,
+        openSyntax,
+        openGlossary,
+        openError,
+        scrollToSubSection,
+    } = useScrollNavigation(markViewed);
 
     return (
         <div className={shell}>
