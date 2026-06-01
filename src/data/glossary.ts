@@ -12,7 +12,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "&T (shared reference)",
         definition:
             "An immutable reference that grants read-only access to a value without taking ownership. Any number of shared references to the same data may exist simultaneously, but none of them can coexist with a mutable reference to that data. The value being borrowed must outlive the reference, which is tracked by lifetimes.",
-        relatedTerms: ["mutable-reference", "borrowing-rules", "aliasing", "lifetimes"],
+        relatedTerms: [
+            "mutable-reference",
+            "borrowing-rules",
+            "aliasing",
+            "lifetimes",
+        ],
         conceptId: "reference-semantics",
     },
     {
@@ -36,7 +41,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Affine types",
         definition:
             "A type system discipline where each value must be used at most once. Rust's ownership system is affine rather than linear — values may be silently dropped without being consumed, but they can never be used more than once. This is what makes move semantics sound without requiring explicit deallocation at every code path.",
-        relatedTerms: ["move-semantics", "ownership", "drop-trait", "copy-trait"],
+        relatedTerms: [
+            "move-semantics",
+            "ownership",
+            "drop-trait",
+            "copy-trait",
+        ],
         conceptId: "memory-management",
     },
     {
@@ -44,7 +54,11 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Aliasing",
         definition:
             "When two or more references point to the same memory location. Rust's borrowing rules restrict aliasing: while a mutable reference (&mut T) exists, no other reference (mutable or shared) to the same data may coexist. This guarantee is what enables the compiler to perform aggressive optimisations without fear of data races or unexpected mutations through aliased pointers.",
-        relatedTerms: ["borrowing-rules", "mutable-reference", "shared-reference"],
+        relatedTerms: [
+            "borrowing-rules",
+            "mutable-reference",
+            "shared-reference",
+        ],
         conceptId: "reference-semantics",
     },
     {
@@ -68,7 +82,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Borrow checker",
         definition:
             "The compiler component that enforces Rust's ownership and borrowing rules at compile time. It tracks which variables own, borrow, or have been moved from at every program point, rejecting code that would violate the aliasing guarantees. Errors from the borrow checker are the most common hurdle for newcomers, but they prevent entire classes of runtime bugs: use-after-free, double-free, and data races.",
-        relatedTerms: ["ownership", "borrowing-rules", "lifetimes", "move-semantics"],
+        relatedTerms: [
+            "ownership",
+            "borrowing-rules",
+            "lifetimes",
+            "move-semantics",
+        ],
         conceptId: "memory-management",
     },
     {
@@ -76,7 +95,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Borrowing rules",
         definition:
             "The two compile-time rules governing references: (1) at any given time, you may have either one mutable reference or any number of shared references, but never both simultaneously; (2) every reference must remain valid for the duration of its use. Together these rules guarantee that no data race can occur in safe Rust and that the compiler can reason precisely about aliasing for optimisation.",
-        relatedTerms: ["borrow-checker", "aliasing", "shared-reference", "mutable-reference"],
+        relatedTerms: [
+            "borrow-checker",
+            "aliasing",
+            "shared-reference",
+            "mutable-reference",
+        ],
         conceptId: "reference-semantics",
     },
     {
@@ -168,7 +192,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Generics",
         definition:
             "A mechanism for writing functions, structs, enums, and traits that operate over abstract types, parameterised at compile time. Generic code is written once but instantiated for each concrete type it is used with (via monomorphisation), producing specialised, optimised code with no runtime overhead. Generic parameters can be constrained with trait bounds to require specific capabilities.",
-        relatedTerms: ["trait-bounds", "monomorphisation", "traits", "associated-types"],
+        relatedTerms: [
+            "trait-bounds",
+            "monomorphisation",
+            "traits",
+            "associated-types",
+        ],
         conceptId: "generics",
     },
     {
@@ -176,7 +205,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Interior mutability",
         definition:
             "A design pattern where you mutate data through a shared reference, bypassing the usual borrowing rules by moving the enforcement to runtime. The standard library provides Cell<T> for Copy types and RefCell<T> for general types, both of which let you obtain a mutable reference (&mut T) from a &self method. This is necessary when the mutation is an implementation detail that does not affect the logical immutability of the container.",
-        relatedTerms: ["refcell", "borrowing-rules", "cell", "shared-reference"],
+        relatedTerms: [
+            "refcell",
+            "borrowing-rules",
+            "cell",
+            "shared-reference",
+        ],
         conceptId: "smart-pointers",
     },
     {
@@ -200,7 +234,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Move semantics",
         definition:
             "The rule that when a value is assigned to a new variable, passed to a function, or returned from a function, ownership of that value is transferred — the original variable can no longer be used. For types that do not implement Copy, this transfer is a move (the bits may or may not be physically copied, but the source is statically invalidated). Move semantics prevent double-free bugs by ensuring exactly one owner is responsible for each value's lifetime.",
-        relatedTerms: ["ownership", "copy-trait", "clone-trait", "borrow-checker"],
+        relatedTerms: [
+            "ownership",
+            "copy-trait",
+            "clone-trait",
+            "borrow-checker",
+        ],
         conceptId: "memory-management",
     },
     {
@@ -208,7 +247,13 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Mutex<T>",
         definition:
             "A mutual exclusion primitive that provides interior mutability across threads. Mutex<T> wraps a value and guarantees that only one thread can access it at a time by requiring a lock() call that returns a MutexGuard. The guard implements Deref and DerefMut, providing access to the inner value, and automatically releases the lock when dropped. Mutex implements Sync, so the wrapped value can be shared across threads (typically via Arc<Mutex<T>>).",
-        relatedTerms: ["arc", "rwlock", "interior-mutability", "send-trait", "sync-trait"],
+        relatedTerms: [
+            "arc",
+            "rwlock",
+            "interior-mutability",
+            "send-trait",
+            "sync-trait",
+        ],
         conceptId: "smart-pointers",
     },
     {
@@ -231,7 +276,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Ownership",
         definition:
             "Rust's core memory management discipline: every value has exactly one owner (a variable, struct field, or collection element), and when the owner goes out of scope the value is dropped. Ownership can be transferred (moved) to another variable, but it cannot be duplicated implicitly. This single-owner model allows the compiler to insert deallocation code at deterministic points without a garbage collector, while guaranteeing that no two pieces of code believe they own the same resource.",
-        relatedTerms: ["borrow-checker", "move-semantics", "drop-trait", "borrowing-rules"],
+        relatedTerms: [
+            "borrow-checker",
+            "move-semantics",
+            "drop-trait",
+            "borrowing-rules",
+        ],
         conceptId: "memory-management",
     },
     {
@@ -263,7 +313,13 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Result<T, E>",
         definition:
             "An enum representing the outcome of a fallible operation: Ok(T) on success and Err(E) on failure, where E is the error type. Result forces callers to acknowledge and handle the error case explicitly, either through pattern matching, the ? operator, or combinator methods (map_err, unwrap, expect, etc.). It is the standard mechanism for recoverable errors in Rust, as opposed to panic for unrecoverable ones.",
-        relatedTerms: ["option", "panic", "expect", "unwrap", "question-mark-operator"],
+        relatedTerms: [
+            "option",
+            "panic",
+            "expect",
+            "unwrap",
+            "question-mark-operator",
+        ],
         conceptId: "error-signalling",
     },
     {
@@ -324,7 +380,13 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "Traits",
         definition:
             "Rust's mechanism for defining shared behaviour — similar to interfaces in other languages but more powerful. A trait declares a set of methods (with optional default implementations) and associated types that implementing types must provide. Traits cannot hold data directly (they are not mix-ins) but can define methods that operate on self. They are used for polymorphism (via generics or trait objects), operator overloading, and abstraction boundaries.",
-        relatedTerms: ["impl-blocks", "trait-bounds", "generics", "associated-types", "trait-objects"],
+        relatedTerms: [
+            "impl-blocks",
+            "trait-bounds",
+            "generics",
+            "associated-types",
+            "trait-objects",
+        ],
         conceptId: "behaviour-abstraction",
     },
     {
@@ -339,7 +401,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         term: "dyn Trait",
         definition:
             "The syntax for creating and annotating trait objects — dynamically dispatched references to values that implement a given trait. A value of type &dyn Trait or Box<dyn Trait> consists of a data pointer and a vtable pointer, enabling runtime polymorphism where the concrete type is not known at compile time. Trait objects incur a small runtime cost for the indirect call but allow heterogeneous collections and open-ended extensibility.",
-        relatedTerms: ["trait-objects", "traits", "generics", "monomorphisation"],
+        relatedTerms: [
+            "trait-objects",
+            "traits",
+            "generics",
+            "monomorphisation",
+        ],
         conceptId: "behaviour-abstraction",
     },
     {

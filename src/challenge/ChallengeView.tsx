@@ -1,5 +1,12 @@
 import { useMemo } from "react";
-import { Check, ChevronRight, Lightbulb, RotateCcw, Trophy, X } from "lucide-react";
+import {
+    Check,
+    ChevronRight,
+    Lightbulb,
+    RotateCcw,
+    Trophy,
+    X,
+} from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     challengeResult,
@@ -39,7 +46,7 @@ type ChallengeAction =
 function challengeReducer(
     state: ChallengeState,
     action: ChallengeAction,
-    challenges: readonly Challenge[] = CHALLENGES,
+    challenges: readonly Challenge[] = CHALLENGES
 ): ChallengeState {
     if (action.type === "answer") {
         const ch = challenges[state.index];
@@ -54,7 +61,12 @@ function challengeReducer(
         };
     }
     if (action.type === "next") {
-        return { ...state, index: state.index + 1, answered: false, guess: null };
+        return {
+            ...state,
+            index: state.index + 1,
+            answered: false,
+            guess: null,
+        };
     }
     if (action.type === "reset") {
         return { index: 0, answered: false, guess: null, correct: 0, total: 0 };
@@ -76,12 +88,33 @@ function PerLanguageNotes({
     readonly familiarities: readonly LanguageFamiliarity[];
 }) {
     const notes = familiarities
-        .map((familiarity) => ({ familiarity, explanation: challenge.whyPerLanguage?.[familiarity] }))
-        .filter((note): note is { readonly familiarity: LanguageFamiliarity; readonly explanation: string } => note.explanation !== undefined);
+        .map((familiarity) => ({
+            familiarity,
+            explanation: challenge.whyPerLanguage?.[familiarity],
+        }))
+        .filter(
+            (
+                note
+            ): note is {
+                readonly familiarity: LanguageFamiliarity;
+                readonly explanation: string;
+            } => note.explanation !== undefined
+        );
     if (notes.length === 0) return null;
     return (
-        <div style={{ borderTop: `1px solid ${vars.colour.borderSoft}`, paddingTop: "0.5rem" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+            style={{
+                borderTop: `1px solid ${vars.colour.borderSoft}`,
+                paddingTop: "0.5rem",
+            }}
+        >
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                }}
+            >
                 {notes.map((note) => (
                     <p
                         key={note.familiarity}
@@ -92,8 +125,14 @@ function PerLanguageNotes({
                             color: vars.colour.text,
                         }}
                     >
-                        <span style={{ color: vars.colour.accentSoft, fontWeight: 600 }}>
-                            If you&apos;re familiar with {languageNameForId(note.familiarity)}:{" "}
+                        <span
+                            style={{
+                                color: vars.colour.accentSoft,
+                                fontWeight: 600,
+                            }}
+                        >
+                            If you&apos;re familiar with{" "}
+                            {languageNameForId(note.familiarity)}:{" "}
                         </span>
                         {note.explanation}
                     </p>
@@ -129,12 +168,18 @@ function Results({
             >
                 {state.correct} / {totalChallenges} correct
             </h2>
-            <p style={{ fontSize: "0.875rem", margin: 0, color: vars.colour.dim }}>
+            <p
+                style={{
+                    fontSize: "0.875rem",
+                    margin: 0,
+                    color: vars.colour.dim,
+                }}
+            >
                 {pct >= 80
                     ? "The borrow checker holds no fear for you."
                     : pct >= 50
-                        ? "Solid instincts. The tricky borrows are where the points hide."
-                        : "Replay the Borrowing and Lifetimes lessons, then run it back."}
+                      ? "Solid instincts. The tricky borrows are where the points hide."
+                      : "Replay the Borrowing and Lifetimes lessons, then run it back."}
             </p>
             <button
                 onClick={() => dispatch({ type: "reset" })}
@@ -165,10 +210,7 @@ function ChallengeView({
     onCompile,
     onClearCompile,
 }: ChallengeViewProps) {
-    const filtered = useMemo(
-        () => getFilteredChallenges(profile),
-        [profile],
-    );
+    const filtered = useMemo(() => getFilteredChallenges(profile), [profile]);
 
     const done = state.index >= filtered.length;
 
@@ -236,7 +278,14 @@ function ChallengeView({
 
             {backgroundContextNotes(profile.backgrounds).map((note) => (
                 <div key={note} className={noteBlock}>
-                    <Lightbulb size={16} style={{ color: vars.colour.accent, flexShrink: 0, marginTop: 2 }} />
+                    <Lightbulb
+                        size={16}
+                        style={{
+                            color: vars.colour.accent,
+                            flexShrink: 0,
+                            marginTop: 2,
+                        }}
+                    />
                     <span>{note}</span>
                 </div>
             ))}
@@ -257,14 +306,18 @@ function ChallengeView({
             {!state.answered ? (
                 <div className={answerGrid}>
                     <button
-                        onClick={() => dispatch({ type: "answer", guess: true })}
+                        onClick={() =>
+                            dispatch({ type: "answer", guess: true })
+                        }
                         className={answerButton}
                         style={{ color: vars.colour.good }}
                     >
                         <Check size={17} /> Compiles
                     </button>
                     <button
-                        onClick={() => dispatch({ type: "answer", guess: false })}
+                        onClick={() =>
+                            dispatch({ type: "answer", guess: false })
+                        }
                         className={answerButton}
                         style={{ color: vars.colour.bad }}
                     >

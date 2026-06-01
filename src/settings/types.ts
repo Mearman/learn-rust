@@ -23,50 +23,72 @@ export interface UserProfile {
     readonly experience: ExperienceLevel;
 }
 
-export type UserProfileUpdater = (updater: (prev: UserProfile) => UserProfile) => void;
+export type UserProfileUpdater = (
+    updater: (prev: UserProfile) => UserProfile
+) => void;
 
-export function isLanguageFamiliarity(value: string): value is LanguageFamiliarity {
+export function isLanguageFamiliarity(
+    value: string
+): value is LanguageFamiliarity {
     return (
-        value === "python"
-        || value === "typescript"
-        || value === "java"
-        || value === "kotlin"
-        || value === "go"
-        || value === "csharp"
-        || value === "cpp"
+        value === "python" ||
+        value === "typescript" ||
+        value === "java" ||
+        value === "kotlin" ||
+        value === "go" ||
+        value === "csharp" ||
+        value === "cpp"
     );
 }
 
-export function isDeveloperBackground(value: string): value is DeveloperBackground {
+export function isDeveloperBackground(
+    value: string
+): value is DeveloperBackground {
     return (
-        value === "frontend"
-        || value === "backend"
-        || value === "mobile"
-        || value === "systems"
-        || value === "devops"
-        || value === "data"
-        || value === "game-dev"
-        || value === "embedded"
-        || value === "student"
-        || value === "self-taught"
-        || value === "other"
+        value === "frontend" ||
+        value === "backend" ||
+        value === "mobile" ||
+        value === "systems" ||
+        value === "devops" ||
+        value === "data" ||
+        value === "game-dev" ||
+        value === "embedded" ||
+        value === "student" ||
+        value === "self-taught" ||
+        value === "other"
     );
 }
 
 export function isExperienceLevel(value: string): value is ExperienceLevel {
-    return value === "beginner" || value === "intermediate" || value === "advanced";
+    return (
+        value === "beginner" || value === "intermediate" || value === "advanced"
+    );
 }
 
 function isStringArray(value: unknown): value is readonly string[] {
-    return Array.isArray(value) && value.every((item) => typeof item === "string");
+    return (
+        Array.isArray(value) && value.every((item) => typeof item === "string")
+    );
 }
 
 export function isUserProfile(value: unknown): value is UserProfile {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-    if (!("backgrounds" in value) || !("familiarities" in value) || !("experience" in value)) return false;
-    if (!isStringArray(value.backgrounds) || !isStringArray(value.familiarities)) return false;
+    if (typeof value !== "object" || value === null || Array.isArray(value))
+        return false;
+    if (
+        !("backgrounds" in value) ||
+        !("familiarities" in value) ||
+        !("experience" in value)
+    )
+        return false;
+    if (
+        !isStringArray(value.backgrounds) ||
+        !isStringArray(value.familiarities)
+    )
+        return false;
     if (typeof value.experience !== "string") return false;
-    return value.backgrounds.every(isDeveloperBackground)
-        && value.familiarities.every(isLanguageFamiliarity)
-        && isExperienceLevel(value.experience);
+    return (
+        value.backgrounds.every(isDeveloperBackground) &&
+        value.familiarities.every(isLanguageFamiliarity) &&
+        isExperienceLevel(value.experience)
+    );
 }

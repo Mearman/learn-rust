@@ -12,12 +12,7 @@ const responsiveProperties = defineProperties({
         flexDirection: ["row", "column"],
         flexWrap: ["wrap", "nowrap"],
         alignItems: ["flex-start", "flex-end", "center", "stretch", "baseline"],
-        justifyContent: [
-            "flex-start",
-            "flex-end",
-            "center",
-            "space-between",
-        ],
+        justifyContent: ["flex-start", "flex-end", "center", "space-between"],
         gap: vars.colour,
         paddingTop: vars.colour,
         paddingBottom: vars.colour,
@@ -33,4 +28,7 @@ const colourProperties = defineProperties({
     },
 });
 
-export const sprinkles = createSprinkles(responsiveProperties, colourProperties);
+export const sprinkles = createSprinkles(
+    responsiveProperties,
+    colourProperties
+);

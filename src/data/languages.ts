@@ -11,7 +11,12 @@ export const LANGUAGES = [
     {
         id: "python",
         name: "Python",
-        paradigm: ["multi-paradigm", "object-oriented", "imperative", "functional"],
+        paradigm: [
+            "multi-paradigm",
+            "object-oriented",
+            "imperative",
+            "functional",
+        ],
         typeSystem: "dynamic, duck-typed",
         runtimeModel: "reference counting + cycle collector GC",
     },
@@ -53,7 +58,12 @@ export const LANGUAGES = [
     {
         id: "cpp",
         name: "C++",
-        paradigm: ["multi-paradigm", "procedural", "object-oriented", "generic"],
+        paradigm: [
+            "multi-paradigm",
+            "procedural",
+            "object-oriented",
+            "generic",
+        ],
         typeSystem: "static, nominal",
         runtimeModel: "manual memory management, RAII",
     },
@@ -73,15 +83,25 @@ export function languageNameForId(id: LanguageId | string): string {
 
 export const TARGET_LANGUAGE_ID = "rust";
 
-export const LANGUAGE_FAMILIARITY_OPTIONS: readonly { readonly value: LanguageFamiliarity; readonly label: string }[] = (LANGUAGES
-    .filter((l) => l.id !== "rust") as readonly (typeof LANGUAGES[number] & { readonly id: LanguageFamiliarity })[])
-    .map((l) => ({ value: l.id, label: l.name }));
+export const LANGUAGE_FAMILIARITY_OPTIONS: readonly {
+    readonly value: LanguageFamiliarity;
+    readonly label: string;
+}[] = (
+    LANGUAGES.filter(
+        (l) => l.id !== "rust"
+    ) as readonly ((typeof LANGUAGES)[number] & {
+        readonly id: LanguageFamiliarity;
+    })[]
+).map((l) => ({ value: l.id, label: l.name }));
 
-export function joinLanguageFamiliarities(familiarities: readonly LanguageFamiliarity[]): string {
+export function joinLanguageFamiliarities(
+    familiarities: readonly LanguageFamiliarity[]
+): string {
     if (familiarities.length === 0) return "not set";
-    return new Intl.ListFormat("en-GB", { style: "long", type: "conjunction" }).format(
-        familiarities.map(languageNameForId),
-    );
+    return new Intl.ListFormat("en-GB", {
+        style: "long",
+        type: "conjunction",
+    }).format(familiarities.map(languageNameForId));
 }
 
 /** @deprecated Use languageNameForId instead. */

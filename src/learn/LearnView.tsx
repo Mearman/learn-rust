@@ -56,12 +56,28 @@ function referenceTitleForId(id: string): string {
     return concept.title;
 }
 
-export function LearnView({ active, setActive, viewed, profile, compiling, compileResult, onCompile, onClearCompile, onOpenReference }: LearnViewProps) {
+export function LearnView({
+    active,
+    setActive,
+    viewed,
+    profile,
+    compiling,
+    compileResult,
+    onCompile,
+    onClearCompile,
+    onOpenReference,
+}: LearnViewProps) {
     const lesson = findLesson(active);
     return (
         <div className={learnGrid}>
             <nav style={{ minWidth: 0 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.375rem",
+                    }}
+                >
                     {LESSONS.map((l) => {
                         const Icon = l.icon;
                         const on = l.id === active;
@@ -72,25 +88,58 @@ export function LearnView({ active, setActive, viewed, profile, compiling, compi
                                 onClick={() => setActive(l.id)}
                                 className={`${navButton} ${on ? navButtonActive : ""}`}
                             >
-                                <Icon size={16} style={{ color: on ? vars.colour.accentSoft : vars.colour.faint, flexShrink: 0 }} />
+                                <Icon
+                                    size={16}
+                                    style={{
+                                        color: on
+                                            ? vars.colour.accentSoft
+                                            : vars.colour.faint,
+                                        flexShrink: 0,
+                                    }}
+                                />
                                 <span style={{ flex: 1 }}>{l.title}</span>
-                                {seen ? <Check size={13} style={{ color: vars.colour.good, flexShrink: 0 }} /> : null}
+                                {seen ? (
+                                    <Check
+                                        size={13}
+                                        style={{
+                                            color: vars.colour.good,
+                                            flexShrink: 0,
+                                        }}
+                                    />
+                                ) : null}
                             </button>
                         );
                     })}
                 </div>
             </nav>
 
-            <article style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <header style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+            <article
+                style={{
+                    minWidth: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                }}
+            >
+                <header
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.375rem",
+                    }}
+                >
                     <h2 className={lessonTitle}>{lesson.title}</h2>
                     <p className={lessonTagline}>{lesson.tagline}</p>
                 </header>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                <div
+                    style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}
+                >
                     {(() => {
                         const conceptId = LESSON_CONCEPT_MAP[lesson.id];
                         if (conceptId === undefined) {
-                            throw new Error(`No concept configured for lesson: ${lesson.id}`);
+                            throw new Error(
+                                `No concept configured for lesson: ${lesson.id}`
+                            );
                         }
                         return (
                             <button
@@ -98,16 +147,27 @@ export function LearnView({ active, setActive, viewed, profile, compiling, compi
                                 type="button"
                                 onClick={() => onOpenReference(conceptId)}
                                 className={navButton}
-                                style={{ width: "auto", padding: "0.45rem 0.75rem" }}
+                                style={{
+                                    width: "auto",
+                                    padding: "0.45rem 0.75rem",
+                                }}
                             >
-                                Compare across languages: {referenceTitleForId(conceptId)}
+                                Compare across languages:{" "}
+                                {referenceTitleForId(conceptId)}
                             </button>
                         );
                     })()}
                 </div>
                 {backgroundContextNotes(profile.backgrounds).map((note) => (
                     <div key={note} className={noteBlock}>
-                        <Lightbulb size={16} style={{ color: vars.colour.accent, flexShrink: 0, marginTop: 2 }} />
+                        <Lightbulb
+                            size={16}
+                            style={{
+                                color: vars.colour.accent,
+                                flexShrink: 0,
+                                marginTop: 2,
+                            }}
+                        />
                         <span>{note}</span>
                     </div>
                 ))}
@@ -119,7 +179,11 @@ export function LearnView({ active, setActive, viewed, profile, compiling, compi
                             block={b}
                             profile={profile}
                             compiling={compiling}
-                            onRun={b.kind === "code" ? () => onCompile(b.code) : undefined}
+                            onRun={
+                                b.kind === "code"
+                                    ? () => onCompile(b.code)
+                                    : undefined
+                            }
                             compileResult={compileResult}
                             onClearCompile={onClearCompile}
                         />

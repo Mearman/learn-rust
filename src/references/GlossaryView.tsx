@@ -22,7 +22,12 @@ interface GlossaryViewProps {
     readonly onOpenConcept: (conceptId: string) => void;
 }
 
-export function GlossaryView({ profile, active, onSelect, onOpenConcept }: GlossaryViewProps) {
+export function GlossaryView({
+    profile,
+    active,
+    onSelect,
+    onOpenConcept,
+}: GlossaryViewProps) {
     const entry = GLOSSARY.find((g) => g.id === active);
     if (entry === undefined) {
         throw new Error(`Unknown glossary entry: ${active}`);
@@ -35,7 +40,13 @@ export function GlossaryView({ profile, active, onSelect, onOpenConcept }: Gloss
     return (
         <div className={learnGrid}>
             <nav style={{ minWidth: 0 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.375rem",
+                    }}
+                >
                     {GLOSSARY.map((g) => {
                         const on = g.id === active;
                         return (
@@ -44,7 +55,15 @@ export function GlossaryView({ profile, active, onSelect, onOpenConcept }: Gloss
                                 onClick={() => onSelect(g.id)}
                                 className={`${navButton} ${on ? navButtonActive : ""}`}
                             >
-                                <BookOpen size={16} style={{ color: on ? vars.colour.accentSoft : vars.colour.faint, flexShrink: 0 }} />
+                                <BookOpen
+                                    size={16}
+                                    style={{
+                                        color: on
+                                            ? vars.colour.accentSoft
+                                            : vars.colour.faint,
+                                        flexShrink: 0,
+                                    }}
+                                />
                                 <span style={{ flex: 1 }}>{g.term}</span>
                             </button>
                         );
@@ -52,12 +71,31 @@ export function GlossaryView({ profile, active, onSelect, onOpenConcept }: Gloss
                 </div>
             </nav>
 
-            <article style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <header style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+            <article
+                style={{
+                    minWidth: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                }}
+            >
+                <header
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.375rem",
+                    }}
+                >
                     <h2 className={lessonTitle}>{entry.term}</h2>
                 </header>
 
-                <p style={{ lineHeight: 1.7, color: vars.colour.text, fontSize: "0.95rem" }}>
+                <p
+                    style={{
+                        lineHeight: 1.7,
+                        color: vars.colour.text,
+                        fontSize: "0.95rem",
+                    }}
+                >
                     {entry.definition}
                 </p>
 
@@ -78,14 +116,24 @@ export function GlossaryView({ profile, active, onSelect, onOpenConcept }: Gloss
                 {related.length > 0 ? (
                     <div className={cheatCard}>
                         <h3 className={cheatTitle}>Related terms</h3>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "0.5rem",
+                            }}
+                        >
                             {related.map((r) => (
                                 <button
                                     key={r.id}
                                     type="button"
                                     onClick={() => onSelect(r.id)}
                                     className={navButton}
-                                    style={{ width: "auto", padding: "0.4rem 0.65rem", fontSize: "0.85rem" }}
+                                    style={{
+                                        width: "auto",
+                                        padding: "0.4rem 0.65rem",
+                                        fontSize: "0.85rem",
+                                    }}
                                 >
                                     {r.term}
                                 </button>

@@ -22,13 +22,13 @@ export const CONCEPT_DEPENDENCIES: readonly (readonly [string, string])[] = [
 ];
 
 export function conceptDependsOn(conceptId: string): readonly string[] {
-    return CONCEPT_DEPENDENCIES
-        .filter(([from]) => from === conceptId)
-        .map(([, to]) => to);
+    return CONCEPT_DEPENDENCIES.filter(([from]) => from === conceptId).map(
+        ([, to]) => to
+    );
 }
 
 export function conceptRequiredBy(conceptId: string): readonly string[] {
-    return CONCEPT_DEPENDENCIES
-        .filter(([, to]) => to === conceptId)
-        .map(([from]) => from);
+    return CONCEPT_DEPENDENCIES.filter(([, to]) => to === conceptId).map(
+        ([from]) => from
+    );
 }

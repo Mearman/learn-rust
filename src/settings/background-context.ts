@@ -34,7 +34,9 @@ function noteForBackground(background: DeveloperBackground): string {
     return "Use the compiler as the thing that catches the bug before the code ships.";
 }
 
-export function backgroundContextNotes(backgrounds: readonly DeveloperBackground[]): readonly string[] {
+export function backgroundContextNotes(
+    backgrounds: readonly DeveloperBackground[]
+): readonly string[] {
     const notes: string[] = [];
     for (const background of backgrounds) {
         notes.push(noteForBackground(background));

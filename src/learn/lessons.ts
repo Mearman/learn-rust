@@ -47,9 +47,7 @@ export interface NoteBlock extends LessonBlockBase {
 export interface AnalogyBlock extends LessonBlockBase {
     readonly kind: "analogy";
     readonly text: string;
-    readonly comparisons?: Partial<
-        Record<LanguageFamiliarity, string>
-    >;
+    readonly comparisons?: Partial<Record<LanguageFamiliarity, string>>;
 }
 
 export interface ComparisonBlock extends LessonBlockBase {
@@ -82,7 +80,6 @@ export interface Lesson {
 // ---------------------------------------------------------------------------
 // Language comparison helper — the code for all 7 languages in one place
 // ---------------------------------------------------------------------------
-
 
 // ---------------------------------------------------------------------------
 // Lessons
@@ -123,16 +120,13 @@ export const LESSONS: readonly Lesson[] = [
                 kind: "analogy",
                 text: "Close to a std::unique_ptr whose moves the compiler tracks for you, except the old binding is statically forbidden rather than left dangling.",
                 comparisons: {
-                    python:
-                        "Like a variable that can only have one name — except Python has no such concept. The GC lets any number of names point to the same object.",
+                    python: "Like a variable that can only have one name — except Python has no such concept. The GC lets any number of names point to the same object.",
                     typescript:
                         "Like const with an object that can only be held by one variable at a time — JS doesn't enforce this; the GC just waits until nothing references it.",
                     java: "Like a reference you can only hand off, never duplicate — but Java has no mechanism for this. Everything is shared and GC'd.",
-                    kotlin:
-                        "Like a val that transfers ownership — but Kotlin shares all references freely and relies on the JVM GC.",
+                    kotlin: "Like a val that transfers ownership — but Kotlin shares all references freely and relies on the JVM GC.",
                     go: "Like passing a pointer that invalidates the old variable — Go doesn't do this; everything shared is GC'd.",
-                    csharp:
-                        "Like a ref that can only belong to one variable at a time — C# doesn't enforce this. References are shared and GC'd.",
+                    csharp: "Like a ref that can only belong to one variable at a time — C# doesn't enforce this. References are shared and GC'd.",
                     cpp: "Close to a std::unique_ptr whose moves the compiler tracks for you, except the old binding is statically forbidden rather than left dangling.",
                 },
             },
@@ -291,16 +285,13 @@ export const LESSONS: readonly Lesson[] = [
                 kind: "analogy",
                 text: "string_view is &str, std::string is String. Rust enforces at compile time that a &str never outlives its backing storage.",
                 comparisons: {
-                    python:
-                        "Python's str is always immutable and GC'd — there's no owned/borrowed split. Every string operation creates a new string.",
+                    python: "Python's str is always immutable and GC'd — there's no owned/borrowed split. Every string operation creates a new string.",
                     typescript:
                         "JS strings are always GC'd primitives. There's no borrowed view of a string — substring always allocates.",
                     java: "Java's String is always heap-allocated and GC'd. Substring now copies the backing array. StringBuilder is the mutable builder.",
-                    kotlin:
-                        "Kotlin uses Java's String — always GC'd. buildString {} is the mutable builder pattern.",
+                    kotlin: "Kotlin uses Java's String — always GC'd. buildString {} is the mutable builder pattern.",
                     go: "Go's string is an immutable byte slice header. []byte creates a mutable copy. Go has no separate owned string type.",
-                    csharp:
-                        "C#'s string is immutable. ReadOnlySpan<char> is the closest thing to &str — a borrowed view without allocation.",
+                    csharp: "C#'s string is immutable. ReadOnlySpan<char> is the closest thing to &str — a borrowed view without allocation.",
                     cpp: "string_view is &str, std::string is String. Rust enforces at compile time that a &str never outlives its backing storage.",
                 },
             },
@@ -403,16 +394,13 @@ export const LESSONS: readonly Lesson[] = [
                 kind: "analogy",
                 text: "Option is a T or nothing that the type system refuses to let you ignore; Result is a value-based, checked alternative to throwing exceptions.",
                 comparisons: {
-                    python:
-                        "Option is like T | None but the compiler forces you to handle None. Result is like exceptions you must catch at the call site — no silent ignoring.",
+                    python: "Option is like T | None but the compiler forces you to handle None. Result is like exceptions you must catch at the call site — no silent ignoring.",
                     typescript:
                         "Option is like T | null but the compiler won't let you use it without checking. Result replaces try/catch with a value you handle explicitly.",
                     java: "Option is Optional<T> but built into every API. Result is like a checked exception that composes with ? instead of cluttering signatures.",
-                    kotlin:
-                        "Option is like T? but you can't bypass the check with !!. Result is like Kotlin's Result<T> but integrated into control flow with ?.",
+                    kotlin: "Option is like T? but you can't bypass the check with !!. Result is like Kotlin's Result<T> but integrated into control flow with ?.",
                     go: "Option is like the (T, bool) pattern but the compiler enforces handling. Result is like (T, error) but the ? operator chains them cleanly instead of if err != nil everywhere.",
-                    csharp:
-                        "Option is like T? with compiler-enforced null checking. Result is like exceptions that are values, composed with ? instead of try/catch.",
+                    csharp: "Option is like T? with compiler-enforced null checking. Result is like exceptions that are values, composed with ? instead of try/catch.",
                     cpp: "Option is a T or nothing that the type system refuses to let you ignore; Result is a value-based, checked alternative to throwing exceptions.",
                 },
             },
@@ -607,16 +595,13 @@ export const LESSONS: readonly Lesson[] = [
                 kind: "analogy",
                 text: "Box is unique_ptr, Rc is shared_ptr, RefCell is a runtime-checked version of const correctness.",
                 comparisons: {
-                    python:
-                        "Everything is already on the heap and shared by default. Box/Rc are unnecessary. RefCell's runtime borrow checking has no Python equivalent — Python freely allows mutation from any reference.",
+                    python: "Everything is already on the heap and shared by default. Box/Rc are unnecessary. RefCell's runtime borrow checking has no Python equivalent — Python freely allows mutation from any reference.",
                     typescript:
                         "All objects are heap-allocated and GC'd. Box/Rc are the default model. There's no runtime borrow checking — any reference can mutate at any time.",
                     java: "All objects are heap-allocated GC references. Box is the default. Shared ownership is the default. No runtime borrow checking — all mutable objects allow mutation through any reference.",
-                    kotlin:
-                        "Same as Java. All objects are GC'd heap references. No Box/Rc/RefCell distinction needed.",
+                    kotlin: "Same as Java. All objects are GC'd heap references. No Box/Rc/RefCell distinction needed.",
                     go: "Escape analysis handles heap allocation. Pointers are GC'd. No explicit smart pointer types. Go allows mutation from any pointer at any time.",
-                    csharp:
-                        "Classes are heap-allocated and GC'd by default. Structs are value types. No runtime borrow checking — mutation is unrestricted.",
+                    csharp: "Classes are heap-allocated and GC'd by default. Structs are value types. No runtime borrow checking — mutation is unrestricted.",
                     cpp: "Box is unique_ptr, Rc is shared_ptr, RefCell is a runtime-checked version of const correctness.",
                 },
             },

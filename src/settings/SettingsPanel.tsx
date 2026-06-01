@@ -34,7 +34,10 @@ interface SettingsPanelProps {
     readonly setProfile: UserProfileUpdater;
 }
 
-function validateSelections(values: readonly string[], validator: (value: string) => boolean): void {
+function validateSelections(
+    values: readonly string[],
+    validator: (value: string) => boolean
+): void {
     for (const value of values) {
         if (!validator(value)) {
             throw new Error(`Invalid selection: ${value}`);
@@ -72,18 +75,28 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
     return (
         <section className={settingsPanel} aria-label="Personalise the lessons">
             <div className={settingsPanelHeader}>
-                <div style={{ fontSize: "0.875rem", fontWeight: 600, color: vars.colour.text }}>
+                <div
+                    style={{
+                        fontSize: "0.875rem",
+                        fontWeight: 600,
+                        color: vars.colour.text,
+                    }}
+                >
                     Tailor the examples
                 </div>
                 <div className={settingsHelp}>
-                    Pick your actual background, the languages you know best, and how much detail you want.
-                    They’re independent on purpose.
+                    Pick your actual background, the languages you know best,
+                    and how much detail you want. They’re independent on
+                    purpose.
                 </div>
             </div>
 
             <div className={settingsGrid}>
                 <div className={settingsField}>
-                    <label className={settingsLabel} htmlFor="developer-background">
+                    <label
+                        className={settingsLabel}
+                        htmlFor="developer-background"
+                    >
                         Actual background
                     </label>
                     <MultiSelect
@@ -133,7 +146,10 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                 </div>
 
                 <div className={settingsField}>
-                    <label className={settingsLabel} htmlFor="language-familiarity">
+                    <label
+                        className={settingsLabel}
+                        htmlFor="language-familiarity"
+                    >
                         Language familiarity
                     </label>
                     <MultiSelect
@@ -215,7 +231,8 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                         }}
                     />
                     <div className={settingsHelp}>
-                        Beginner shows the basics, intermediate adds the core ideas, and advanced opens the deeper notes.
+                        Beginner shows the basics, intermediate adds the core
+                        ideas, and advanced opens the deeper notes.
                     </div>
                 </div>
             </div>

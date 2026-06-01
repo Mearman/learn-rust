@@ -11,11 +11,44 @@ import {
 import { PlayCircle } from "lucide-react";
 
 const KEYWORDS = [
-    "as", "async", "await", "break", "const", "continue", "crate", "dyn",
-    "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in",
-    "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return",
-    "Self", "self", "static", "struct", "super", "trait", "true", "type",
-    "unsafe", "use", "where", "while",
+    "as",
+    "async",
+    "await",
+    "break",
+    "const",
+    "continue",
+    "crate",
+    "dyn",
+    "else",
+    "enum",
+    "extern",
+    "false",
+    "fn",
+    "for",
+    "if",
+    "impl",
+    "in",
+    "let",
+    "loop",
+    "match",
+    "mod",
+    "move",
+    "mut",
+    "pub",
+    "ref",
+    "return",
+    "Self",
+    "self",
+    "static",
+    "struct",
+    "super",
+    "trait",
+    "true",
+    "type",
+    "unsafe",
+    "use",
+    "where",
+    "while",
 ];
 
 type TokenClass =
@@ -36,7 +69,7 @@ interface Token {
 const TOKEN_RE = new RegExp(
     [
         "(\\/\\/[^\\n]*)",
-        "(\"(?:\\\\.|[^\"\\\\])*\")",
+        '("(?:\\\\.|[^"\\\\])*")',
         "('(?:\\\\.|[^'\\\\])')",
         "('[a-z_][a-z0-9_]*\\b)",
         "([A-Za-z_][A-Za-z0-9_]*!)",
@@ -44,7 +77,7 @@ const TOKEN_RE = new RegExp(
         "(\\b(?:[A-Z][A-Za-z0-9_]*|i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize|f32|f64|bool|char|str)\\b)",
         "(\\b\\d[\\d_]*(?:\\.\\d+)?(?:[iuf](?:8|16|32|64|128|size))?\\b)",
     ].join("|"),
-    "g",
+    "g"
 );
 
 function tokenize(code: string): readonly Token[] {
@@ -53,7 +86,8 @@ function tokenize(code: string): readonly Token[] {
     let m: RegExpExecArray | null;
     TOKEN_RE.lastIndex = 0;
     while ((m = TOKEN_RE.exec(code)) !== null) {
-        if (m.index > last) out.push({ t: code.slice(last, m.index), c: "default" });
+        if (m.index > last)
+            out.push({ t: code.slice(last, m.index), c: "default" });
         let cls: TokenClass = "default";
         if (m[1] !== undefined) cls = "comment";
         else if (m[2] !== undefined) cls = "string";
@@ -95,14 +129,25 @@ export function CodeBlock({ code, label, onRun, compiling }: CodeBlockProps) {
         <div className={codeBlock}>
             {label ? (
                 <div className={codeHeader}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            flex: 1,
+                        }}
+                    >
                         <span className={codeDot} />
                         <span className={codeDot} />
                         <span className={codeDot} />
                         <span style={{ marginLeft: "0.25rem" }}>{label}</span>
                     </div>
                     {onRun ? (
-                        <button className={runButton} onClick={onRun} disabled={compiling}>
+                        <button
+                            className={runButton}
+                            onClick={onRun}
+                            disabled={compiling}
+                        >
                             <PlayCircle size={13} />
                             {compiling ? "Running…" : "Run"}
                         </button>
@@ -114,7 +159,11 @@ export function CodeBlock({ code, label, onRun, compiling }: CodeBlockProps) {
                     {tokens.map((tk, i) => (
                         <span
                             key={i}
-                            className={tk.c === "comment" || tk.c === "lifetime" ? tokenCommentOrLifetime : undefined}
+                            className={
+                                tk.c === "comment" || tk.c === "lifetime"
+                                    ? tokenCommentOrLifetime
+                                    : undefined
+                            }
                             style={{ color: tokenColour[tk.c] }}
                         >
                             {tk.t}
