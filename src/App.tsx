@@ -53,10 +53,6 @@ import { GlossaryView } from "./references/GlossaryView.tsx";
 import { ErrorCatalogueView } from "./references/ErrorCatalogueView.tsx";
 import { ProgressionView } from "./references/ProgressionView.tsx";
 import { SearchView } from "./references/SearchView.tsx";
-import { SYNTAX_REFERENCES } from "./data/syntax-references.ts";
-import { CONCEPTS } from "./data/concepts.ts";
-import { GLOSSARY } from "./data/glossary.ts";
-import { ERROR_CATALOGUE } from "./data/errors.ts";
 import { ThemeToggle } from "./theme/ThemeToggle.tsx";
 import { useThemeMode } from "./theme/useThemeMode.ts";
 import {
@@ -80,50 +76,11 @@ const SECTIONS: readonly {
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
 ];
 
-const ALL_TOPICS = SYNTAX_REFERENCES.reduce<string[]>((acc, entry) => {
-    if (!acc.includes(entry.topic)) acc.push(entry.topic);
-    return acc;
-}, []);
-
-const FIRST_LESSON_ID = LESSONS[0]?.id ?? "ownership";
-const FIRST_CONCEPT_ID = (() => {
-    const concept = CONCEPTS[0];
-    if (concept === undefined) {
-        throw new Error("No concepts configured");
-    }
-    return concept.id;
-})();
-const FIRST_GLOSSARY_ID = (() => {
-    const entry = GLOSSARY[0];
-    if (entry === undefined) {
-        throw new Error("No glossary entries configured");
-    }
-    return entry.id;
-})();
-const FIRST_ERROR_ID = (() => {
-    const entry = ERROR_CATALOGUE[0];
-    if (entry === undefined) {
-        throw new Error("No error entries configured");
-    }
-    return entry.id;
-})();
-
 export function App() {
     const activeSection = useActiveSection();
     const [showSearch, setShowSearch] = useState(false);
 
-    const [activeLesson, setActiveLesson] = useState(FIRST_LESSON_ID);
-    const [viewed, setViewed] = useState(() => new Set([FIRST_LESSON_ID]));
-    const [concept, setConcept] = useState(FIRST_CONCEPT_ID);
-    const [syntaxTopic, setSyntaxTopic] = useState<string>(() => {
-        const first = ALL_TOPICS[0];
-        if (first === undefined) {
-            throw new Error("No syntax topics configured");
-        }
-        return first;
-    });
-    const [glossaryId, setGlossaryId] = useState(FIRST_GLOSSARY_ID);
-    const [errorId, setErrorId] = useState(FIRST_ERROR_ID);
+    const [viewed, setViewed] = useState<ReadonlySet<string>>(() => new Set());
     const {
         compiling,
         result: compileResult,
@@ -150,33 +107,54 @@ export function App() {
         [profile]
     );
 
-    const selectLesson = useCallback((id: string) => {
-        setActiveLesson(id);
+    const markViewed = useCallback((id: string) => {
         setViewed((prev) => {
+            if (prev.has(id)) return prev;
             const next = new Set(prev);
             next.add(id);
             return next;
         });
     }, []);
 
-    const openCompare = useCallback((id: string) => {
-        setConcept(id);
-        scrollToSection("compare");
+    const openLesson = useCallback(
+        (id: string) => {
+            markViewed(id);
+            const el = document.getElementById(`lesson-${id}`);
+            if (el !== null) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        },
+        [markViewed]
+    );
+
+    const openConcept = useCallback((id: string) => {
+        const el = document.getElementById(`concept-${id}`);
+        if (el !== null) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     }, []);
 
     const openSyntax = useCallback((topic: string) => {
-        setSyntaxTopic(topic);
-        scrollToSection("syntax");
+        const el = document.getElementById(
+            `syntax-${topic.replace(/\s+/g, "-").toLowerCase()}`
+        );
+        if (el !== null) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     }, []);
 
     const openGlossary = useCallback((id: string) => {
-        setGlossaryId(id);
-        scrollToSection("glossary");
+        const el = document.getElementById(`glossary-${id}`);
+        if (el !== null) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     }, []);
 
     const openError = useCallback((id: string) => {
-        setErrorId(id);
-        scrollToSection("errors");
+        const el = document.getElementById(`error-${id}`);
+        if (el !== null) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     }, []);
 
     return (
@@ -320,15 +298,13 @@ export function App() {
                 <section id="learn" className={contentSection}>
                     <h2 className={sectionHeading}>Learn</h2>
                     <LearnView
-                        active={activeLesson}
-                        setActive={selectLesson}
                         viewed={viewed}
                         profile={profile}
                         compiling={compiling}
                         compileResult={compileResult}
                         onCompile={compile}
                         onClearCompile={clearCompile}
-                        onOpenReference={openCompare}
+                        onOpenReference={openConcept}
                     />
                 </section>
 
@@ -348,11 +324,8 @@ export function App() {
                 <section id="path" className={contentSection}>
                     <h2 className={sectionHeading}>Learning path</h2>
                     <ProgressionView
-                        onOpenLesson={(id) => {
-                            selectLesson(id);
-                            scrollToSection("learn");
-                        }}
-                        onOpenConcept={openCompare}
+                        onOpenLesson={openLesson}
+                        onOpenConcept={openConcept}
                     />
                 </section>
 
@@ -360,40 +333,23 @@ export function App() {
                     <h2 className={sectionHeading}>Compare</h2>
                     <ComparisonView
                         profile={profile}
-                        active={concept}
-                        onSelect={setConcept}
-                        onOpenLesson={(id) => {
-                            selectLesson(id);
-                            scrollToSection("learn");
-                        }}
+                        onOpenLesson={openLesson}
                     />
                 </section>
 
                 <section id="syntax" className={contentSection}>
                     <h2 className={sectionHeading}>Syntax</h2>
-                    <SyntaxView
-                        profile={profile}
-                        active={syntaxTopic}
-                        onSelect={setSyntaxTopic}
-                    />
+                    <SyntaxView profile={profile} />
                 </section>
 
                 <section id="glossary" className={contentSection}>
                     <h2 className={sectionHeading}>Glossary</h2>
-                    <GlossaryView
-                        active={glossaryId}
-                        onSelect={setGlossaryId}
-                        onOpenConcept={openCompare}
-                    />
+                    <GlossaryView onOpenConcept={openConcept} />
                 </section>
 
                 <section id="errors" className={contentSection}>
                     <h2 className={sectionHeading}>Errors</h2>
-                    <ErrorCatalogueView
-                        active={errorId}
-                        onSelect={setErrorId}
-                        onOpenConcept={openCompare}
-                    />
+                    <ErrorCatalogueView onOpenConcept={openConcept} />
                 </section>
 
                 <section id="cheatsheet" className={contentSection}>
@@ -402,7 +358,7 @@ export function App() {
                         onOpenReferences={() => {
                             scrollToSection("compare");
                         }}
-                        onOpenConcept={openCompare}
+                        onOpenConcept={openConcept}
                     />
                 </section>
 
@@ -418,11 +374,13 @@ export function App() {
                         setShowSearch(false);
                     }}
                     onOpenLesson={(id) => {
-                        selectLesson(id);
+                        openLesson(id);
                         setShowSearch(false);
-                        scrollToSection("learn");
                     }}
-                    onOpenConcept={openCompare}
+                    onOpenConcept={(id) => {
+                        openConcept(id);
+                        setShowSearch(false);
+                    }}
                     onOpenSyntax={(topic) => {
                         openSyntax(topic);
                         setShowSearch(false);

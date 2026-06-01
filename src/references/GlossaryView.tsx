@@ -10,136 +10,99 @@ import { GLOSSARY } from "../data/glossary.ts";
 import type { GlossaryEntry } from "../data/glossary.ts";
 
 interface GlossaryViewProps {
-    readonly active: string;
-    readonly onSelect: (id: string) => void;
     readonly onOpenConcept: (conceptId: string) => void;
 }
 
-export function GlossaryView({
-    active,
-    onSelect,
-    onOpenConcept,
-}: GlossaryViewProps) {
-    const entry = GLOSSARY.find((g) => g.id === active);
-    if (entry === undefined) {
-        throw new Error(`Unknown glossary entry: ${active}`);
-    }
-
-    const related = entry.relatedTerms
-        .map((id) => GLOSSARY.find((g) => g.id === id))
-        .filter((g): g is GlossaryEntry => g !== undefined);
-
+export function GlossaryView({ onOpenConcept }: GlossaryViewProps) {
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-            }}
-        >
-            {/* Detail panel for the active term */}
-            <div className={cheatCard}>
-                <h3 className={cheatTitle} style={{ color: vars.colour.text }}>
-                    {entry.term}
-                </h3>
-                <p
-                    style={{
-                        lineHeight: 1.7,
-                        color: vars.colour.text,
-                        fontSize: "0.95rem",
-                        margin: 0,
-                    }}
-                >
-                    {entry.definition}
-                </p>
+        <div className={referenceListGrid}>
+            {GLOSSARY.map((entry) => {
+                const related = entry.relatedTerms
+                    .map((id) => GLOSSARY.find((g) => g.id === id))
+                    .filter((g): g is GlossaryEntry => g !== undefined);
 
-                {entry.conceptId !== undefined ? (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (entry.conceptId !== undefined)
-                                onOpenConcept(entry.conceptId);
-                        }}
-                        className={navButton}
+                return (
+                    <article
+                        key={entry.id}
+                        id={`glossary-${entry.id}`}
+                        className={cheatCard}
                         style={{
-                            width: "auto",
-                            padding: "0.5rem 0.75rem",
+                            textAlign: "left",
+                            width: "100%",
                         }}
                     >
-                        <BookOpen size={14} /> Compare across languages
-                    </button>
-                ) : null}
+                        <h3
+                            className={cheatTitle}
+                            style={{ color: vars.colour.text }}
+                        >
+                            <BookOpen
+                                size={14}
+                                style={{
+                                    verticalAlign: "middle",
+                                    marginRight: "0.25rem",
+                                }}
+                            />
+                            {entry.term}
+                        </h3>
+                        <p
+                            style={{
+                                lineHeight: 1.7,
+                                color: vars.colour.text,
+                                fontSize: "0.9rem",
+                                margin: "0.5rem 0 0",
+                            }}
+                        >
+                            {entry.definition}
+                        </p>
 
-                {related.length > 0 ? (
-                    <div
-                        style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "0.375rem",
-                        }}
-                    >
-                        {related.map((r) => (
+                        {entry.conceptId !== undefined ? (
                             <button
-                                key={r.id}
                                 type="button"
                                 onClick={() => {
-                                    onSelect(r.id);
+                                    if (entry.conceptId !== undefined)
+                                        onOpenConcept(entry.conceptId);
                                 }}
                                 className={navButton}
                                 style={{
                                     width: "auto",
-                                    padding: "0.35rem 0.6rem",
-                                    fontSize: "0.8rem",
+                                    padding: "0.4rem 0.65rem",
+                                    marginTop: "0.5rem",
                                 }}
                             >
-                                {r.term}
+                                Compare across languages
                             </button>
-                        ))}
-                    </div>
-                ) : null}
-            </div>
+                        ) : null}
 
-            {/* Grid of all terms */}
-            <div className={referenceListGrid}>
-                {GLOSSARY.map((g) => {
-                    const on = g.id === active;
-                    return (
-                        <button
-                            key={g.id}
-                            type="button"
-                            onClick={() => {
-                                onSelect(g.id);
-                            }}
-                            className={cheatCard}
-                            style={{
-                                cursor: "pointer",
-                                textAlign: "left",
-                                border: "none",
-                                width: "100%",
-                                background: on
-                                    ? vars.colour.accentDim
-                                    : vars.colour.panel2,
-                                outline: on
-                                    ? `1px solid ${vars.colour.accent}`
-                                    : `1px solid ${vars.colour.border}`,
-                            }}
-                        >
-                            <span className={cheatTitle}>{g.term}</span>
-                            <span
+                        {related.length > 0 ? (
+                            <div
                                 style={{
-                                    color: vars.colour.dim,
-                                    fontSize: "0.8rem",
-                                    lineHeight: 1.5,
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: "0.25rem",
+                                    marginTop: "0.5rem",
                                 }}
                             >
-                                {g.definition.length > 100
-                                    ? g.definition.slice(0, 100) + "..."
-                                    : g.definition}
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
+                                {related.map((r) => (
+                                    <a
+                                        key={r.id}
+                                        href={`#glossary-${r.id}`}
+                                        className={navButton}
+                                        style={{
+                                            width: "auto",
+                                            padding: "0.25rem 0.5rem",
+                                            fontSize: "0.75rem",
+                                            textDecoration: "none",
+                                            display: "inline-flex",
+                                        }}
+                                    >
+                                        {r.term}
+                                    </a>
+                                ))}
+                            </div>
+                        ) : null}
+                    </article>
+                );
+            })}
         </div>
     );
 }

@@ -413,6 +413,18 @@ export const contentSection = style({
     paddingTop: "0.5rem",
 });
 
+export const subSection = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    paddingTop: "0.5rem",
+    "@media": {
+        [md]: {
+            paddingTop: "1rem",
+        },
+    },
+});
+
 // ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
