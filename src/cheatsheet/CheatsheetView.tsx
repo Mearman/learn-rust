@@ -83,7 +83,7 @@ export function CheatsheetView({
                                         margin: 0,
                                         padding: "0.5rem",
                                         borderRadius: "0.375rem",
-                                        background: vars.colour.codeBackground,
+                                        background: vars.colour.code,
                                         color: vars.colour.text,
                                         fontFamily: "ui-monospace, monospace",
                                         fontSize: "0.8rem",

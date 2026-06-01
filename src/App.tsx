@@ -7,7 +7,7 @@ import {
     Braces,
     GitBranch,
     ListChecks,
-    MagnifyingGlass,
+    Search,
     Trophy,
     type LucideIcon,
 } from "lucide-react";
@@ -72,7 +72,7 @@ const TABS: readonly {
     { id: "syntax", label: "Syntax", icon: Braces },
     { id: "glossary", label: "Glossary", icon: BookOpen },
     { id: "errors", label: "Errors", icon: AlertTriangle },
-    { id: "search", label: "Search", icon: MagnifyingGlass },
+    { id: "search", label: "Search", icon: Search },
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
 ];
 
@@ -134,11 +134,9 @@ export function App() {
         total: 0,
     });
 
-    const [experienceVersion, setExperienceVersion] = useState(0);
     const prevExperience = useRef(profile.experience);
     if (prevExperience.current !== profile.experience) {
         prevExperience.current = profile.experience;
-        setExperienceVersion((v) => v + 1);
         setChallenge({
             index: 0,
             answered: false,
@@ -359,7 +357,6 @@ export function App() {
                     ) : null}
                     {mode === "glossary" ? (
                         <GlossaryView
-                            profile={profile}
                             active={glossaryId}
                             onSelect={setGlossaryId}
                             onOpenConcept={openCompare}
@@ -367,7 +364,6 @@ export function App() {
                     ) : null}
                     {mode === "errors" ? (
                         <ErrorCatalogueView
-                            profile={profile}
                             active={errorId}
                             onSelect={setErrorId}
                             onOpenConcept={openCompare}

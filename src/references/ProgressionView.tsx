@@ -3,6 +3,7 @@ import { GitBranch } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     lessonTitle,
+    lessonTagline,
     navButton,
     cheatCard,
     cheatTitle,
@@ -10,16 +11,13 @@ import {
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
 import { conceptDependsOn, conceptRequiredBy } from "../data/dependencies.ts";
-import type { UserProfile } from "../settings/types.ts";
 
 interface ProgressionViewProps {
-    readonly profile: UserProfile;
     readonly onOpenLesson: (lessonId: string) => void;
     readonly onOpenConcept: (conceptId: string) => void;
 }
 
 export function ProgressionView({
-    profile,
     onOpenLesson,
     onOpenConcept,
 }: ProgressionViewProps) {

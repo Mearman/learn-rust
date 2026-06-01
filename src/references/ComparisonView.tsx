@@ -21,7 +21,7 @@ import {
 } from "../data/languages.ts";
 import { LANGUAGE_CONCEPTS } from "../data/language-concepts.ts";
 import type { LanguageConcept, Concept } from "../data/types.ts";
-import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
+import type { UserProfile } from "../settings/types.ts";
 
 interface ComparisonViewProps {
     readonly profile: UserProfile;

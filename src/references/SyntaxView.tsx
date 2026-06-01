@@ -19,7 +19,6 @@ import {
     TARGET_LANGUAGE_ID,
 } from "../data/languages.ts";
 import { SYNTAX_REFERENCES } from "../data/syntax-references.ts";
-import type { SyntaxReference } from "../data/types.ts";
 import type { UserProfile } from "../settings/types.ts";
 
 interface SyntaxViewProps {

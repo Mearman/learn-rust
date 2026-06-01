@@ -4,11 +4,7 @@ import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
 
 export default defineConfig({
     plugins: [
-        react({
-            babel: {
-                plugins: [["babel-plugin-react-compiler"]],
-            },
-        }),
+        react(),
         vanillaExtractPlugin(),
     ],
     resolve: {

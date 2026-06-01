@@ -48,17 +48,19 @@ function validateSelections(
 export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
     const handleBackgrounds = (values: string[]) => {
         validateSelections(values, isDeveloperBackground);
+        const narrowed = values.filter(isDeveloperBackground);
         setProfile((prev) => ({
             ...prev,
-            backgrounds: values,
+            backgrounds: narrowed,
         }));
     };
 
     const handleFamiliarities = (values: string[]) => {
         validateSelections(values, isLanguageFamiliarity);
+        const narrowed = values.filter(isLanguageFamiliarity);
         setProfile((prev) => ({
             ...prev,
-            familiarities: values,
+            familiarities: narrowed,
         }));
     };
 
@@ -102,7 +104,7 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                     <MultiSelect
                         id="developer-background"
                         data={DEVELOPER_BACKGROUND_OPTIONS}
-                        value={profile.backgrounds}
+                        value={[...profile.backgrounds]}
                         onChange={handleBackgrounds}
                         aria-label="Actual background"
                         placeholder="Select one or more"
@@ -130,9 +132,6 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                                 background: vars.colour.accentDim,
                                 color: vars.colour.text,
                             },
-                            pillLabel: {
-                                color: vars.colour.text,
-                            },
                             pillsList: {
                                 gap: "0.375rem",
                             },
@@ -155,7 +154,7 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                     <MultiSelect
                         id="language-familiarity"
                         data={LANGUAGE_FAMILIARITY_OPTIONS}
-                        value={profile.familiarities}
+                        value={[...profile.familiarities]}
                         onChange={handleFamiliarities}
                         aria-label="Language familiarity"
                         placeholder="Select one or more"
@@ -183,9 +182,6 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                                 background: vars.colour.accentDim,
                                 color: vars.colour.text,
                             },
-                            pillLabel: {
-                                color: vars.colour.text,
-                            },
                             pillsList: {
                                 gap: "0.375rem",
                             },
@@ -201,7 +197,7 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                 <div className={settingsField}>
                     <label className={settingsLabel}>Experience level</label>
                     <SegmentedControl
-                        data={EXPERIENCE_OPTIONS}
+                        data={[...EXPERIENCE_OPTIONS]}
                         value={profile.experience}
                         onChange={handleExperience}
                         fullWidth

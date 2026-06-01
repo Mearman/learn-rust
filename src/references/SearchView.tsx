@@ -3,9 +3,7 @@ import { Search } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     lessonTitle,
-    navButton,
     cheatCard,
-    cheatTitle,
     noteBlock,
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
@@ -13,10 +11,8 @@ import { LESSONS } from "../learn/lessons.ts";
 import { GLOSSARY } from "../data/glossary.ts";
 import { ERROR_CATALOGUE } from "../data/errors.ts";
 import { SYNTAX_REFERENCES } from "../data/syntax-references.ts";
-import type { UserProfile } from "../settings/types.ts";
 
 interface SearchViewProps {
-    readonly profile: UserProfile;
     readonly onOpenLesson: (lessonId: string) => void;
     readonly onOpenConcept: (conceptId: string) => void;
     readonly onOpenSyntax: (topic: string) => void;
@@ -39,7 +35,6 @@ const SYNTAX_TOPICS = SYNTAX_REFERENCES.reduce<string[]>((acc, entry) => {
 }, []);
 
 export function SearchView({
-    profile,
     onOpenLesson,
     onOpenConcept,
     onOpenSyntax,

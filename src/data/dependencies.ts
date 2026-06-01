@@ -1,4 +1,3 @@
-import type { Concept } from "./types.ts";
 
 /**
  * Directed edges: `[from, to]` means "from depends on to".
