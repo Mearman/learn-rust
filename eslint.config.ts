@@ -184,6 +184,7 @@ const noReExports: Rule.RuleModule = {
                 target = target.parent;
             }
             if (target.parent?.type !== "Program") return null;
+            if (target.range === undefined) return null;
 
             // Remove from the start of the line to capture leading whitespace/newlines
             const prevToken = source.getTokenBefore(target, {
@@ -252,13 +253,11 @@ const noDynamicImports: Rule.RuleModule = {
     },
     create(context) {
         return {
-            CallExpression(node) {
-                if (node.callee.type === "Import") {
-                    context.report({
-                        node,
-                        messageId: "noDynamicImport",
-                    });
-                }
+            ImportExpression(node) {
+                context.report({
+                    node,
+                    messageId: "noDynamicImport",
+                });
             },
         };
     },
