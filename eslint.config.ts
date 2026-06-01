@@ -7,8 +7,6 @@ import eslintPluginPrettier from "eslint-plugin-prettier";
 import { defineConfig, globalIgnores } from "eslint/config";
 import type { Rule } from "eslint";
 import type { RuleModule } from "@typescript-eslint/utils/ts-eslint";
-import type { TSESTree } from "@typescript-eslint/utils";
-
 
 // ---------------------------------------------------------------------------
 // Custom rule: no-pointless-reassignments
