@@ -95,7 +95,7 @@ export function CodeBlock({ code, label, onRun, compiling }: CodeBlockProps) {
         <div className={codeBlock}>
             {label ? (
                 <div className={codeHeader}>
-                    <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
                         <span className={codeDot} />
                         <span className={codeDot} />
                         <span className={codeDot} />

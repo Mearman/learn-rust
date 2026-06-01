@@ -24,6 +24,11 @@ export class PlaygroundBackend implements CompilerBackend {
     readonly available = true;
 
     async compile(code: string): Promise<CompileResult> {
+        // Wrap bare statements in fn main() so fragments compile
+        const wrapped = code.includes("fn main")
+            ? code
+            : `fn main() {\n${code}\n}`;
+
         const body: PlaygroundRequest = {
             channel: "stable",
             mode: "debug",
