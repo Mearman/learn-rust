@@ -65,8 +65,8 @@ export function useThemeMode(): {
                 listeners.delete(onStoreChange);
             };
         },
-        () => currentMode,
-        () => "auto"
+        (): ThemeMode => currentMode,
+        (): ThemeMode => "auto"
     );
 
     const resolved = resolveTheme(mode);
