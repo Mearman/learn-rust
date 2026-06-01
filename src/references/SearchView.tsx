@@ -9,9 +9,10 @@ import {
     noteBlock,
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
-import { LESSON_CONCEPT_MAP } from "../data/concepts.ts";
-import { LANGUAGES } from "../data/languages.ts";
 import { LESSONS } from "../learn/lessons.ts";
+import { GLOSSARY } from "../data/glossary.ts";
+import { ERROR_CATALOGUE } from "../data/errors.ts";
+import { SYNTAX_REFERENCES } from "../data/syntax-references.ts";
 import type { UserProfile } from "../settings/types.ts";
 
 interface SearchViewProps {
@@ -23,12 +24,19 @@ interface SearchViewProps {
     readonly onOpenError: (errorId: string) => void;
 }
 
+type ResultType = "lesson" | "concept" | "syntax" | "glossary" | "error";
+
 interface SearchResult {
-    readonly type: "lesson" | "concept" | "syntax" | "glossary" | "error";
+    readonly type: ResultType;
     readonly label: string;
     readonly description: string;
     readonly action: () => void;
 }
+
+const SYNTAX_TOPICS = SYNTAX_REFERENCES.reduce<string[]>((acc, entry) => {
+    if (!acc.includes(entry.topic)) acc.push(entry.topic);
+    return acc;
+}, []);
 
 export function SearchView({
     profile,
@@ -56,9 +64,7 @@ export function SearchView({
                     type: "lesson",
                     label: lesson.title,
                     description: lesson.tagline,
-                    action: () => {
-                        onOpenLesson(lesson.id);
-                    },
+                    action: () => onOpenLesson(lesson.id),
                 });
             }
         }
@@ -73,15 +79,60 @@ export function SearchView({
                     type: "concept",
                     label: concept.title,
                     description: concept.description,
-                    action: () => {
-                        onOpenConcept(concept.id);
-                    },
+                    action: () => onOpenConcept(concept.id),
+                });
+            }
+        }
+
+        for (const term of GLOSSARY) {
+            if (
+                term.term.toLowerCase().includes(q) ||
+                term.definition.toLowerCase().includes(q)
+            ) {
+                found.push({
+                    type: "glossary",
+                    label: term.term,
+                    description: term.definition.slice(0, 120) + "...",
+                    action: () => onOpenGlossary(term.id),
+                });
+            }
+        }
+
+        for (const error of ERROR_CATALOGUE) {
+            if (
+                error.code.toLowerCase().includes(q) ||
+                error.title.toLowerCase().includes(q) ||
+                error.explanation.toLowerCase().includes(q)
+            ) {
+                found.push({
+                    type: "error",
+                    label: `${error.code}: ${error.title}`,
+                    description: error.explanation.slice(0, 120) + "...",
+                    action: () => onOpenError(error.id),
+                });
+            }
+        }
+
+        for (const topic of SYNTAX_TOPICS) {
+            if (topic.toLowerCase().includes(q)) {
+                found.push({
+                    type: "syntax",
+                    label: `Syntax: ${topic}`,
+                    description: `Side-by-side syntax comparison for ${topic}.`,
+                    action: () => onOpenSyntax(topic),
                 });
             }
         }
 
         return found;
-    }, [query, onOpenLesson, onOpenConcept]);
+    }, [
+        query,
+        onOpenLesson,
+        onOpenConcept,
+        onOpenSyntax,
+        onOpenGlossary,
+        onOpenError,
+    ]);
 
     return (
         <div
@@ -115,9 +166,7 @@ export function SearchView({
                 <input
                     type="text"
                     value={query}
-                    onChange={(e) => {
-                        setQuery(e.target.value);
-                    }}
+                    onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search lessons, concepts, syntax, glossary, errors..."
                     style={{
                         flex: 1,
@@ -140,7 +189,7 @@ export function SearchView({
                 </div>
             ) : results.length === 0 ? (
                 <div className={noteBlock}>
-                    <span>No results for "{query}".</span>
+                    <span>No results for &quot;{query}&quot;.</span>
                 </div>
             ) : (
                 <div

@@ -14,7 +14,7 @@ import type { Rule } from "eslint";
 // all reads of the alias with the original name and removes the declaration.
 // ---------------------------------------------------------------------------
 
-const noPointlessReassignments: Rule.RuleModule = {
+const noPointlessReassignments = {
     meta: {
         type: "problem",
         fixable: "code",
@@ -117,7 +117,7 @@ const noPointlessReassignments: Rule.RuleModule = {
 // by its own name, not re-exported through a barrel.
 // ---------------------------------------------------------------------------
 
-const noBarrelFiles: Rule.RuleModule = {
+const noBarrelFiles = {
     meta: {
         type: "problem",
         messages: {
@@ -149,7 +149,7 @@ const noBarrelFiles: Rule.RuleModule = {
 // the source module instead. Autofix removes the re-export statement.
 // ---------------------------------------------------------------------------
 
-const noReExports: Rule.RuleModule = {
+const noReExports = {
     meta: {
         type: "problem",
         fixable: "code",
@@ -235,7 +235,7 @@ const noReExports: Rule.RuleModule = {
 // Bans dynamic import() expressions. Use static imports instead.
 // ---------------------------------------------------------------------------
 
-const noDynamicImports: Rule.RuleModule = {
+const noDynamicImports = {
     meta: {
         type: "problem",
         messages: {
@@ -274,16 +274,7 @@ export default defineConfig(
         ],
         languageOptions: {
             parserOptions: {
-                projectService: {
-                    allowDefaultProject: [
-                        "commitlint.config.ts",
-                        "eslint.config.ts",
-                        "lint-staged.config.ts",
-                        "prettier.config.ts",
-                        "vite.config.ts",
-                        "vitest.config.ts",
-                    ],
-                },
+                projectService: true,
                 tsconfigRootDir: import.meta.dirname,
             },
         },

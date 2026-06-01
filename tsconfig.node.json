@@ -19,5 +19,12 @@
         "erasableSyntaxOnly": true,
         "noFallthroughCasesInSwitch": true
     },
-    "include": ["vite.config.ts", "vitest.config.ts"]
+    "include": [
+        "commitlint.config.ts",
+        "eslint.config.ts",
+        "lint-staged.config.ts",
+        "prettier.config.ts",
+        "vite.config.ts",
+        "vitest.config.ts"
+    ]
 }

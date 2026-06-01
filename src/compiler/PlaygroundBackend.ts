@@ -49,8 +49,8 @@ export class PlaygroundBackend implements CompilerBackend {
             return {
                 success: false,
                 stdout: "",
-                stderr: `Playground request failed: ${response.status} ${response.statusText}`,
-                exitDetail: `HTTP ${response.status}`,
+                stderr: `Playground request failed: ${String(response.status)} ${response.statusText}`,
+                exitDetail: `HTTP ${String(response.status)}`,
             };
         }
 

@@ -37,7 +37,7 @@ interface LearnViewProps {
     readonly profile: UserProfile;
     readonly compiling: boolean;
     readonly compileResult: CompileResult | null;
-    onCompile: (code: string) => void;
+    onCompile: (code: string) => Promise<void>;
     onClearCompile: () => void;
     onOpenReference: (id: string) => void;
 }

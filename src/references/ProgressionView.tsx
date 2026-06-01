@@ -1,9 +1,8 @@
 import { useMemo } from "react";
-import { GitBranch, CheckCircle } from "lucide-react";
+import { GitBranch } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     lessonTitle,
-    lessonTagline,
     navButton,
     cheatCard,
     cheatTitle,
@@ -11,7 +10,6 @@ import {
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
 import { conceptDependsOn, conceptRequiredBy } from "../data/dependencies.ts";
-import { LESSON_CONCEPT_MAP } from "../data/concepts.ts";
 import type { UserProfile } from "../settings/types.ts";
 
 interface ProgressionViewProps {
@@ -63,10 +61,17 @@ export function ProgressionView({
                 }}
             >
                 <h2 className={lessonTitle}>Learning path</h2>
-                <p className={lessonTagline}>
+                <span
+                    className={lessonTagline}
+                    style={{
+                        fontSize: "0.95rem",
+                        color: vars.colour.faint,
+                        lineHeight: 1.5,
+                    }}
+                >
                     Concepts build on each other. Earlier layers are
                     prerequisites for later ones.
-                </p>
+                </span>
             </header>
 
             <div className={noteBlock}>

@@ -1,11 +1,8 @@
-import { useState } from "react";
 import { BookOpen } from "lucide-react";
-import { CodeBlock } from "../highlight/CodeBlock.tsx";
 import { vars } from "../theme/theme.css.ts";
 import {
     learnGrid,
     lessonTitle,
-    lessonTagline,
     navButton,
     navButtonActive,
     cheatCard,
@@ -13,17 +10,14 @@ import {
 } from "../theme/styles.css.ts";
 import { GLOSSARY } from "../data/glossary.ts";
 import type { GlossaryEntry } from "../data/glossary.ts";
-import type { UserProfile } from "../settings/types.ts";
 
 interface GlossaryViewProps {
-    readonly profile: UserProfile;
     readonly active: string;
     readonly onSelect: (id: string) => void;
     readonly onOpenConcept: (conceptId: string) => void;
 }
 
 export function GlossaryView({
-    profile,
     active,
     onSelect,
     onOpenConcept,
@@ -107,10 +101,13 @@ export function GlossaryView({
                         <button
                             type="button"
                             onClick={() => {
-                                onOpenConcept(entry.conceptId!);
+                                onOpenConcept(entry.conceptId as string);
                             }}
                             className={navButton}
-                            style={{ width: "auto", padding: "0.5rem 0.75rem" }}
+                            style={{
+                                width: "auto",
+                                padding: "0.5rem 0.75rem",
+                            }}
                         >
                             Compare across languages
                         </button>

@@ -48,30 +48,37 @@ function challengeReducer(
     action: ChallengeAction,
     challenges: readonly Challenge[] = CHALLENGES
 ): ChallengeState {
-    if (action.type === "answer") {
-        const ch = challenges[state.index];
-        return {
-            ...state,
-            answered: true,
-            guess: action.guess,
-            total: state.total + 1,
-            correct:
-                state.correct +
-                (ch !== undefined && action.guess === ch.compiles ? 1 : 0),
-        };
+    switch (action.type) {
+        case "answer": {
+            const ch = challenges[state.index];
+            return {
+                ...state,
+                answered: true,
+                guess: action.guess,
+                total: state.total + 1,
+                correct:
+                    state.correct +
+                    (ch !== undefined && action.guess === ch.compiles ? 1 : 0),
+            };
+        }
+        case "next": {
+            return {
+                ...state,
+                index: state.index + 1,
+                answered: false,
+                guess: null,
+            };
+        }
+        case "reset": {
+            return {
+                index: 0,
+                answered: false,
+                guess: null,
+                correct: 0,
+                total: 0,
+            };
+        }
     }
-    if (action.type === "next") {
-        return {
-            ...state,
-            index: state.index + 1,
-            answered: false,
-            guess: null,
-        };
-    }
-    if (action.type === "reset") {
-        return { index: 0, answered: false, guess: null, correct: 0, total: 0 };
-    }
-    return state;
 }
 
 function levelColour(level: string): string {
@@ -199,7 +206,7 @@ interface ChallengeViewProps {
     readonly profile: UserProfile;
     readonly compiling: boolean;
     readonly compileResult: CompileResult | null;
-    onCompile: (code: string) => void;
+    onCompile: (code: string) => Promise<void>;
     onClearCompile: () => void;
 }
 

@@ -1,5 +1,4 @@
 import { AlertTriangle } from "lucide-react";
-import { CodeBlock } from "../highlight/CodeBlock.tsx";
 import { vars } from "../theme/theme.css.ts";
 import {
     learnGrid,
@@ -11,17 +10,14 @@ import {
     cheatTitle,
 } from "../theme/styles.css.ts";
 import { ERROR_CATALOGUE } from "../data/errors.ts";
-import type { UserProfile } from "../settings/types.ts";
 
 interface ErrorCatalogueViewProps {
-    readonly profile: UserProfile;
     readonly active: string;
     readonly onSelect: (id: string) => void;
     readonly onOpenConcept: (conceptId: string) => void;
 }
 
 export function ErrorCatalogueView({
-    profile,
     active,
     onSelect,
     onOpenConcept,
@@ -60,7 +56,12 @@ export function ErrorCatalogueView({
                                         flexShrink: 0,
                                     }}
                                 />
-                                <span style={{ flex: 1, textAlign: "left" }}>
+                                <span
+                                    style={{
+                                        flex: 1,
+                                        textAlign: "left",
+                                    }}
+                                >
                                     {e.code}: {e.title}
                                 </span>
                             </button>
@@ -138,10 +139,13 @@ export function ErrorCatalogueView({
                         <button
                             type="button"
                             onClick={() => {
-                                onOpenConcept(entry.conceptId!);
+                                onOpenConcept(entry.conceptId as string);
                             }}
                             className={navButton}
-                            style={{ width: "auto", padding: "0.5rem 0.75rem" }}
+                            style={{
+                                width: "auto",
+                                padding: "0.5rem 0.75rem",
+                            }}
                         >
                             Compare across languages
                         </button>

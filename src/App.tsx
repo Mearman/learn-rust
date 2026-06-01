@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
     BookOpen,
     Code2,
@@ -133,7 +133,19 @@ export function App() {
     } = useCompiler();
     const [profile, setProfile] = useUserProfile();
 
-    useEffect(() => {
+    const [challenge, setChallenge] = useState<ChallengeState>({
+        index: 0,
+        answered: false,
+        guess: null,
+        correct: 0,
+        total: 0,
+    });
+
+    const [experienceVersion, setExperienceVersion] = useState(0);
+    const prevExperience = useRef(profile.experience);
+    if (prevExperience.current !== profile.experience) {
+        prevExperience.current = profile.experience;
+        setExperienceVersion((v) => v + 1);
         setChallenge({
             index: 0,
             answered: false,
@@ -141,7 +153,7 @@ export function App() {
             correct: 0,
             total: 0,
         });
-    }, [profile.experience]);
+    }
 
     const dispatch = useCallback(
         (action: ChallengeAction) => {
