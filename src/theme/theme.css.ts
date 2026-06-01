@@ -22,12 +22,14 @@ export const vars = createThemeContract({
     tok: {
         default: null,
         comment: null,
+        docComment: null,
         string: null,
         lifetime: null,
         macro: null,
         keyword: null,
         type: null,
         number: null,
+        attribute: null,
     },
 });
 
@@ -53,12 +55,14 @@ export const darkTheme = createTheme(vars, {
     tok: {
         default: "#ece7e0",
         comment: "#736a5e",
+        docComment: "#8a9e6e",
         string: "#b6d98c",
         lifetime: "#e7a6e0",
         macro: "#74c7d4",
         keyword: "#f0915f",
         type: "#e6c878",
         number: "#e89a6a",
+        attribute: "#c4a87a",
     },
 });
 
@@ -84,11 +88,13 @@ export const lightTheme = createTheme(vars, {
     tok: {
         default: "#1c1917",
         comment: "#9ca3af",
+        docComment: "#6b8f3e",
         string: "#65a30d",
         lifetime: "#c026d3",
         macro: "#0891b2",
         keyword: "#d45a25",
         type: "#b45309",
         number: "#d97706",
+        attribute: "#92650a",
     },
 });
