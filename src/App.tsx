@@ -18,6 +18,7 @@ import { LearnView } from "./learn/LearnView.tsx";
 import { ChallengeView, challengeReducer } from "./challenge/ChallengeView.tsx";
 import type { ChallengeState, ChallengeAction } from "./challenge/ChallengeView.tsx";
 import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
+import { useCompiler } from "./compiler/useCompiler.ts";
 
 type Mode = "learn" | "challenge" | "cheatsheet";
 
@@ -40,6 +41,7 @@ export function App() {
         correct: 0,
         total: 0,
     });
+    const { compiling, result: compileResult, compile, clear: clearCompile } = useCompiler();
 
     const dispatch = useCallback((action: ChallengeAction) => {
         setChallenge((s) => challengeReducer(s, action));
@@ -100,10 +102,25 @@ export function App() {
 
                 <main className={mainPanel}>
                     {mode === "learn" ? (
-                        <LearnView active={active} setActive={selectLesson} viewed={viewed} />
+                        <LearnView
+                            active={active}
+                            setActive={selectLesson}
+                            viewed={viewed}
+                            compiling={compiling}
+                            compileResult={compileResult}
+                            onCompile={compile}
+                            onClearCompile={clearCompile}
+                        />
                     ) : null}
                     {mode === "challenge" ? (
-                        <ChallengeView state={challenge} dispatch={dispatch} />
+                        <ChallengeView
+                            state={challenge}
+                            dispatch={dispatch}
+                            compiling={compiling}
+                            compileResult={compileResult}
+                            onCompile={compile}
+                            onClearCompile={clearCompile}
+                        />
                     ) : null}
                     {mode === "cheatsheet" ? <CheatsheetView /> : null}
                 </main>

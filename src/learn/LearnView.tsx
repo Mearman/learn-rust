@@ -10,11 +10,16 @@ import {
 import { Block } from "./Block.tsx";
 import { LESSONS } from "./lessons.ts";
 import type { Lesson } from "./lessons.ts";
+import type { CompileResult } from "../compiler/types.ts";
 
 interface LearnViewProps {
     readonly active: string;
     readonly setActive: (id: string) => void;
     readonly viewed: ReadonlySet<string>;
+    readonly compiling: boolean;
+    readonly compileResult: CompileResult | null;
+    onCompile: (code: string) => void;
+    onClearCompile: () => void;
 }
 
 function findLesson(id: string): Lesson {
@@ -23,7 +28,7 @@ function findLesson(id: string): Lesson {
     return lesson;
 }
 
-export function LearnView({ active, setActive, viewed }: LearnViewProps) {
+export function LearnView({ active, setActive, viewed, compiling, compileResult, onCompile, onClearCompile }: LearnViewProps) {
     const lesson = findLesson(active);
     return (
         <div className={learnGrid}>
@@ -54,7 +59,14 @@ export function LearnView({ active, setActive, viewed }: LearnViewProps) {
                     <p className={lessonTagline}>{lesson.tagline}</p>
                 </header>
                 {lesson.blocks.map((b, i) => (
-                    <Block key={i} block={b} />
+                    <Block
+                        key={i}
+                        block={b}
+                        compiling={compiling}
+                        onRun={b.kind === "code" ? () => onCompile(b.code) : undefined}
+                        compileResult={compileResult}
+                        onClearCompile={onClearCompile}
+                    />
                 ))}
             </article>
         </div>

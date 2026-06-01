@@ -7,14 +7,29 @@ import {
     textBlock,
     accentLabel,
 } from "../theme/styles.css.ts";
+import { CompileOutput } from "../compiler/CompileOutput.tsx";
 import type { LessonBlock } from "./lessons.ts";
+import type { CompileResult } from "../compiler/types.ts";
 
 interface BlockProps {
     readonly block: LessonBlock;
+    readonly compiling?: boolean;
+    readonly onRun?: () => void;
+    readonly compileResult?: CompileResult | null;
+    readonly onClearCompile?: () => void;
 }
 
-export function Block({ block }: BlockProps) {
-    if (block.kind === "code") return <CodeBlock code={block.code} label={block.label} />;
+export function Block({ block, compiling, onRun, compileResult, onClearCompile }: BlockProps) {
+    if (block.kind === "code") {
+        return (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <CodeBlock code={block.code} label={block.label} onRun={onRun} compiling={compiling} />
+                {compileResult !== undefined && compileResult !== null && onClearCompile ? (
+                    <CompileOutput result={compileResult} compiling={compiling ?? false} onClear={onClearCompile} />
+                ) : null}
+            </div>
+        );
+    }
     if (block.kind === "note") {
         return (
             <div className={noteBlock}>

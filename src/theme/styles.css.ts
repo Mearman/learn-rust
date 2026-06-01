@@ -352,3 +352,71 @@ export const accentLabel = style({
     color: vars.colour.accent,
     fontWeight: 600,
 });
+
+// ---------------------------------------------------------------------------
+// Compiler output
+// ---------------------------------------------------------------------------
+
+export const outputPanel = style({
+    borderRadius: "0.5rem",
+    overflow: "hidden",
+    border: `1px solid ${vars.colour.border}`,
+    background: vars.colour.code,
+});
+
+export const outputHeader = style({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0.5rem 0.75rem",
+    borderBottom: `1px solid ${vars.colour.borderSoft}`,
+    fontSize: "0.75rem",
+    fontFamily: "ui-monospace, monospace",
+    color: vars.colour.faint,
+});
+
+export const outputPre = style({
+    padding: "0.75rem 1rem",
+    margin: 0,
+    fontSize: 13,
+    fontFamily: "ui-monospace, monospace",
+    lineHeight: 1.625,
+    overflowX: "auto",
+    whiteSpace: "pre-wrap" as const,
+    wordBreak: "break-word" as const,
+});
+
+export const runButton = style({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.375rem",
+    padding: "0.375rem 0.75rem",
+    borderRadius: "0.375rem",
+    fontSize: "0.8125rem",
+    fontWeight: 500,
+    background: vars.colour.accent,
+    color: "#1a0f08",
+    border: "none",
+    cursor: "pointer",
+    transition: "opacity 0.15s",
+    selectors: {
+        "&:disabled": {
+            opacity: 0.5,
+            cursor: "not-allowed",
+        },
+    },
+});
+
+export const clearButton = style({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.375rem",
+    padding: "0.375rem 0.75rem",
+    borderRadius: "0.375rem",
+    fontSize: "0.8125rem",
+    fontWeight: 500,
+    background: "transparent",
+    color: vars.colour.dim,
+    border: `1px solid ${vars.colour.border}`,
+    cursor: "pointer",
+});

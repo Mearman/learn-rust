@@ -12,7 +12,9 @@ import {
     dimSm,
 } from "../theme/styles.css.ts";
 import { CodeBlock } from "../highlight/CodeBlock.tsx";
+import { CompileOutput } from "../compiler/CompileOutput.tsx";
 import { CHALLENGES } from "./challenges.ts";
+import type { CompileResult } from "../compiler/types.ts";
 
 interface ChallengeState {
     readonly index: number;
@@ -56,9 +58,13 @@ function levelColour(level: string): string {
 interface ChallengeViewProps {
     readonly state: ChallengeState;
     readonly dispatch: (action: ChallengeAction) => void;
+    readonly compiling: boolean;
+    readonly compileResult: CompileResult | null;
+    onCompile: (code: string) => void;
+    onClearCompile: () => void;
 }
 
-function Results({ state, dispatch }: ChallengeViewProps) {
+function Results({ state, dispatch }: { readonly state: ChallengeState; readonly dispatch: (a: ChallengeAction) => void }) {
     const pct = state.total === 0 ? 0 : Math.round((state.correct / state.total) * 100);
     return (
         <div className={challengeResult}>
@@ -83,7 +89,7 @@ function Results({ state, dispatch }: ChallengeViewProps) {
     );
 }
 
-export function ChallengeView({ state, dispatch }: ChallengeViewProps) {
+export function ChallengeView({ state, dispatch, compiling, compileResult, onCompile, onClearCompile }: ChallengeViewProps) {
     const done = state.index >= CHALLENGES.length;
 
     if (done) {
@@ -109,7 +115,14 @@ export function ChallengeView({ state, dispatch }: ChallengeViewProps) {
                 Will this compile?
             </h2>
 
-            <CodeBlock code={ch.code} label="snippet.rs" />
+            <CodeBlock
+                code={ch.code}
+                label="snippet.rs"
+                onRun={() => onCompile(ch.code)}
+                compiling={compiling}
+            />
+
+            <CompileOutput result={compileResult} compiling={compiling} onClear={onClearCompile} />
 
             {!state.answered ? (
                 <div className={answerGrid}>
@@ -146,7 +159,8 @@ export function ChallengeView({ state, dispatch }: ChallengeViewProps) {
                     {ch.fix ? (
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                             <span className={monoSm}>one way to fix it</span>
-                            <CodeBlock code={ch.fix} label="fixed.rs" />
+                            <CodeBlock code={ch.fix} label="fixed.rs" onRun={() => onCompile(ch.fix ?? "")} compiling={compiling} />
+                            <CompileOutput result={compileResult} compiling={compiling} onClear={onClearCompile} />
                         </div>
                     ) : null}
 

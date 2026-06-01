@@ -6,7 +6,9 @@ import {
     codeDot,
     codePre,
     tokenCommentOrLifetime,
+    runButton,
 } from "../theme/styles.css.ts";
+import { PlayCircle } from "lucide-react";
 
 const KEYWORDS = [
     "as", "async", "await", "break", "const", "continue", "crate", "dyn",
@@ -83,18 +85,28 @@ const tokenColour: Record<TokenClass, string> = {
 interface CodeBlockProps {
     readonly code: string;
     readonly label?: string;
+    readonly onRun?: () => void;
+    readonly compiling?: boolean;
 }
 
-export function CodeBlock({ code, label }: CodeBlockProps) {
+export function CodeBlock({ code, label, onRun, compiling }: CodeBlockProps) {
     const tokens = useMemo(() => tokenize(code), [code]);
     return (
         <div className={codeBlock}>
             {label ? (
                 <div className={codeHeader}>
-                    <span className={codeDot} />
-                    <span className={codeDot} />
-                    <span className={codeDot} />
-                    <span style={{ marginLeft: "0.25rem" }}>{label}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
+                        <span className={codeDot} />
+                        <span className={codeDot} />
+                        <span className={codeDot} />
+                        <span style={{ marginLeft: "0.25rem" }}>{label}</span>
+                    </div>
+                    {onRun ? (
+                        <button className={runButton} onClick={onRun} disabled={compiling}>
+                            <PlayCircle size={13} />
+                            {compiling ? "Running…" : "Run"}
+                        </button>
+                    ) : null}
                 </div>
             ) : null}
             <pre className={codePre}>
