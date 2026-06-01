@@ -26,11 +26,11 @@ import {
 } from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
 import { LearnView } from "./learn/LearnView.tsx";
-import {
-    ChallengeView,
-    challengeReducer,
+import { ChallengeView, challengeReducer } from "./challenge/ChallengeView.tsx";
+import type {
+    ChallengeState,
+    ChallengeAction,
 } from "./challenge/ChallengeView.tsx";
-import type { ChallengeState, ChallengeAction } from "./challenge/ChallengeView.tsx";
 import { getFilteredChallenges } from "./challenge/challenges.ts";
 import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
@@ -60,7 +60,11 @@ type Mode =
     | "search"
     | "cheatsheet";
 
-const TABS: readonly { readonly id: Mode; readonly label: string; readonly icon: LucideIcon }[] = [
+const TABS: readonly {
+    readonly id: Mode;
+    readonly label: string;
+    readonly icon: LucideIcon;
+}[] = [
     { id: "learn", label: "Learn", icon: BookOpen },
     { id: "challenge", label: "Will it compile?", icon: ListChecks },
     { id: "progression", label: "Path", icon: GitBranch },
@@ -121,7 +125,12 @@ export function App() {
         correct: 0,
         total: 0,
     });
-    const { compiling, result: compileResult, compile, clear: clearCompile } = useCompiler();
+    const {
+        compiling,
+        result: compileResult,
+        compile,
+        clear: clearCompile,
+    } = useCompiler();
     const [profile, setProfile] = useUserProfile();
 
     useEffect(() => {
@@ -134,9 +143,14 @@ export function App() {
         });
     }, [profile.experience]);
 
-    const dispatch = useCallback((action: ChallengeAction) => {
-        setChallenge((s) => challengeReducer(s, action, getFilteredChallenges(profile)));
-    }, [profile]);
+    const dispatch = useCallback(
+        (action: ChallengeAction) => {
+            setChallenge((s) =>
+                challengeReducer(s, action, getFilteredChallenges(profile))
+            );
+        },
+        [profile]
+    );
 
     const selectLesson = useCallback((id: string) => {
         setActive(id);
@@ -171,33 +185,100 @@ export function App() {
     return (
         <div className={shell}>
             <div className={shellInner}>
-                <header style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <header
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                    }}
+                >
                     <div className={headerFlex}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.25rem",
+                            }}
+                        >
                             <h1 className={heading}>
                                 Rust{" "}
-                                <span style={{ color: vars.colour.accent }}>by concept</span>
+                                <span style={{ color: vars.colour.accent }}>
+                                    by concept
+                                </span>
                             </h1>
-                            <p style={{ fontSize: "0.875rem", margin: 0, color: vars.colour.faint }}>
-                                The ten ideas that actually make Rust feel different.
+                            <p
+                                style={{
+                                    fontSize: "0.875rem",
+                                    margin: 0,
+                                    color: vars.colour.faint,
+                                }}
+                            >
+                                The ten ideas that actually make Rust feel
+                                different.
                             </p>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }} className={monoSm}>
-                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                                <BookOpen size={13} style={{ color: vars.colour.accent }} />
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "1rem",
+                                flexWrap: "wrap",
+                            }}
+                            className={monoSm}
+                        >
+                            <span
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.375rem",
+                                }}
+                            >
+                                <BookOpen
+                                    size={13}
+                                    style={{ color: vars.colour.accent }}
+                                />
                                 {viewed.size}/{LESSONS.length} read
                             </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                                <Trophy size={13} style={{ color: vars.colour.accent }} />
+                            <span
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.375rem",
+                                }}
+                            >
+                                <Trophy
+                                    size={13}
+                                    style={{ color: vars.colour.accent }}
+                                />
                                 {challenge.correct}/{challenge.total}
                             </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                                <span style={{ color: vars.colour.accent }}>•</span>
-                                Backgrounds: {joinDeveloperBackgrounds(profile.backgrounds)}
+                            <span
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.375rem",
+                                }}
+                            >
+                                <span style={{ color: vars.colour.accent }}>
+                                    •
+                                </span>
+                                Backgrounds:{" "}
+                                {joinDeveloperBackgrounds(profile.backgrounds)}
                             </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                                <span style={{ color: vars.colour.accent }}>•</span>
-                                Familiarities: {joinLanguageFamiliarities(profile.familiarities)}
+                            <span
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.375rem",
+                                }}
+                            >
+                                <span style={{ color: vars.colour.accent }}>
+                                    •
+                                </span>
+                                Familiarities:{" "}
+                                {joinLanguageFamiliarities(
+                                    profile.familiarities
+                                )}
                             </span>
                         </div>
                     </div>
@@ -304,7 +385,8 @@ export function App() {
                 </main>
 
                 <footer className={footer}>
-                    Snippets are illustrative. Run them for real at play.rust-lang.org
+                    Snippets are illustrative. Run them for real at
+                    play.rust-lang.org
                 </footer>
             </div>
         </div>

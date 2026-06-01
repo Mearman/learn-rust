@@ -48,7 +48,8 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         id: "e0502",
         code: "E0502",
         title: "Cannot borrow as mutable because also borrowed as immutable",
-        message: "cannot borrow `x` as mutable because it is also borrowed as immutable",
+        message:
+            "cannot borrow `x` as mutable because it is also borrowed as immutable",
         explanation:
             "Rust's borrowing rules forbid holding a mutable reference while any immutable reference to the same data is still alive. Mutable borrows require exclusive access — no other references may exist.",
         fix: "Ensure the immutable borrow's lifetime ends before the mutable borrow begins. Introduce a new scope or restructure so the shared reference is dropped first.",
@@ -134,7 +135,8 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         id: "e0282",
         code: "E0282",
         title: "Type annotations needed",
-        message: "type annotations needed: cannot infer type for type parameter `T`",
+        message:
+            "type annotations needed: cannot infer type for type parameter `T`",
         explanation:
             "The compiler cannot figure out what type a variable or expression should be. This happens when a generic function is called without enough context for type inference.",
         fix: "Add an explicit type annotation to the variable (`let x: i32 = ...`) or use the turbofish syntax (`parse::<i32>()`) to specify the type at the call site.",
@@ -144,7 +146,8 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         id: "e0283",
         code: "E0283",
         title: "Type ambiguity",
-        message: "type annotations needed: multiple `impl`s satisfying ... found",
+        message:
+            "type annotations needed: multiple `impl`s satisfying ... found",
         explanation:
             "Multiple types could satisfy the required trait bounds, and the compiler cannot choose between them. This is common with numeric literals (could be `i32`, `f64`, etc.) or when several types implement the same trait.",
         fix: "Add a concrete type annotation or use the turbofish operator to disambiguate. For numeric literals, suffix them (`42i32`, `3.14f64`).",
@@ -180,7 +183,8 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         id: "e0596",
         code: "E0596",
         title: "Cannot borrow as mutable behind a shared reference",
-        message: "cannot borrow `*self.items` as mutable, as `self` is a `&` reference",
+        message:
+            "cannot borrow `*self.items` as mutable, as `self` is a `&` reference",
         explanation:
             "A method tried to mutate data through a shared (`&self`) reference. Shared references only allow reading, not writing. This is a core aliasing rule — if multiple shared references exist, none of them can mutate.",
         fix: "Use interior mutability (`RefCell<T>`, `Cell<T>`, `Mutex<T>`) if the type design requires mutation through a shared reference, or change the method to take `&mut self`.",
@@ -190,7 +194,8 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         id: "e0599",
         code: "E0599",
         title: "No method named X found for type Y",
-        message: "no method named `push` found for reference `&Vec<T>` in the current scope",
+        message:
+            "no method named `push` found for reference `&Vec<T>` in the current scope",
         explanation:
             "A method was called on a type that doesn't have it, or the method requires `&mut self` but only a `&self` reference is available. The method might also require a trait to be in scope.",
         fix: "Check that the correct type is being used and that any required traits are imported. If the method needs `&mut self`, ensure you have a mutable reference to the value.",
@@ -309,7 +314,8 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         id: "e0119",
         code: "E0119",
         title: "Conflicting implementations of trait",
-        message: "conflicting implementations of trait `Display` for type `MyStruct`",
+        message:
+            "conflicting implementations of trait `Display` for type `MyStruct`",
         explanation:
             "Two `impl` blocks define the same trait for the same type. Rust's coherence rules (orphan rules) ensure each trait is implemented for each type at most once to prevent ambiguity.",
         fix: "Remove the duplicate implementation. If you're trying to extend a foreign trait on a foreign type, consider using the newtype pattern instead.",
@@ -322,7 +328,7 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         message: "binary operation `+` cannot be applied to type `&str`",
         explanation:
             "An operator was used with types that don't support it. Not all types implement all operators — for instance, `&str` cannot be added to `&str` because string concatenation requires at least one owned `String`.",
-        fix: "Convert to the appropriate type before using the operator. For strings: `String::from("hello") + " world"` or use `format!`. For custom types, implement the relevant trait (`Add`, `Sub`, etc.).",
+        fix: 'Convert to the appropriate type before using the operator. For strings: `String::from("hello") + " world"` or use `format!`. For custom types, implement the relevant trait (`Add`, `Sub`, etc.).',
         conceptId: "string-types",
     },
     {
@@ -359,7 +365,8 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         id: "e0451",
         code: "E0451",
         title: "Attempted to implement a trait on a foreign type",
-        message: "only traits defined in the current crate can be implemented for a type defined outside of the crate",
+        message:
+            "only traits defined in the current crate can be implemented for a type defined outside of the crate",
         explanation:
             "Both the trait and the type are defined in external crates. Rust's orphan rule prevents implementing a foreign trait on a foreign type — this avoids conflicting implementations across crates.",
         fix: "Use the newtype pattern: wrap the foreign type in a local struct (`struct MyString(String);`) and implement the foreign trait on the wrapper. Alternatively, implement a local trait instead.",
