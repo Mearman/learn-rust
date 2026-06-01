@@ -15,7 +15,12 @@ function loadProfile(): UserProfile {
     if (raw === null) return DEFAULT_PROFILE;
     const parsed: unknown = JSON.parse(raw);
     if (!isUserProfile(parsed)) {
-        throw new Error("Stored Rust by Concept profile is invalid");
+        console.warn(
+            `[rbc] Stored profile under "${STORAGE_KEY}" failed validation — ` +
+                "falling back to default and clearing the key."
+        );
+        localStorage.removeItem(STORAGE_KEY);
+        return DEFAULT_PROFILE;
     }
     return parsed;
 }
