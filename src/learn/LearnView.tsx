@@ -85,7 +85,9 @@ export function LearnView({
                         return (
                             <button
                                 key={l.id}
-                                onClick={() => setActive(l.id)}
+                                onClick={() => {
+                                    setActive(l.id);
+                                }}
                                 className={`${navButton} ${on ? navButtonActive : ""}`}
                             >
                                 <Icon
@@ -145,7 +147,9 @@ export function LearnView({
                             <button
                                 key={conceptId}
                                 type="button"
-                                onClick={() => onOpenReference(conceptId)}
+                                onClick={() => {
+                                    onOpenReference(conceptId);
+                                }}
                                 className={navButton}
                                 style={{
                                     width: "auto",
@@ -181,7 +185,9 @@ export function LearnView({
                             compiling={compiling}
                             onRun={
                                 b.kind === "code"
-                                    ? () => onCompile(b.code)
+                                    ? () => {
+                                          onCompile(b.code);
+                                      }
                                     : undefined
                             }
                             compileResult={compileResult}

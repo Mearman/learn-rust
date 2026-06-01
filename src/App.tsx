@@ -292,7 +292,9 @@ export function App() {
                             return (
                                 <button
                                     key={t.id}
-                                    onClick={() => setMode(t.id)}
+                                    onClick={() => {
+                                        setMode(t.id);
+                                    }}
                                     className={`${tabButton} ${on ? tabButtonActive : ""}`}
                                 >
                                     <Icon size={15} />
@@ -378,7 +380,9 @@ export function App() {
                     ) : null}
                     {mode === "cheatsheet" ? (
                         <CheatsheetView
-                            onOpenReferences={() => setMode("compare")}
+                            onOpenReferences={() => {
+                                setMode("compare");
+                            }}
                             onOpenConcept={openCompare}
                         />
                     ) : null}

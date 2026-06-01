@@ -56,7 +56,9 @@ export function SearchView({
                     type: "lesson",
                     label: lesson.title,
                     description: lesson.tagline,
-                    action: () => onOpenLesson(lesson.id),
+                    action: () => {
+                        onOpenLesson(lesson.id);
+                    },
                 });
             }
         }
@@ -71,7 +73,9 @@ export function SearchView({
                     type: "concept",
                     label: concept.title,
                     description: concept.description,
-                    action: () => onOpenConcept(concept.id),
+                    action: () => {
+                        onOpenConcept(concept.id);
+                    },
                 });
             }
         }
@@ -111,7 +115,9 @@ export function SearchView({
                 <input
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                        setQuery(e.target.value);
+                    }}
                     placeholder="Search lessons, concepts, syntax, glossary, errors..."
                     style={{
                         flex: 1,

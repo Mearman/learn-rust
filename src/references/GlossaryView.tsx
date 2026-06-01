@@ -52,7 +52,9 @@ export function GlossaryView({
                         return (
                             <button
                                 key={g.id}
-                                onClick={() => onSelect(g.id)}
+                                onClick={() => {
+                                    onSelect(g.id);
+                                }}
                                 className={`${navButton} ${on ? navButtonActive : ""}`}
                             >
                                 <BookOpen
@@ -104,7 +106,9 @@ export function GlossaryView({
                         <h3 className={cheatTitle}>Related concept</h3>
                         <button
                             type="button"
-                            onClick={() => onOpenConcept(entry.conceptId!)}
+                            onClick={() => {
+                                onOpenConcept(entry.conceptId!);
+                            }}
                             className={navButton}
                             style={{ width: "auto", padding: "0.5rem 0.75rem" }}
                         >
@@ -127,7 +131,9 @@ export function GlossaryView({
                                 <button
                                     key={r.id}
                                     type="button"
-                                    onClick={() => onSelect(r.id)}
+                                    onClick={() => {
+                                        onSelect(r.id);
+                                    }}
                                     className={navButton}
                                     style={{
                                         width: "auto",

@@ -77,7 +77,9 @@ export function SyntaxView({ profile, active, onSelect }: SyntaxViewProps) {
                         return (
                             <button
                                 key={topic}
-                                onClick={() => onSelect(topic)}
+                                onClick={() => {
+                                    onSelect(topic);
+                                }}
                                 className={`${navButton} ${on ? navButtonActive : ""}`}
                             >
                                 <Braces

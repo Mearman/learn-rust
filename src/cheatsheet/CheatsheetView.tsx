@@ -54,7 +54,9 @@ export function CheatsheetView({
                                 <h3 className={cheatTitle}>{concept.title}</h3>
                                 <button
                                     type="button"
-                                    onClick={() => onOpenConcept(concept.id)}
+                                    onClick={() => {
+                                        onOpenConcept(concept.id);
+                                    }}
                                     className={navButton}
                                     style={{
                                         width: "auto",

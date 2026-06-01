@@ -182,7 +182,9 @@ function Results({
                       : "Replay the Borrowing and Lifetimes lessons, then run it back."}
             </p>
             <button
-                onClick={() => dispatch({ type: "reset" })}
+                onClick={() => {
+                    dispatch({ type: "reset" });
+                }}
                 className={nextButton}
             >
                 <RotateCcw size={16} /> Start over
@@ -293,7 +295,9 @@ function ChallengeView({
             <CodeBlock
                 code={ch.code}
                 label="snippet.rs"
-                onRun={() => onCompile(ch.code)}
+                onRun={() => {
+                    onCompile(ch.code);
+                }}
                 compiling={compiling}
             />
 
@@ -306,18 +310,18 @@ function ChallengeView({
             {!state.answered ? (
                 <div className={answerGrid}>
                     <button
-                        onClick={() =>
-                            dispatch({ type: "answer", guess: true })
-                        }
+                        onClick={() => {
+                            dispatch({ type: "answer", guess: true });
+                        }}
                         className={answerButton}
                         style={{ color: vars.colour.good }}
                     >
                         <Check size={17} /> Compiles
                     </button>
                     <button
-                        onClick={() =>
-                            dispatch({ type: "answer", guess: false })
-                        }
+                        onClick={() => {
+                            dispatch({ type: "answer", guess: false });
+                        }}
                         className={answerButton}
                         style={{ color: vars.colour.bad }}
                     >
@@ -389,7 +393,9 @@ function ChallengeView({
                             <CodeBlock
                                 code={ch.fix}
                                 label="fixed.rs"
-                                onRun={() => onCompile(ch.fix ?? "")}
+                                onRun={() => {
+                                    onCompile(ch.fix ?? "");
+                                }}
                                 compiling={compiling}
                             />
                             <CompileOutput
@@ -401,7 +407,9 @@ function ChallengeView({
                     ) : null}
 
                     <button
-                        onClick={() => dispatch({ type: "next" })}
+                        onClick={() => {
+                            dispatch({ type: "next" });
+                        }}
                         className={nextButton}
                     >
                         {state.index + 1 >= filtered.length

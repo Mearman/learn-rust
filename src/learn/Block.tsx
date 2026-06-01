@@ -224,7 +224,9 @@ function DeepDiveSection({
         >
             <button
                 className={deepDiveToggle}
-                onClick={() => setOpen((prev) => !prev)}
+                onClick={() => {
+                    setOpen((prev) => !prev);
+                }}
                 type="button"
             >
                 {open ? (

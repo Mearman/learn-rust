@@ -89,7 +89,9 @@ export function ComparisonView({
                         return (
                             <button
                                 key={c.id}
-                                onClick={() => onSelect(c.id)}
+                                onClick={() => {
+                                    onSelect(c.id);
+                                }}
                                 className={`${navButton} ${on ? navButtonActive : ""}`}
                             >
                                 <ArrowLeftRight
@@ -252,7 +254,9 @@ export function ComparisonView({
                                 <button
                                     key={lessonId}
                                     type="button"
-                                    onClick={() => onOpenLesson(lessonId)}
+                                    onClick={() => {
+                                        onOpenLesson(lessonId);
+                                    }}
                                     className={navButton}
                                     style={{
                                         width: "auto",

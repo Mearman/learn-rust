@@ -46,7 +46,9 @@ export function ErrorCatalogueView({
                         return (
                             <button
                                 key={e.id}
-                                onClick={() => onSelect(e.id)}
+                                onClick={() => {
+                                    onSelect(e.id);
+                                }}
                                 className={`${navButton} ${on ? navButtonActive : ""}`}
                             >
                                 <AlertTriangle
@@ -135,7 +137,9 @@ export function ErrorCatalogueView({
                         <h3 className={cheatTitle}>Related concept</h3>
                         <button
                             type="button"
-                            onClick={() => onOpenConcept(entry.conceptId!)}
+                            onClick={() => {
+                                onOpenConcept(entry.conceptId!);
+                            }}
                             className={navButton}
                             style={{ width: "auto", padding: "0.5rem 0.75rem" }}
                         >

@@ -58,17 +58,17 @@ const noPointlessReassignments: Rule.RuleModule = {
                         if (!variable) return null;
 
                         const mutationRefs = variable.references.filter(
-                            (r) => r.isWrite() && r.identifier !== node.id,
+                            (r) => r.isWrite() && r.identifier !== node.id
                         );
                         if (mutationRefs.length > 0) return null;
 
                         const readRefs = variable.references.filter((r) =>
-                            r.isRead(),
+                            r.isRead()
                         );
 
                         const hasShorthand = readRefs.some((r) => {
                             const afterToken = context.sourceCode.getTokenAfter(
-                                r.identifier,
+                                r.identifier
                             );
                             if (afterToken?.value === ":") return false;
                             if (
@@ -77,7 +77,7 @@ const noPointlessReassignments: Rule.RuleModule = {
                             )
                                 return false;
                             let tok = context.sourceCode.getTokenBefore(
-                                r.identifier,
+                                r.identifier
                             );
                             while (tok) {
                                 if (tok.value === "{") return true;
@@ -91,7 +91,7 @@ const noPointlessReassignments: Rule.RuleModule = {
                         if (hasShorthand) return null;
 
                         const fixes = readRefs.map((r) =>
-                            fixer.replaceText(r.identifier, originalName),
+                            fixer.replaceText(r.identifier, originalName)
                         );
 
                         const declaration = node.parent;
@@ -171,16 +171,13 @@ const noReExports: Rule.RuleModule = {
 
         function removeStatement(
             fixer: Rule.RuleFixer,
-            node: Rule.Node,
+            node: Rule.Node
         ): Rule.Fix | null {
             const source = context.sourceCode;
             const statement = node.parent;
             // Walk up to the export declaration or module declaration
             let target = statement;
-            while (
-                target.parent &&
-                target.parent.type !== "Program"
-            ) {
+            while (target.parent && target.parent.type !== "Program") {
                 target = target.parent;
             }
             if (target.parent?.type !== "Program") return null;
@@ -189,15 +186,11 @@ const noReExports: Rule.RuleModule = {
             const prevToken = source.getTokenBefore(target, {
                 includeComments: false,
             });
-            const start = prevToken
-                ? prevToken.range[1]
-                : target.range[0];
+            const start = prevToken ? prevToken.range[1] : target.range[0];
             // Eat trailing newline
             const textAfter = source.text.slice(target.range[1]);
             const nlMatch = textAfter.match(/^(\r?\n)?/);
-            const end =
-                target.range[1] +
-                (nlMatch ? nlMatch[0].length : 0);
+            const end = target.range[1] + (nlMatch ? nlMatch[0].length : 0);
 
             // Don't leave behind blank lines — remove whitespace between
             // the previous token's end and the next token's start.
@@ -317,5 +310,5 @@ export default defineConfig(
             "custom/no-dynamic-imports": "error",
         },
     },
-    eslintConfigPrettier,
+    eslintConfigPrettier
 );

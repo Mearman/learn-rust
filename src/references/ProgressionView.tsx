@@ -201,9 +201,9 @@ export function ProgressionView({
                                     >
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                onOpenConcept(conceptId)
-                                            }
+                                            onClick={() => {
+                                                onOpenConcept(conceptId);
+                                            }}
                                             className={navButton}
                                             style={{
                                                 width: "auto",
@@ -217,9 +217,9 @@ export function ProgressionView({
                                             <button
                                                 key={lessonId}
                                                 type="button"
-                                                onClick={() =>
-                                                    onOpenLesson(lessonId)
-                                                }
+                                                onClick={() => {
+                                                    onOpenLesson(lessonId);
+                                                }}
                                                 className={navButton}
                                                 style={{
                                                     width: "auto",
