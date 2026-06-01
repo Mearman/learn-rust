@@ -1,5 +1,5 @@
 import { vars } from "../theme/theme.css.ts";
-import { cheatsGrid, cheatCard, cheatTitle } from "../theme/styles.css.ts";
+import { cheatsGrid, cheatCard, cheatTitle, navButton, noteBlock } from "../theme/styles.css.ts";
 
 interface CheatSection {
     readonly title: string;
@@ -54,26 +54,45 @@ const CHEATS: readonly CheatSection[] = [
     },
 ];
 
-export function CheatsheetView() {
+interface CheatsheetViewProps {
+    readonly onOpenReferences: () => void;
+}
+
+export function CheatsheetView({ onOpenReferences }: CheatsheetViewProps) {
     return (
-        <div className={cheatsGrid}>
-            {CHEATS.map((c) => (
-                <div key={c.title} className={cheatCard}>
-                    <h3 className={cheatTitle}>{c.title}</h3>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                        {c.rows.map((r, i) => (
-                            <div key={i} style={{ display: "flex", gap: "0.75rem", fontSize: "0.875rem" }}>
-                                <code
-                                    style={{ fontFamily: "ui-monospace, monospace", flexShrink: 0, color: vars.colour.text, minWidth: 92 }}
-                                >
-                                    {r[0]}
-                                </code>
-                                <span style={{ color: vars.colour.dim }}>{r[1]}</span>
-                            </div>
-                        ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className={noteBlock}>
+                <span>
+                    These are the short-form notes. The standalone reference cards are the source of truth.
+                </span>
+                <button
+                    type="button"
+                    onClick={onOpenReferences}
+                    className={navButton}
+                    style={{ width: "auto", padding: "0.5rem 0.75rem" }}
+                >
+                    Open references
+                </button>
+            </div>
+            <div className={cheatsGrid}>
+                {CHEATS.map((c) => (
+                    <div key={c.title} className={cheatCard}>
+                        <h3 className={cheatTitle}>{c.title}</h3>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                            {c.rows.map((r, i) => (
+                                <div key={i} style={{ display: "flex", gap: "0.75rem", fontSize: "0.875rem" }}>
+                                    <code
+                                        style={{ fontFamily: "ui-monospace, monospace", flexShrink: 0, color: vars.colour.text, minWidth: 92 }}
+                                    >
+                                        {r[0]}
+                                    </code>
+                                    <span style={{ color: vars.colour.dim }}>{r[1]}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
 }

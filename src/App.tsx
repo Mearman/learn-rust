@@ -179,7 +179,7 @@ export function App() {
                             onOpenLesson={selectLesson}
                         />
                     ) : null}
-                    {mode === "cheatsheet" ? <CheatsheetView /> : null}
+                    {mode === "cheatsheet" ? <CheatsheetView onOpenReferences={() => setMode("references")} /> : null}
                 </main>
 
                 <footer className={footer}>
