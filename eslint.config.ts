@@ -47,7 +47,6 @@ export default defineConfig(
             "custom/no-pointless-reassignments": "error",
             "custom/no-barrel-files": "error",
             "custom/no-re-exports": "error",
-            "custom/no-dynamic-imports": "error",
         },
     },
     eslintConfigPrettier

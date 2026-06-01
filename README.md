@@ -51,11 +51,12 @@ Imports must include the file extension (`.ts` / `.tsx`). `tsconfig.app.json` se
 
 Type assertions are banned. `@typescript-eslint/consistent-type-assertions` is set to `assertionStyle: "never"` — no `as`, no `as unknown as`, no angle-bracket casts. Narrow with type guards or restructure the types. The config also runs `tseslint`'s `strictTypeChecked` plus `noUncheckedIndexedAccess`, so indexed access yields `T | undefined` and must be guarded, not coerced.
 
-Four custom ESLint rules (defined inline in `eslint.config.ts`) enforce the module structure:
+Three custom ESLint rules (defined in `eslint-rules/`, registered in `eslint.config.ts`) enforce the module structure:
 - `no-barrel-files` — `index.ts` / `index.tsx` files are forbidden.
 - `no-re-exports` — `export … from` is forbidden; import directly from the source module.
-- `no-dynamic-imports` — `import()` expressions are forbidden; use static imports.
 - `no-pointless-reassignments` — bans `const x = y` aliases that perform no transformation (autofix rewrites usages to the original name).
+
+A fourth rule, `no-dynamic-imports`, also lives in `eslint-rules/` (with tests) but is registered without being enabled, so `import()` is permitted — for example to code-split the heavy data modules. Re-enable it by adding `"custom/no-dynamic-imports": "error"` back to the rules block.
 
 Every module is imported directly by its own path. There are no barrels, so when adding a module, import it where it is used rather than re-exporting it through an index.
 
