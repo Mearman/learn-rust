@@ -1,0 +1,63 @@
+import { createThemeContract, createTheme } from "@vanilla-extract/css";
+
+export const vars = createThemeContract({
+    colour: {
+        bg: null,
+        panel: null,
+        panel2: null,
+        code: null,
+        border: null,
+        borderSoft: null,
+        text: null,
+        dim: null,
+        faint: null,
+        accent: null,
+        accentSoft: null,
+        accentDim: null,
+        good: null,
+        goodDim: null,
+        bad: null,
+        badDim: null,
+    },
+    tok: {
+        default: null,
+        comment: null,
+        string: null,
+        lifetime: null,
+        macro: null,
+        keyword: null,
+        type: null,
+        number: null,
+    },
+});
+
+export const darkTheme = createTheme(vars, {
+    colour: {
+        bg: "#0c0b0a",
+        panel: "#161412",
+        panel2: "#1e1b18",
+        code: "#100f0d",
+        border: "#2c2823",
+        borderSoft: "#221f1b",
+        text: "#ece7e0",
+        dim: "#a39c91",
+        faint: "#6e675d",
+        accent: "#e2703a",
+        accentSoft: "#f0915f",
+        accentDim: "#5a3526",
+        good: "#5dd6a0",
+        goodDim: "#1c3b30",
+        bad: "#ee6a6a",
+        badDim: "#3d2120",
+    },
+    tok: {
+        default: "#ece7e0",
+        comment: "#736a5e",
+        string: "#b6d98c",
+        lifetime: "#e7a6e0",
+        macro: "#74c7d4",
+        keyword: "#f0915f",
+        type: "#e6c878",
+        number: "#e89a6a",
+    },
+});
