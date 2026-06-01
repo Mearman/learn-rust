@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, Code2, FileText, ListChecks, Trophy, type LucideIcon } from "lucide-react";
+import { BookOpen, Code2, ArrowLeftRight, ListChecks, Trophy, type LucideIcon } from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
 import {
     shell,
@@ -27,32 +27,32 @@ import { SettingsPanel } from "./settings/SettingsPanel.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
 import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
 import { joinLanguageFamiliarities } from "./settings/languages.ts";
-import { ReferenceView } from "./references/ReferenceView.tsx";
-import { REFERENCE_CARDS } from "./references/references.ts";
+import { ComparisonView } from "./references/ComparisonView.tsx";
+import { CONCEPTS } from "./data/concepts.ts";
 
-type Mode = "learn" | "challenge" | "references" | "cheatsheet";
+type Mode = "learn" | "challenge" | "compare" | "cheatsheet";
 
 const TABS: readonly { readonly id: Mode; readonly label: string; readonly icon: LucideIcon }[] = [
     { id: "learn", label: "Learn", icon: BookOpen },
     { id: "challenge", label: "Will it compile?", icon: ListChecks },
-    { id: "references", label: "References", icon: FileText },
+    { id: "compare", label: "Compare", icon: ArrowLeftRight },
     { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
 ];
 
 const FIRST_LESSON_ID = LESSONS[0]?.id ?? "ownership";
-const FIRST_REFERENCE_ID = (() => {
-    const reference = REFERENCE_CARDS[0];
-    if (reference === undefined) {
-        throw new Error("No reference cards configured");
+const FIRST_CONCEPT_ID = (() => {
+    const concept = CONCEPTS[0];
+    if (concept === undefined) {
+        throw new Error("No concepts configured");
     }
-    return reference.id;
+    return concept.id;
 })();
 
 export function App() {
     const [mode, setMode] = useState<Mode>("learn");
     const [active, setActive] = useState(FIRST_LESSON_ID);
     const [viewed, setViewed] = useState(() => new Set([FIRST_LESSON_ID]));
-    const [reference, setReference] = useState(FIRST_REFERENCE_ID);
+    const [concept, setConcept] = useState(FIRST_CONCEPT_ID);
     const [challenge, setChallenge] = useState<ChallengeState>({
         index: 0,
         answered: false,
@@ -87,9 +87,9 @@ export function App() {
         setMode("learn");
     }, []);
 
-    const openReference = useCallback((id: string) => {
-        setReference(id);
-        setMode("references");
+    const openCompare = useCallback((id: string) => {
+        setConcept(id);
+        setMode("compare");
     }, []);
 
     return (
@@ -157,7 +157,7 @@ export function App() {
                             compileResult={compileResult}
                             onCompile={compile}
                             onClearCompile={clearCompile}
-                            onOpenReference={openReference}
+                            onOpenReference={openCompare}
                         />
                     ) : null}
                     {mode === "challenge" ? (
@@ -171,11 +171,11 @@ export function App() {
                             onClearCompile={clearCompile}
                         />
                     ) : null}
-                    {mode === "references" ? (
-                        <ReferenceView
+                    {mode === "compare" ? (
+                        <ComparisonView
                             profile={profile}
-                            active={reference}
-                            onSelect={setReference}
+                            active={concept}
+                            onSelect={setConcept}
                             onOpenLesson={selectLesson}
                         />
                     ) : null}

@@ -14,7 +14,8 @@ import type { Lesson, LessonBlock } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { UserProfile, ExperienceLevel } from "../settings/types.ts";
 import { backgroundContextNotes } from "../settings/background-context.ts";
-import { LESSON_REFERENCE_LINKS, REFERENCE_CARDS } from "../references/references.ts";
+import { CONCEPTS } from "../data/concepts.ts";
+import { LESSON_CONCEPT_MAP } from "../data/concepts.ts";
 
 const LEVEL_ORDER: Record<ExperienceLevel, number> = {
     beginner: 0,
@@ -48,11 +49,11 @@ function findLesson(id: string): Lesson {
 }
 
 function referenceTitleForId(id: string): string {
-    const reference = REFERENCE_CARDS.find((card) => card.id === id);
-    if (reference === undefined) {
-        throw new Error(`Unknown reference: ${id}`);
+    const concept = CONCEPTS.find((c) => c.id === id);
+    if (concept === undefined) {
+        throw new Error(`Unknown concept: ${id}`);
     }
-    return reference.title;
+    return concept.title;
 }
 
 export function LearnView({ active, setActive, viewed, profile, compiling, compileResult, onCompile, onClearCompile, onOpenReference }: LearnViewProps) {
@@ -87,21 +88,21 @@ export function LearnView({ active, setActive, viewed, profile, compiling, compi
                 </header>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                     {(() => {
-                        const related = LESSON_REFERENCE_LINKS[lesson.id];
-                        if (related === undefined) {
-                            throw new Error(`No references configured for lesson: ${lesson.id}`);
+                        const conceptId = LESSON_CONCEPT_MAP[lesson.id];
+                        if (conceptId === undefined) {
+                            throw new Error(`No concept configured for lesson: ${lesson.id}`);
                         }
-                        return related.map((id) => (
+                        return (
                             <button
-                                key={id}
+                                key={conceptId}
                                 type="button"
-                                onClick={() => onOpenReference(id)}
+                                onClick={() => onOpenReference(conceptId)}
                                 className={navButton}
                                 style={{ width: "auto", padding: "0.45rem 0.75rem" }}
                             >
-                                Open reference: {referenceTitleForId(id)}
+                                Compare across languages: {referenceTitleForId(conceptId)}
                             </button>
-                        ));
+                        );
                     })()}
                 </div>
                 {backgroundContextNotes(profile.backgrounds).map((note) => (

@@ -71,7 +71,7 @@ export function CheatsheetView({ onOpenReferences }: CheatsheetViewProps) {
                     className={navButton}
                     style={{ width: "auto", padding: "0.5rem 0.75rem" }}
                 >
-                    Open references
+                    Open comparisons
                 </button>
             </div>
             <div className={cheatsGrid}>
