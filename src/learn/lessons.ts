@@ -12,7 +12,7 @@ import {
     Boxes,
 } from "lucide-react";
 import type {
-    BackgroundLanguage,
+    LanguageFamiliarity,
     ExperienceLevel,
 } from "../settings/types.ts";
 
@@ -48,7 +48,7 @@ export interface AnalogyBlock extends LessonBlockBase {
     readonly kind: "analogy";
     readonly text: string;
     readonly comparisons?: Partial<
-        Record<Exclude<BackgroundLanguage, "none">, string>
+        Record<Exclude<LanguageFamiliarity, "none">, string>
     >;
 }
 
@@ -57,7 +57,7 @@ export interface ComparisonBlock extends LessonBlockBase {
     readonly rustCode: string;
     readonly comparisons: Partial<
         Record<
-            Exclude<BackgroundLanguage, "none">,
+            Exclude<LanguageFamiliarity, "none">,
             {
                 readonly code: string;
                 readonly notes?: string;

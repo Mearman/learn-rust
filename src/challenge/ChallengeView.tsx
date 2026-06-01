@@ -17,7 +17,8 @@ import { CompileOutput } from "../compiler/CompileOutput.tsx";
 import { CHALLENGES, getFilteredChallenges } from "./challenges.ts";
 import type { Challenge } from "./challenges.ts";
 import type { CompileResult } from "../compiler/types.ts";
-import type { BackgroundLanguage, UserProfile } from "../settings/types.ts";
+import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
+import { languageFamiliarityLabel } from "../settings/languages.ts";
 
 interface ChallengeState {
     readonly index: number;
@@ -64,35 +65,14 @@ function levelColour(level: string): string {
     return vars.colour.bad;
 }
 
-function backgroundDisplayName(
-    bg: Exclude<BackgroundLanguage, "none">,
-): string {
-    switch (bg) {
-        case "python":
-            return "Python";
-        case "typescript":
-            return "TypeScript";
-        case "java":
-            return "Java";
-        case "kotlin":
-            return "Kotlin";
-        case "go":
-            return "Go";
-        case "csharp":
-            return "C#";
-        case "cpp":
-            return "C++";
-    }
-}
-
 function PerLanguageNote({
     challenge,
-    background,
+    familiarity,
 }: {
     readonly challenge: Challenge;
-    readonly background: Exclude<BackgroundLanguage, "none">;
+    readonly familiarity: Exclude<LanguageFamiliarity, "none">;
 }) {
-    const explanation = challenge.whyPerLanguage?.[background];
+    const explanation = challenge.whyPerLanguage?.[familiarity];
     if (explanation === undefined) return null;
     return (
         <div
@@ -115,7 +95,7 @@ function PerLanguageNote({
                         fontWeight: 600,
                     }}
                 >
-                    Coming from {backgroundDisplayName(background)}:{" "}
+                    If you're familiar with {languageFamiliarityLabel(familiarity)}:{" "}
                 </span>
                 {explanation}
             </p>
@@ -329,10 +309,10 @@ function ChallengeView({
                         >
                             {ch.why}
                         </p>
-                        {profile.background !== "none" ? (
+                        {profile.familiarity !== "none" ? (
                             <PerLanguageNote
                                 challenge={ch}
-                                background={profile.background}
+                                familiarity={profile.familiarity}
                             />
                         ) : null}
                     </div>

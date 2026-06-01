@@ -1,4 +1,4 @@
-import type { BackgroundLanguage, UserProfile } from "../settings/types.ts";
+import type { LanguageFamiliarity, UserProfile } from "../settings/types.ts";
 
 export interface Challenge {
     readonly topic: string;
@@ -8,7 +8,7 @@ export interface Challenge {
     readonly why: string;
     readonly fix?: string;
     readonly whyPerLanguage?: Partial<
-        Record<Exclude<BackgroundLanguage, "none">, string>
+        Record<Exclude<LanguageFamiliarity, "none">, string>
     >;
 }
 

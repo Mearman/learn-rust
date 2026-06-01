@@ -24,6 +24,7 @@ import type {
 } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { UserProfile } from "../settings/types.ts";
+import { languageFamiliarityLabel } from "../settings/languages.ts";
 
 interface BlockProps {
     readonly block: LessonBlock;
@@ -53,13 +54,13 @@ function AnalogySection({ block, profile }: {
     readonly profile: UserProfile;
 }) {
     const comparison =
-        profile.background !== "none"
-            ? block.comparisons?.[profile.background]
+        profile.familiarity !== "none"
+            ? block.comparisons?.[profile.familiarity]
             : undefined;
     const label =
-        profile.background === "none"
+        profile.familiarity === "none"
             ? "If you know other languages"
-            : `If you come from ${profile.background}`;
+            : `If you're familiar with ${languageFamiliarityLabel(profile.familiarity)}`;
 
     return (
         <div className={analogyBlock}>
@@ -73,9 +74,9 @@ function ComparisonSection({ block, profile }: {
     readonly block: ComparisonBlockType;
     readonly profile: UserProfile;
 }) {
-    const lang = profile.background;
+    const lang = profile.familiarity;
     const comparison = lang !== "none" ? block.comparisons[lang] : undefined;
-    const langLabel = lang === "none" ? "Other language" : lang.toUpperCase();
+    const langLabel = lang === "none" ? "Your familiar language" : languageFamiliarityLabel(lang);
 
     return (
         <div className={comparisonGrid}>
@@ -92,6 +93,10 @@ function ComparisonSection({ block, profile }: {
                             <span className={comparisonNotes}>{comparison.notes}</span>
                         ) : null}
                     </>
+                ) : lang === "none" ? (
+                    <span className={comparisonUnavailable}>
+                        Pick a language familiarity to see the comparison.
+                    </span>
                 ) : (
                     <span className={comparisonUnavailable}>
                         No {langLabel} comparison available yet.

@@ -96,9 +96,10 @@ export function App() {
                                 <Trophy size={13} style={{ color: vars.colour.accent }} />
                                 {challenge.correct}/{challenge.total}
                             </span>
-                            <SettingsPanel profile={profile} setProfile={setProfile} />
                         </div>
                     </div>
+
+                    <SettingsPanel profile={profile} setProfile={setProfile} />
 
                     <nav className={tabNav}>
                         {TABS.map((t) => {

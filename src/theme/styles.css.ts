@@ -348,6 +348,55 @@ export const dimSm = style({
     color: vars.colour.dim,
 });
 
+export const settingsPanel = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.875rem",
+    padding: "0.875rem 1rem",
+    borderRadius: "0.875rem",
+    background: vars.colour.panel2,
+    border: `1px solid ${vars.colour.border}`,
+});
+
+export const settingsPanelHeader = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.25rem",
+});
+
+export const settingsGrid = style({
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
+    gap: "0.875rem",
+    "@media": {
+        "screen and (max-width: 759px)": {
+            gridTemplateColumns: "1fr",
+        },
+    },
+});
+
+export const settingsField = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.375rem",
+    minWidth: 0,
+});
+
+export const settingsLabel = style({
+    fontSize: "0.6875rem",
+    fontFamily: "ui-monospace, monospace",
+    color: vars.colour.accentSoft,
+    fontWeight: 600,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
+});
+
+export const settingsHelp = style({
+    fontSize: "0.75rem",
+    lineHeight: 1.5,
+    color: vars.colour.dim,
+});
+
 export const settingsTrigger = style({
     display: "inline-flex",
     alignItems: "center",

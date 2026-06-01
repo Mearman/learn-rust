@@ -1,21 +1,19 @@
-import { useState } from "react";
-import { Settings } from "lucide-react";
-import { Drawer, Select, SegmentedControl } from "@mantine/core";
+import { Select, SegmentedControl } from "@mantine/core";
 import { vars } from "../theme/theme.css.ts";
-import { settingsTrigger } from "../theme/styles.css.ts";
+import {
+    settingsPanel,
+    settingsPanelHeader,
+    settingsGrid,
+    settingsField,
+    settingsLabel,
+    settingsHelp,
+} from "../theme/styles.css.ts";
+import {
+    LANGUAGE_FAMILIARITY_OPTIONS,
+    languageFamiliarityLabel,
+} from "./languages.ts";
 import type { UserProfile, UserProfileUpdater } from "./types.ts";
-import { isBackgroundLanguage, isExperienceLevel } from "./types.ts";
-
-const BACKGROUND_OPTIONS = [
-    { value: "none", label: "No background" },
-    { value: "python", label: "Python" },
-    { value: "typescript", label: "TypeScript" },
-    { value: "java", label: "Java" },
-    { value: "kotlin", label: "Kotlin" },
-    { value: "go", label: "Go" },
-    { value: "csharp", label: "C#" },
-    { value: "cpp", label: "C++" },
-] as const;
+import { isLanguageFamiliarity, isExperienceLevel } from "./types.ts";
 
 const EXPERIENCE_OPTIONS = [
     { value: "beginner", label: "Beginner" },
@@ -29,16 +27,14 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
-    const [opened, setOpened] = useState(false);
-
-    const handleBackground = (value: string | null) => {
+    const handleFamiliarity = (value: string | null) => {
         if (value === null) return;
-        if (!isBackgroundLanguage(value)) {
-            throw new Error(`Unknown background language: ${value}`);
+        if (!isLanguageFamiliarity(value)) {
+            throw new Error(`Unknown language familiarity: ${value}`);
         }
         setProfile((prev) => ({
             ...prev,
-            background: value,
+            familiarity: value,
         }));
     };
 
@@ -53,160 +49,95 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
     };
 
     return (
-        <>
-            <button
-                className={settingsTrigger}
-                onClick={() => {
-                    setOpened(true);
-                }}
-                aria-label="Open settings"
-                type="button"
-            >
-                <Settings size={16} />
-            </button>
+        <section className={settingsPanel} aria-label="Personalise the lessons">
+            <div className={settingsPanelHeader}>
+                <div style={{ fontSize: "0.875rem", fontWeight: 600, color: vars.colour.text }}>
+                    Tailor the examples
+                </div>
+                <div className={settingsHelp}>
+                    Pick the language you know best and how much detail you want.
+                    This is about familiarity, not your broader background.
+                </div>
+            </div>
 
-            <Drawer
-                opened={opened}
-                onClose={() => {
-                    setOpened(false);
-                }}
-                title="Settings"
-                position="right"
-                overlayProps={{ backgroundOpacity: 0.35, blur: 2 }}
-                styles={{
-                    content: {
-                        background: vars.colour.panel,
-                        borderLeft: `1px solid ${vars.colour.border}`,
-                    },
-                    header: {
-                        background: vars.colour.panel,
-                        borderBottom: `1px solid ${vars.colour.borderSoft}`,
-                        color: vars.colour.text,
-                    },
-                    title: {
-                        fontWeight: 600,
-                        color: vars.colour.text,
-                    },
-                    close: {
-                        color: vars.colour.dim,
-                        "&:hover": {
-                            background: vars.colour.panel2,
-                            color: vars.colour.text,
-                        },
-                    },
-                    body: {
-                        color: vars.colour.text,
-                    },
-                }}
-            >
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "1.5rem",
-                    }}
-                >
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "0.5rem",
-                        }}
-                    >
-                        <label
-                            style={{
-                                fontSize: "0.875rem",
-                                fontWeight: 500,
-                                color: vars.colour.dim,
-                            }}
-                        >
-                            Your background
-                        </label>
-                        <Select
-                            data={BACKGROUND_OPTIONS.map((o) => ({
-                                value: o.value,
-                                label: o.label,
-                            }))}
-                            value={profile.background}
-                            onChange={handleBackground}
-                            allowDeselect={false}
-                            styles={{
-                                input: {
-                                    background: vars.colour.panel2,
-                                    border: `1px solid ${vars.colour.border}`,
+            <div className={settingsGrid}>
+                <div className={settingsField}>
+                    <label className={settingsLabel} htmlFor="language-familiarity">
+                        Language familiarity
+                    </label>
+                    <Select
+                        id="language-familiarity"
+                        data={LANGUAGE_FAMILIARITY_OPTIONS}
+                        value={profile.familiarity}
+                        onChange={handleFamiliarity}
+                        allowDeselect={false}
+                        aria-label="Language familiarity"
+                        styles={{
+                            input: {
+                                background: vars.colour.panel,
+                                border: `1px solid ${vars.colour.border}`,
+                                color: vars.colour.text,
+                            },
+                            dropdown: {
+                                background: vars.colour.panel,
+                                border: `1px solid ${vars.colour.border}`,
+                            },
+                            option: {
+                                color: vars.colour.text,
+                                "&[data-selected]": {
+                                    background: vars.colour.accentDim,
                                     color: vars.colour.text,
                                 },
-                                dropdown: {
-                                    background: vars.colour.panel2,
-                                    border: `1px solid ${vars.colour.border}`,
+                                "&[data-hovered]": {
+                                    background: vars.colour.borderSoft,
                                 },
-                                option: {
-                                    color: vars.colour.text,
-                                    "&[data-selected]": {
-                                        background: vars.colour.accentDim,
-                                        color: vars.colour.text,
-                                    },
-                                    "&[data-hovered]": {
-                                        background: vars.colour.borderSoft,
-                                    },
-                                },
-                            }}
-                        />
-                    </div>
-
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "0.5rem",
+                            },
                         }}
-                    >
-                        <label
-                            style={{
-                                fontSize: "0.875rem",
-                                fontWeight: 500,
-                                color: vars.colour.dim,
-                            }}
-                        >
-                            Experience level
-                        </label>
-                        <SegmentedControl
-                            data={EXPERIENCE_OPTIONS.map((o) => ({
-                                value: o.value,
-                                label: o.label,
-                            }))}
-                            value={profile.experience}
-                            onChange={handleExperience}
-                            fullWidth
-                            styles={{
-                                root: {
-                                    background: vars.colour.panel2,
-                                    border: `1px solid ${vars.colour.border}`,
-                                },
-                                label: {
-                                    color: vars.colour.dim,
-                                    fontSize: "0.875rem",
-                                },
-                                indicator: {
-                                    background: vars.colour.accent,
-                                },
-                                innerLabel: {
-                                    color: "#1a0f08",
-                                    fontWeight: 500,
-                                },
-                                control: {
-                                    "&[data-active]": {
-                                        "& .mantine-SegmentedControl-innerLabel":
-                                            {
-                                                color: "#1a0f08",
-                                            },
-                                    },
-                                },
-                            }}
-                        />
+                    />
+                    <div className={settingsHelp}>
+                        {profile.familiarity === "none"
+                            ? "No language selected yet."
+                            : `Examples will lean on ${languageFamiliarityLabel(profile.familiarity)}.`}
                     </div>
                 </div>
-            </Drawer>
-        </>
+
+                <div className={settingsField}>
+                    <label className={settingsLabel}>Experience level</label>
+                    <SegmentedControl
+                        data={EXPERIENCE_OPTIONS}
+                        value={profile.experience}
+                        onChange={handleExperience}
+                        fullWidth
+                        styles={{
+                            root: {
+                                background: vars.colour.panel,
+                                border: `1px solid ${vars.colour.border}`,
+                            },
+                            label: {
+                                color: vars.colour.dim,
+                                fontSize: "0.875rem",
+                            },
+                            indicator: {
+                                background: vars.colour.accent,
+                            },
+                            innerLabel: {
+                                color: "#1a0f08",
+                                fontWeight: 500,
+                            },
+                            control: {
+                                "&[data-active]": {
+                                    "& .mantine-SegmentedControl-innerLabel": {
+                                        color: "#1a0f08",
+                                    },
+                                },
+                            },
+                        }}
+                    />
+                    <div className={settingsHelp}>
+                        Beginner shows the basics, intermediate adds the core ideas, and advanced opens the deeper notes.
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 }

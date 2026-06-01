@@ -2,10 +2,10 @@ import { useCallback, useState } from "react";
 import type { UserProfile, UserProfileUpdater } from "./types.ts";
 import { isUserProfile } from "./types.ts";
 
-const STORAGE_KEY = "rbc-profile-v1";
+const STORAGE_KEY = "rbc-profile-v2";
 
 const DEFAULT_PROFILE: UserProfile = {
-    background: "none",
+    familiarity: "none",
     experience: "intermediate",
 };
 

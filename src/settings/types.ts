@@ -1,4 +1,4 @@
-export type BackgroundLanguage =
+export type LanguageFamiliarity =
     | "none"
     | "python"
     | "typescript"
@@ -11,13 +11,13 @@ export type BackgroundLanguage =
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
 
 export interface UserProfile {
-    readonly background: BackgroundLanguage;
+    readonly familiarity: LanguageFamiliarity;
     readonly experience: ExperienceLevel;
 }
 
 export type UserProfileUpdater = (updater: (prev: UserProfile) => UserProfile) => void;
 
-export function isBackgroundLanguage(value: string): value is BackgroundLanguage {
+export function isLanguageFamiliarity(value: string): value is LanguageFamiliarity {
     return (
         value === "none"
         || value === "python"
@@ -36,7 +36,7 @@ export function isExperienceLevel(value: string): value is ExperienceLevel {
 
 export function isUserProfile(value: unknown): value is UserProfile {
     if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-    if (!("background" in value) || !("experience" in value)) return false;
-    if (typeof value.background !== "string" || typeof value.experience !== "string") return false;
-    return isBackgroundLanguage(value.background) && isExperienceLevel(value.experience);
+    if (!("familiarity" in value) || !("experience" in value)) return false;
+    if (typeof value.familiarity !== "string" || typeof value.experience !== "string") return false;
+    return isLanguageFamiliarity(value.familiarity) && isExperienceLevel(value.experience);
 }
