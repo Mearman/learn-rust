@@ -1,10 +1,14 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
-/** Scroll smoothly to the element with `id`, if it exists. */
+/**
+ * Scroll smoothly to the element with `id`, if it exists, and reflect the
+ * target in `window.location.hash` so the URL can be shared or bookmarked.
+ */
 function scrollToId(id: string): void {
     const el = document.getElementById(id);
     if (el !== null) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.location.hash = id;
     }
 }
 
@@ -29,7 +33,8 @@ export interface ScrollNavigation {
 /**
  * Returns stable callbacks for scrolling to named entries and subsections.
  * All openers call the shared `scrollToId` helper so the
- * `getElementById` + `scrollIntoView` pattern lives in one place.
+ * `getElementById` + `scrollIntoView` pattern lives in one place, and each
+ * call also writes `window.location.hash` for shareability.
  *
  * The `markViewed` argument is optional; pass it to record lesson visits.
  */
@@ -72,4 +77,20 @@ export function useScrollNavigation(
         openError,
         scrollToSubSection,
     };
+}
+
+/**
+ * One-shot effect: on initial mount, if `location.hash` points at an existing
+ * element, scroll to it. Does nothing on subsequent renders and never writes
+ * the hash, so it cannot interfere with the scroll-spy in `useActiveSection`.
+ */
+export function useHashNavigation(): void {
+    useEffect(() => {
+        const hash = window.location.hash.slice(1); // strip leading "#"
+        if (hash.length === 0) return;
+        const el = document.getElementById(hash);
+        if (el !== null) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, []); // empty deps — runs once after mount
 }

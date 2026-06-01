@@ -65,7 +65,10 @@ import {
 import { getSubSections } from "./layout/subSections.ts";
 import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
 import { SubSectionToc } from "./layout/SubSectionToc.tsx";
-import { useScrollNavigation } from "./layout/useScrollNavigation.ts";
+import {
+    useScrollNavigation,
+    useHashNavigation,
+} from "./layout/useScrollNavigation.ts";
 
 const SECTIONS: readonly {
     readonly id: SectionId;
@@ -134,6 +137,9 @@ export function App() {
         openError,
         scrollToSubSection,
     } = useScrollNavigation(markViewed);
+
+    // Scroll to the fragment from the initial URL on first mount.
+    useHashNavigation();
 
     return (
         <div className={shell}>
