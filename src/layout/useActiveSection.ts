@@ -13,8 +13,6 @@ const SECTION_IDS = [
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
-export const ALL_SECTION_IDS: readonly SectionId[] = SECTION_IDS;
-
 export function scrollToSection(id: SectionId): void {
     const element = document.getElementById(id);
     if (element !== null) {
