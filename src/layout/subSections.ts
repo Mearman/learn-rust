@@ -10,6 +10,35 @@ export interface SubSection {
     readonly label: string;
 }
 
+/** Canonical id + label for a top-level section, shared between the nav and
+ *  the TOC tree. Icons live in App.tsx alongside the nav buttons. */
+export interface SectionMeta {
+    readonly id: SectionId;
+    readonly label: string;
+}
+
+/** Canonical section id + label in display order. App.tsx imports this via
+ *  getSectionGroups() so nav labels and TOC labels cannot drift apart. */
+export const SECTION_META: readonly SectionMeta[] = [
+    { id: "learn", label: "Learn" },
+    { id: "challenge", label: "Will it compile?" },
+    { id: "path", label: "Path" },
+    { id: "compare", label: "Compare" },
+    { id: "syntax", label: "Syntax" },
+    { id: "glossary", label: "Glossary" },
+    { id: "errors", label: "Errors" },
+    { id: "cheatsheet", label: "Cheatsheet" },
+];
+
+/** A section group for the combined TOC tree. */
+export interface SectionGroup {
+    readonly id: SectionId;
+    readonly label: string;
+    /** Empty for sections that have no sub-sections (challenge, path,
+     *  cheatsheet). */
+    readonly subSections: readonly SubSection[];
+}
+
 const SYNTAX_TOPICS = SYNTAX_REFERENCES.reduce<string[]>((acc, entry) => {
     if (!acc.includes(entry.topic)) acc.push(entry.topic);
     return acc;
@@ -51,6 +80,19 @@ const SUBSECTION_MAP: Record<SectionId, readonly SubSection[]> = {
     cheatsheet: [],
 };
 
-export function getSubSections(sectionId: SectionId): readonly SubSection[] {
-    return SUBSECTION_MAP[sectionId];
+/** All sections as a flat list of groups in canonical display order. */
+export function getSectionGroups(): readonly SectionGroup[] {
+    return SECTION_META.map((meta) => ({
+        id: meta.id,
+        label: meta.label,
+        subSections: SUBSECTION_MAP[meta.id],
+    }));
+}
+
+/** All sub-section ids across every section, flattened. Used to observe all
+ *  entries simultaneously in useActiveSubSection. */
+export function getAllSubSectionIds(): readonly string[] {
+    return SECTION_META.flatMap((meta) =>
+        SUBSECTION_MAP[meta.id].map((s) => s.id)
+    );
 }

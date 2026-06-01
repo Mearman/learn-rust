@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
 
+/**
+ * Tracks which sub-section is currently in the viewport.
+ *
+ * @param ids - All sub-section element ids to observe.
+ * @param mountVersion - A monotonically-increasing counter that bumps when
+ *   deferred sections mount (e.g. `Number(compareMounted) +
+ *   Number(syntaxMounted) * 2`). When it changes the effect re-runs and
+ *   creates observers for elements that are now in the DOM. Pass `0` (or
+ *   omit) when there are no deferred sections.
+ */
 export function useActiveSubSection(
-    ids: readonly string[]
+    ids: readonly string[],
+    mountVersion: number = 0
 ): string | undefined {
     const [active, setActive] = useState<string | undefined>(() => ids[0]);
 
@@ -38,7 +49,7 @@ export function useActiveSubSection(
                 observer.disconnect();
             }
         };
-    }, [ids]);
+    }, [ids, mountVersion]);
 
     return active;
 }

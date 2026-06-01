@@ -70,7 +70,7 @@ import {
     scrollToSection,
     type SectionId,
 } from "./layout/useActiveSection.ts";
-import { getSubSections } from "./layout/subSections.ts";
+import { getSectionGroups, getAllSubSectionIds } from "./layout/subSections.ts";
 import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
 import { SubSectionToc } from "./layout/SubSectionToc.tsx";
 import {
@@ -79,28 +79,28 @@ import {
 } from "./layout/useScrollNavigation.ts";
 import { useHasBeenVisible } from "./layout/useHasBeenVisible.ts";
 
-const SECTIONS: readonly {
-    readonly id: SectionId;
-    readonly label: string;
-    readonly icon: LucideIcon;
-}[] = [
-    { id: "learn", label: "Learn", icon: BookOpen },
-    { id: "challenge", label: "Will it compile?", icon: ListChecks },
-    { id: "path", label: "Path", icon: GitBranch },
-    { id: "compare", label: "Compare", icon: ArrowLeftRight },
-    { id: "syntax", label: "Syntax", icon: Braces },
-    { id: "glossary", label: "Glossary", icon: BookOpen },
-    { id: "errors", label: "Errors", icon: AlertTriangle },
-    { id: "cheatsheet", label: "Cheatsheet", icon: Code2 },
-];
+/** Section icons in canonical order — labels come from SECTION_META in
+ *  subSections.ts so they never drift from the TOC tree. */
+const SECTION_ICONS: Record<SectionId, LucideIcon> = {
+    learn: BookOpen,
+    challenge: ListChecks,
+    path: GitBranch,
+    compare: ArrowLeftRight,
+    syntax: Braces,
+    glossary: BookOpen,
+    errors: AlertTriangle,
+    cheatsheet: Code2,
+};
+
+const SECTION_GROUPS = getSectionGroups();
+
+/** All sub-section IDs flattened across all sections — computed once at module
+ *  level so useActiveSubSection receives a stable array reference. */
+const ALL_SUB_IDS = getAllSubSectionIds();
 
 export function App() {
     const activeSection = useActiveSection();
     const [showSearch, setShowSearch] = useState(false);
-
-    const subSections = getSubSections(activeSection);
-    const subIds = subSections.map((s) => s.id);
-    const activeSub = useActiveSubSection(subIds);
 
     const [viewed, markViewed] = useViewedLessons();
     const {
@@ -146,6 +146,17 @@ export function App() {
         sentinelRef: syntaxSentinelRef,
         forceMount: forceSyntaxMount,
     } = useHasBeenVisible();
+
+    // Observe all sub-section IDs across all sections so the active entry
+    // highlights correctly wherever the user has scrolled — not just within
+    // the currently-active top-level section.
+    //
+    // mountVersion bumps when a deferred section mounts so the hook re-runs
+    // its effect and attaches observers to elements that are now in the DOM.
+    const activeSub = useActiveSubSection(
+        ALL_SUB_IDS,
+        Number(compareMounted) + Number(syntaxMounted) * 2
+    );
 
     const sectionMounts = useMemo(
         () => ({
@@ -292,8 +303,8 @@ export function App() {
                 </header>
 
                 <nav className={stickyNav}>
-                    {SECTIONS.map((s) => {
-                        const Icon = s.icon;
+                    {SECTION_GROUPS.map((s) => {
+                        const Icon = SECTION_ICONS[s.id];
                         const on = s.id === activeSection;
                         return (
                             <button
@@ -326,9 +337,11 @@ export function App() {
 
                 <div className={tocLayout}>
                     <SubSectionToc
-                        items={subSections}
+                        groups={SECTION_GROUPS}
+                        activeSection={activeSection}
                         activeId={activeSub}
-                        onSelect={scrollToSubSection}
+                        onSelectEntry={scrollToSubSection}
+                        onSelectSection={scrollToSection}
                     />
                     <div className={tocContent}>
                         <section id="learn" className={contentSection}>

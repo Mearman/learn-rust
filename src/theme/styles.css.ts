@@ -518,6 +518,82 @@ export const tocItemActive = style({
     fontWeight: 500,
 });
 
+/** Section header row in the combined TOC tree. */
+export const tocSectionHeader = style({
+    display: "flex",
+    alignItems: "center",
+    gap: "0.375rem",
+    width: "100%",
+    textAlign: "left",
+    padding: "0.375rem 0.5rem",
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    letterSpacing: "0.025em",
+    textTransform: "uppercase" as const,
+    lineHeight: 1.4,
+    borderRadius: "0.375rem",
+    border: "none",
+    background: "transparent",
+    color: vars.colour.dim,
+    cursor: "pointer",
+    transition: "background 0.15s, color 0.15s",
+    selectors: {
+        "&:hover": {
+            background: vars.colour.panel2,
+            color: vars.colour.text,
+        },
+    },
+});
+
+/** Active section header — accent highlight. */
+export const tocSectionHeaderActive = style({
+    color: vars.colour.accent,
+});
+
+/** Caret icon that rotates when the group is expanded. */
+export const tocCaret = style({
+    flexShrink: 0,
+    transition: "transform 0.15s",
+});
+
+export const tocCaretOpen = style({
+    transform: "rotate(90deg)",
+});
+
+/** Entry count badge shown on collapsed groups. */
+export const tocCount = style({
+    marginLeft: "auto",
+    fontSize: "0.7rem",
+    color: vars.colour.faint,
+    flexShrink: 0,
+});
+
+/** Flex column container for the TOC tree root. */
+export const tocTree = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.125rem",
+});
+
+/** Label span inside a section header — truncates with ellipsis. */
+export const tocSectionLabel = style({
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    minWidth: 0,
+});
+
+/** Wrapper for the indented entry list inside a group. */
+export const tocGroupEntries = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: 0,
+    paddingLeft: "0.75rem",
+    borderLeft: `1px solid ${vars.colour.border}`,
+    marginLeft: "0.625rem",
+    marginBottom: "0.25rem",
+});
+
 // ---------------------------------------------------------------------------
 // Sections
 // ---------------------------------------------------------------------------
