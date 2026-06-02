@@ -3,6 +3,15 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!-- GitHub Pages can't send response headers, so the policy ships as a
+             meta tag. connect-src allows the Rust Playground execute endpoint;
+             style-src keeps 'unsafe-inline' because Mantine and the inline
+             component styles need it; script-src 'self' covers Vite's hashed
+             module bundles (no inline scripts are emitted). -->
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; connect-src 'self' https://play.rust-lang.org; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        />
         <title>Rust by Concept</title>
     </head>
     <body>
