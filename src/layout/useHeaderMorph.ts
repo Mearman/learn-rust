@@ -63,7 +63,12 @@ export function useHeaderMorph(): HeaderMorph {
 
         let frame = 0;
         // Expanded height of the panel; the scroll distance for a full condense.
-        let expandedHeight = panel.offsetHeight;
+        // Starts unknown: a height read while the page is already scrolled (deep
+        // link / reload at non-zero offset) would be a *condensed* height, which
+        // would make the morph complete far too early. Until a top-of-page
+        // sample arrives the distance is treated as unknown, so the morph holds
+        // at 0 (`computeMorphProgress` returns 0 for a non-positive distance).
+        let expandedHeight = 0;
 
         const apply = () => {
             frame = 0;
@@ -94,9 +99,15 @@ export function useHeaderMorph(): HeaderMorph {
         sampleExpanded();
         apply(); // paint the initial state before the first scroll
 
-        window.addEventListener("scroll", schedule, { passive: true });
+        // Sampling (not just scheduling) on scroll means a deep-link/reload at a
+        // non-zero offset captures the true expanded height the moment the
+        // reader first returns to the top, after which the morph behaves
+        // normally. `sampleExpanded` only reads `offsetHeight` while at the top
+        // and otherwise just schedules, so scroll frames stay throttled to one
+        // `requestAnimationFrame`.
+        window.addEventListener("scroll", sampleExpanded, { passive: true });
         return () => {
-            window.removeEventListener("scroll", schedule);
+            window.removeEventListener("scroll", sampleExpanded);
             resizeObserver.disconnect();
             if (frame !== 0) window.cancelAnimationFrame(frame);
         };
