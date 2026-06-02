@@ -38,23 +38,23 @@ describe("CHALLENGES fixture", () => {
 });
 
 // ---------------------------------------------------------------------------
-// beginner — warm-up only
+// beginner — warm-up + core (no tricky)
 // ---------------------------------------------------------------------------
 
 describe("getFilteredChallenges — beginner", () => {
     const profile = makeProfile("beginner");
     const result = getFilteredChallenges(profile);
 
-    it("returns only warm-up challenges", () => {
-        expect(result.every((c) => c.level === "warm-up")).toBe(true);
+    it("includes warm-up challenges", () => {
+        expect(result.some((c) => c.level === "warm-up")).toBe(true);
+    });
+
+    it("includes core challenges", () => {
+        expect(result.some((c) => c.level === "core")).toBe(true);
     });
 
     it("returns at least one challenge", () => {
         expect(result.length).toBeGreaterThan(0);
-    });
-
-    it("excludes core challenges", () => {
-        expect(result.some((c) => c.level === "core")).toBe(false);
     });
 
     it("excludes tricky challenges", () => {
@@ -62,13 +62,15 @@ describe("getFilteredChallenges — beginner", () => {
     });
 
     it("is a subset of the full list in original order", () => {
-        const allWarmUps = CHALLENGES.filter((c) => c.level === "warm-up");
-        expect(result).toEqual(allWarmUps);
+        const expected = CHALLENGES.filter(
+            (c) => c.level === "warm-up" || c.level === "core"
+        );
+        expect(result).toEqual(expected);
     });
 });
 
 // ---------------------------------------------------------------------------
-// intermediate — warm-up + core, no tricky
+// intermediate — all challenges (warm-up + core + tricky)
 // ---------------------------------------------------------------------------
 
 describe("getFilteredChallenges — intermediate", () => {
@@ -83,13 +85,12 @@ describe("getFilteredChallenges — intermediate", () => {
         expect(result.some((c) => c.level === "core")).toBe(true);
     });
 
-    it("excludes tricky challenges", () => {
-        expect(result.some((c) => c.level === "tricky")).toBe(false);
+    it("includes tricky challenges", () => {
+        expect(result.some((c) => c.level === "tricky")).toBe(true);
     });
 
-    it("is a subset of the full list in original order", () => {
-        const expected = CHALLENGES.filter((c) => c.level !== "tricky");
-        expect(result).toEqual(expected);
+    it("returns the complete CHALLENGES array", () => {
+        expect(result).toBe(CHALLENGES);
     });
 
     it("returns more challenges than beginner", () => {
@@ -99,7 +100,7 @@ describe("getFilteredChallenges — intermediate", () => {
 });
 
 // ---------------------------------------------------------------------------
-// advanced — all challenges
+// advanced — all challenges (same as intermediate)
 // ---------------------------------------------------------------------------
 
 describe("getFilteredChallenges — advanced", () => {
@@ -117,9 +118,9 @@ describe("getFilteredChallenges — advanced", () => {
         expect(presentLevels.has("tricky")).toBe(true);
     });
 
-    it("returns more challenges than intermediate", () => {
-        const intermediate = getFilteredChallenges(makeProfile("intermediate"));
-        expect(result.length).toBeGreaterThan(intermediate.length);
+    it("returns more challenges than beginner", () => {
+        const beginner = getFilteredChallenges(makeProfile("beginner"));
+        expect(result.length).toBeGreaterThan(beginner.length);
     });
 });
 

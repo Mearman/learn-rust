@@ -311,7 +311,13 @@ export function getFilteredChallenges(
 ): readonly Challenge[] {
     if (profile.experience === "advanced") return CHALLENGES;
     if (profile.experience === "intermediate") {
-        return CHALLENGES.filter((c) => c.level !== "tricky");
+        // Intermediate users see everything — warm-up, core, and tricky.
+        return CHALLENGES;
     }
-    return CHALLENGES.filter((c) => c.level === "warm-up");
+    // Beginners see warm-up and core challenges — warm-up alone is too thin;
+    // core challenges reinforce the same concepts with natural next steps.
+    // Tricky challenges are withheld until the user selects intermediate+.
+    return CHALLENGES.filter(
+        (c) => c.level === "warm-up" || c.level === "core"
+    );
 }
