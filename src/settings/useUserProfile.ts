@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { UserProfile, UserProfileUpdater } from "./types.ts";
 import { isUserProfile } from "./types.ts";
+import { createLocalStore } from "./createLocalStore.ts";
 
 const STORAGE_KEY = "rbc-profile-v5";
 
@@ -11,28 +12,22 @@ const DEFAULT_PROFILE: UserProfile = {
     hardGating: false,
 };
 
-function loadProfile(): UserProfile {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return DEFAULT_PROFILE;
-    const parsed: unknown = JSON.parse(raw);
-    if (!isUserProfile(parsed)) {
-        console.warn(
-            `[rbc] Stored profile under "${STORAGE_KEY}" failed validation — ` +
-                "falling back to default and clearing the key."
-        );
-        localStorage.removeItem(STORAGE_KEY);
-        return DEFAULT_PROFILE;
-    }
-    return parsed;
-}
+const store = createLocalStore<UserProfile, UserProfile>({
+    key: STORAGE_KEY,
+    guard: isUserProfile,
+    fallback: DEFAULT_PROFILE,
+    label: "profile",
+    decode: (stored) => stored,
+    encode: (value) => value,
+});
 
 export function useUserProfile(): readonly [UserProfile, UserProfileUpdater] {
-    const [profile, setProfile] = useState<UserProfile>(loadProfile);
+    const [profile, setProfile] = useState<UserProfile>(store.load);
 
     const updateProfile = useCallback<UserProfileUpdater>((updater) => {
         setProfile((prev) => {
             const next = updater(prev);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+            store.save(next);
             return next;
         });
     }, []);

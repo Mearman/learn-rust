@@ -1,4 +1,5 @@
 import type { LanguageFamiliarity } from "../data/languages.ts";
+import { isStringArray } from "./guards.ts";
 
 export type { LanguageFamiliarity };
 
@@ -63,12 +64,6 @@ export function isDeveloperBackground(
 export function isExperienceLevel(value: string): value is ExperienceLevel {
     return (
         value === "beginner" || value === "intermediate" || value === "advanced"
-    );
-}
-
-function isStringArray(value: unknown): value is readonly string[] {
-    return (
-        Array.isArray(value) && value.every((item) => typeof item === "string")
     );
 }
 

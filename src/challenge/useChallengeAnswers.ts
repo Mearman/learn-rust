@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { createLocalStore } from "../settings/createLocalStore.ts";
 
 const STORAGE_KEY = "rbc-challenge-answers-v1";
 
@@ -11,29 +12,23 @@ function isAnswers(value: unknown): value is Record<string, boolean> {
     return Object.values(value).every((v) => typeof v === "boolean");
 }
 
+const store = createLocalStore<ChallengeAnswers, Record<string, boolean>>({
+    key: STORAGE_KEY,
+    guard: isAnswers,
+    fallback: {},
+    label: "challenge answers",
+    decode: (stored) => stored,
+    encode: (value) => ({ ...value }),
+});
+
 /** Load persisted challenge answers. Returns an empty map when absent or
  *  malformed; corrupt data is cleared so it cannot wedge the app. */
 export function loadChallengeAnswers(): ChallengeAnswers {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw === null) return {};
-        const parsed: unknown = JSON.parse(raw);
-        if (!isAnswers(parsed)) {
-            console.warn(
-                `[rbc] Stored challenge answers under "${STORAGE_KEY}" failed ` +
-                    "validation — falling back to empty and clearing the key."
-            );
-            localStorage.removeItem(STORAGE_KEY);
-            return {};
-        }
-        return parsed;
-    } catch {
-        return {};
-    }
+    return store.load();
 }
 
 export function useChallengeAnswers(): (answers: ChallengeAnswers) => void {
     return useCallback((answers: ChallengeAnswers): void => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
+        store.save(answers);
     }, []);
 }

@@ -1,12 +1,17 @@
 import { useCallback, useState } from "react";
+import { createLocalStore } from "../settings/createLocalStore.ts";
+import { isStringArray } from "../settings/guards.ts";
 
 export const STORAGE_KEY = "rbc-starred-v1";
 
-function isStringArray(value: unknown): value is readonly string[] {
-    return (
-        Array.isArray(value) && value.every((item) => typeof item === "string")
-    );
-}
+const store = createLocalStore<ReadonlySet<string>, readonly string[]>({
+    key: STORAGE_KEY,
+    guard: isStringArray,
+    fallback: new Set(),
+    label: "starred entries",
+    decode: (stored) => new Set(stored),
+    encode: (value) => [...value],
+});
 
 /**
  * Load the set of starred entry IDs from localStorage. Returns an empty set
@@ -14,26 +19,11 @@ function isStringArray(value: unknown): value is readonly string[] {
  * is unavailable. Corrupt data is cleared so it cannot wedge the app.
  */
 export function loadStarred(): ReadonlySet<string> {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw === null) return new Set();
-        const parsed: unknown = JSON.parse(raw);
-        if (!isStringArray(parsed)) {
-            console.warn(
-                `[rbc] Stored starred entries under "${STORAGE_KEY}" failed ` +
-                    "validation — falling back to empty and clearing the key."
-            );
-            localStorage.removeItem(STORAGE_KEY);
-            return new Set();
-        }
-        return new Set(parsed);
-    } catch {
-        return new Set();
-    }
+    return store.load();
 }
 
 export function saveStarred(starred: ReadonlySet<string>): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...starred]));
+    store.save(starred);
 }
 
 /**

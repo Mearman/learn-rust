@@ -5,33 +5,28 @@ import {
     isReviewStore,
 } from "./spacedRepetition.ts";
 import type { ReviewStore } from "./spacedRepetition.ts";
+import { createLocalStore } from "../settings/createLocalStore.ts";
 
 const STORAGE_KEY = "rbc-reviews-v1";
+
+const reviewStore = createLocalStore<ReviewStore, ReviewStore>({
+    key: STORAGE_KEY,
+    guard: isReviewStore,
+    fallback: {},
+    label: "review data",
+    decode: (stored) => stored,
+    encode: (value) => value,
+});
 
 /** Load persisted review store from localStorage.
  *  Falls back to an empty map when absent or malformed; corrupt data is
  *  cleared so it cannot wedge the app. */
 export function loadReviewStore(): ReviewStore {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw === null) return {};
-        const parsed: unknown = JSON.parse(raw);
-        if (!isReviewStore(parsed)) {
-            console.warn(
-                `[rbc] Stored review data under "${STORAGE_KEY}" failed ` +
-                    "validation — falling back to empty and clearing the key."
-            );
-            localStorage.removeItem(STORAGE_KEY);
-            return {};
-        }
-        return parsed;
-    } catch {
-        return {};
-    }
+    return reviewStore.load();
 }
 
-function saveReviewStore(store: ReviewStore): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+function saveReviewStore(reviews: ReviewStore): void {
+    reviewStore.save(reviews);
 }
 
 export interface UseSpacedRepetitionResult {
