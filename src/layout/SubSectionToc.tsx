@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Collapse, ScrollArea, TextInput } from "@mantine/core";
-import { ChevronRight, List, Search, X } from "lucide-react";
+import { ChevronRight, List, Search, Star, X } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     tocSidebar,
@@ -19,9 +19,13 @@ import {
     tocGroupEntries,
     tocTree,
     tocSectionLabel,
+    tocEntryRow,
+    tocStarButton,
+    tocStarButtonActive,
 } from "../theme/styles.css.ts";
-import type { SectionGroup } from "../layout/subSections.ts";
+import type { SectionGroup, SubSection } from "../layout/subSections.ts";
 import type { SectionId } from "../layout/useActiveSection.ts";
+import { useStarredEntries } from "./useStarredEntries.ts";
 
 interface SubSectionTocProps {
     readonly groups: readonly SectionGroup[];
@@ -43,11 +47,64 @@ interface TocTreeProps {
     readonly onToggle: (id: SectionId) => void;
     readonly onSelectEntry: (id: string) => void;
     readonly onSelectSection: (id: SectionId) => void;
+    readonly starred: ReadonlySet<string>;
+    readonly onToggleStar: (id: string) => void;
     /** When set, only entries whose label matches will be shown, and matched
      *  groups will be forced open. */
     readonly filter?: string;
     /** Ref to the active entry button so the parent can scroll it into view. */
     readonly activeEntryRef?: React.RefObject<HTMLButtonElement | null>;
+}
+
+interface TocEntryProps {
+    readonly entry: SubSection;
+    readonly isActive: boolean;
+    readonly isStarred: boolean;
+    readonly onSelect: (id: string) => void;
+    readonly onToggleStar: (id: string) => void;
+    readonly activeEntryRef?: React.RefObject<HTMLButtonElement | null>;
+}
+
+/** A single entry row: the label button (selects/scrolls) plus a star toggle.
+ *  Two sibling buttons rather than nested ones, which is invalid HTML. */
+function TocEntry({
+    entry,
+    isActive,
+    isStarred,
+    onSelect,
+    onToggleStar,
+    activeEntryRef,
+}: TocEntryProps) {
+    return (
+        <div className={tocEntryRow}>
+            <button
+                ref={isActive ? activeEntryRef : undefined}
+                type="button"
+                onClick={() => {
+                    onSelect(entry.id);
+                }}
+                className={`${tocItem} ${isActive ? tocItemActive : ""}`}
+                aria-current={isActive ? "location" : undefined}
+            >
+                {entry.label}
+            </button>
+            <button
+                type="button"
+                onClick={() => {
+                    onToggleStar(entry.id);
+                }}
+                className={`${tocStarButton} ${isStarred ? tocStarButtonActive : ""}`}
+                aria-pressed={isStarred}
+                aria-label={`${isStarred ? "Unstar" : "Star"} "${entry.label}"`}
+            >
+                <Star
+                    size={12}
+                    fill={isStarred ? "currentColor" : "none"}
+                    aria-hidden="true"
+                />
+            </button>
+        </div>
+    );
 }
 
 function TocTree({
@@ -58,6 +115,8 @@ function TocTree({
     onToggle,
     onSelectEntry,
     onSelectSection,
+    starred,
+    onToggleStar,
     filter,
     activeEntryRef,
 }: TocTreeProps) {
@@ -90,6 +149,11 @@ function TocTree({
                 const showEntries =
                     hasEntries &&
                     (hasFilter ? matchingEntries.length > 0 : isExpanded);
+
+                // Starred entries stay visible beneath a collapsed header.
+                const starredEntries = group.subSections.filter((s) =>
+                    starred.has(s.id)
+                );
 
                 // Stable id for the disclosure region — used by aria-controls.
                 const entriesId = `toc-entries-${group.id}`;
@@ -135,35 +199,43 @@ function TocTree({
                             ) : null}
                         </button>
 
-                        {/* Nested entry list */}
+                        {/* When the group is collapsed, its starred entries
+                            stay visible beneath the header. The full list is
+                            hidden behind the Collapse below, so each entry is
+                            only ever rendered once. */}
+                        {hasEntries &&
+                        !showEntries &&
+                        starredEntries.length > 0 ? (
+                            <div className={tocGroupEntries}>
+                                {starredEntries.map((entry) => (
+                                    <TocEntry
+                                        key={entry.id}
+                                        entry={entry}
+                                        isActive={entry.id === activeId}
+                                        isStarred
+                                        onSelect={onSelectEntry}
+                                        onToggleStar={onToggleStar}
+                                        activeEntryRef={activeEntryRef}
+                                    />
+                                ))}
+                            </div>
+                        ) : null}
+
+                        {/* Full entry list, animated open and closed. */}
                         {hasEntries ? (
                             <Collapse expanded={showEntries}>
                                 <div id={entriesId} className={tocGroupEntries}>
-                                    {matchingEntries.map((entry) => {
-                                        const isActive = entry.id === activeId;
-                                        return (
-                                            <button
-                                                key={entry.id}
-                                                ref={
-                                                    isActive
-                                                        ? activeEntryRef
-                                                        : undefined
-                                                }
-                                                type="button"
-                                                onClick={() => {
-                                                    onSelectEntry(entry.id);
-                                                }}
-                                                className={`${tocItem} ${isActive ? tocItemActive : ""}`}
-                                                aria-current={
-                                                    isActive
-                                                        ? "location"
-                                                        : undefined
-                                                }
-                                            >
-                                                {entry.label}
-                                            </button>
-                                        );
-                                    })}
+                                    {matchingEntries.map((entry) => (
+                                        <TocEntry
+                                            key={entry.id}
+                                            entry={entry}
+                                            isActive={entry.id === activeId}
+                                            isStarred={starred.has(entry.id)}
+                                            onSelect={onSelectEntry}
+                                            onToggleStar={onToggleStar}
+                                            activeEntryRef={activeEntryRef}
+                                        />
+                                    ))}
                                 </div>
                             </Collapse>
                         ) : null}
@@ -187,6 +259,7 @@ export function SubSectionToc({
 }: SubSectionTocProps) {
     const [sheetOpen, setSheetOpen] = useState(false);
     const [filter, setFilter] = useState("");
+    const [starred, toggleStar] = useStarredEntries();
 
     // Expansion state model.
     //
@@ -377,6 +450,8 @@ export function SubSectionToc({
                         onToggle={handleToggle}
                         onSelectEntry={handleSelectEntry}
                         onSelectSection={onSelectSection}
+                        starred={starred}
+                        onToggleStar={toggleStar}
                         activeEntryRef={activeEntryRef}
                     />
                 </ScrollArea.Autosize>
@@ -509,6 +584,8 @@ export function SubSectionToc({
                                         onToggle={handleToggle}
                                         onSelectEntry={handleSelectEntry}
                                         onSelectSection={handleSelectSection}
+                                        starred={starred}
+                                        onToggleStar={toggleStar}
                                         filter={filter}
                                     />
                                     {noMobileMatches ? (

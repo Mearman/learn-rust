@@ -490,7 +490,8 @@ export const tocSheetHeader = style({
 
 export const tocItem = style({
     display: "block",
-    width: "100%",
+    flex: "1 1 auto",
+    minWidth: 0,
     textAlign: "left",
     padding: "0.375rem 0.5rem",
     fontSize: "0.8rem",
@@ -592,6 +593,39 @@ export const tocGroupEntries = style({
     borderLeft: `1px solid ${vars.colour.border}`,
     marginLeft: "0.625rem",
     marginBottom: "0.25rem",
+});
+
+/** Row wrapping an entry's label button and its star toggle. */
+export const tocEntryRow = style({
+    display: "flex",
+    alignItems: "center",
+    gap: "0.125rem",
+});
+
+/** Star toggle button on an entry row. */
+export const tocStarButton = style({
+    flexShrink: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0.25rem",
+    border: "none",
+    background: "transparent",
+    color: vars.colour.faint,
+    cursor: "pointer",
+    borderRadius: "0.25rem",
+    transition: "color 0.15s, background 0.15s",
+    selectors: {
+        "&:hover": {
+            color: vars.colour.accent,
+            background: vars.colour.panel2,
+        },
+    },
+});
+
+/** Starred state — filled, accent-coloured star. */
+export const tocStarButtonActive = style({
+    color: vars.colour.accent,
 });
 
 // ---------------------------------------------------------------------------
