@@ -1,3 +1,11 @@
+# [1.9.0](https://github.com/Mearman/learn-rust/compare/v1.8.0...v1.9.0) (2026-06-02)
+
+
+### Features
+
+* **fix-section:** add Learning-by-Fixing exercise data, types, and test ([0e67635](https://github.com/Mearman/learn-rust/commit/0e676359e2536f932df7305b0759ec8d545d1a6e))
+* **fix-section:** add the Fix-it section view and wire it into the app ([c015dd6](https://github.com/Mearman/learn-rust/commit/c015dd6a0610c33db406db238dddd029bb3085dd))
+
 # [1.8.0](https://github.com/Mearman/learn-rust/compare/v1.7.1...v1.8.0) (2026-06-02)
 
 
