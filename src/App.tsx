@@ -72,8 +72,9 @@ import {
     scrollToSection,
     type SectionId,
 } from "./layout/useActiveSection.ts";
-import { getSectionGroups } from "./layout/subSections.ts";
+import { getSectionGroups, resolveActiveHash } from "./layout/subSections.ts";
 import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
+import { useActiveHash } from "./layout/useActiveHash.ts";
 import { SubSectionToc } from "./layout/SubSectionToc.tsx";
 import {
     useScrollNavigation,
@@ -186,6 +187,10 @@ export function App() {
         allSubIds,
         Number(compareMounted) + Number(syntaxMounted) * 2
     );
+
+    // Reflect the active section / sub-section in the URL hash as the reader
+    // scrolls, so the address bar is always shareable and bookmarkable.
+    useActiveHash(resolveActiveHash(sectionGroups, activeSection, activeSub));
 
     const sectionMounts = useMemo(
         () => ({

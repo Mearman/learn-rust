@@ -18,7 +18,11 @@ export interface SectionMountMap {
 
 /**
  * Scroll smoothly to the element with `id`, if it exists, and reflect the
- * target in `window.location.hash` so the URL can be shared or bookmarked.
+ * target in the URL hash so it can be shared or bookmarked. Uses
+ * `history.replaceState` rather than assigning `window.location.hash`: the
+ * latter adds a back-history entry and triggers a second, instant anchor jump
+ * that fights the smooth scroll. The scroll-spy (useActiveHash) keeps the hash
+ * in sync from here on as the reader scrolls.
  *
  * If `mounts` is provided and the target ID belongs to a deferred section,
  * the corresponding force-mount callback is called inside `flushSync` first
@@ -40,7 +44,7 @@ function scrollToId(id: string, mounts?: SectionMountMap): void {
     const el = document.getElementById(id);
     if (el !== null) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
-        window.location.hash = id;
+        history.replaceState(null, "", `#${id}`);
     }
 }
 

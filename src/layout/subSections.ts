@@ -80,6 +80,26 @@ const SUBSECTION_MAP: Record<SectionId, readonly SubSection[]> = {
     cheatsheet: [],
 };
 
+/**
+ * Resolve the URL-hash target for the current scroll position: the active
+ * sub-section when one is in view within the active section, otherwise the
+ * section id itself (so sections without sub-sections — challenge has them,
+ * but path and cheatsheet do not — still reflect in the URL).
+ */
+export function resolveActiveHash(
+    groups: readonly SectionGroup[],
+    activeSection: SectionId,
+    activeSub: string | undefined
+): string {
+    if (activeSub !== undefined) {
+        const group = groups.find((g) => g.id === activeSection);
+        if (group?.subSections.some((s) => s.id === activeSub) === true) {
+            return activeSub;
+        }
+    }
+    return activeSection;
+}
+
 /** All sections as a flat list of groups in canonical display order. The
  *  challenge group's sub-sections are empty here — App.tsx injects them from
  *  the profile-filtered challenge list, since which challenges show (and their
