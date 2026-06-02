@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { observeScrollSpy } from "./scrollSpy.ts";
 
 const SECTION_IDS = [
     "learn",
@@ -26,35 +27,14 @@ export function useActiveSection(): SectionId {
     const [active, setActive] = useState<SectionId>("learn");
 
     useEffect(() => {
-        const observers: IntersectionObserver[] = [];
-
+        const elements = new Map<Element, SectionId>();
         for (const id of SECTION_IDS) {
             const element = document.getElementById(id);
-            if (element === null) continue;
-
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    for (const entry of entries) {
-                        if (entry.isIntersecting) {
-                            setActive(id);
-                        }
-                    }
-                },
-                {
-                    // The sticky nav height approximately — adjust if nav changes
-                    rootMargin: "-80px 0px -60% 0px",
-                    threshold: 0,
-                }
-            );
-            observer.observe(element);
-            observers.push(observer);
+            if (element !== null) elements.set(element, id);
         }
+        if (elements.size === 0) return;
 
-        return () => {
-            for (const observer of observers) {
-                observer.disconnect();
-            }
-        };
+        return observeScrollSpy(elements, setActive);
     }, []);
 
     return active;

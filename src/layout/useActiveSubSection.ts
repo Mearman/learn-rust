@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { observeScrollSpy } from "./scrollSpy.ts";
 
 /**
  * Tracks which sub-section is currently in the viewport.
@@ -21,34 +22,14 @@ export function useActiveSubSection(
             return;
         }
 
-        const observers: IntersectionObserver[] = [];
-
+        const elements = new Map<Element, string>();
         for (const id of ids) {
             const element = document.getElementById(id);
-            if (element === null) continue;
-
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    for (const entry of entries) {
-                        if (entry.isIntersecting) {
-                            setActive(id);
-                        }
-                    }
-                },
-                {
-                    rootMargin: "-80px 0px -60% 0px",
-                    threshold: 0,
-                }
-            );
-            observer.observe(element);
-            observers.push(observer);
+            if (element !== null) elements.set(element, id);
         }
+        if (elements.size === 0) return;
 
-        return () => {
-            for (const observer of observers) {
-                observer.disconnect();
-            }
-        };
+        return observeScrollSpy(elements, setActive);
     }, [ids, mountVersion]);
 
     return active;
