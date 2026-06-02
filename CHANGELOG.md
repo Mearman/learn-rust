@@ -1,3 +1,23 @@
+# [1.5.0](https://github.com/Mearman/learn-rust/compare/v1.4.1...v1.5.0) (2026-06-02)
+
+
+### Bug Fixes
+
+* add async LanguageConcept rows so the async lesson renders ([84008af](https://github.com/Mearman/learn-rust/commit/84008afbfbecb5a0ed31c742beebe899e98a45e3))
+* correct lifetime MC misconception that claimed a non-compiling signature compiles ([f53e2ba](https://github.com/Mearman/learn-rust/commit/f53e2ba4bfd5a6050070c3cc3eba094230a0505c))
+
+
+### Features
+
+* add a compiler-error reading section ([7f9a48a](https://github.com/Mearman/learn-rust/commit/7f9a48a273eabb53854e2a66efd7b59d9f3de64d))
+* add async & Send/Sync lesson ([8d10ae7](https://github.com/Mearman/learn-rust/commit/8d10ae76593b0be7cbe1736f2ed84436a4a9d6e3))
+* add fix-this-code mode to challenge cards ([7699086](https://github.com/Mearman/learn-rust/commit/76990864c0fb5511f603a1ee3b82ae915b7f240a))
+* add multiple-choice active recall to challenge cards ([33ccbb0](https://github.com/Mearman/learn-rust/commit/33ccbb00a89e404618f2fade276ad8e7f354c9a1))
+* **challenge:** add SM-2 spaced repetition with due-for-review bucket ([5dbc62b](https://github.com/Mearman/learn-rust/commit/5dbc62b0a3df9717dfc33f62f779ca46abac4ef8))
+* colour dependency-graph nodes by lesson-viewed state in path view ([33bddc4](https://github.com/Mearman/learn-rust/commit/33bddc48a3b85a1e8ac990953478a9014106543d))
+* **data:** add annotated compiler-error transcripts ([c3dd4fc](https://github.com/Mearman/learn-rust/commit/c3dd4fc5c1c5e3320c91d947a553221959da29c1))
+* soft lesson gating with prerequisite advisory banner ([c1c43db](https://github.com/Mearman/learn-rust/commit/c1c43db223c26155d39b6201397d09ebdc612517))
+
 ## [1.4.1](https://github.com/Mearman/learn-rust/compare/v1.4.0...v1.4.1) (2026-06-02)
 
 
