@@ -1,3 +1,34 @@
+# [1.4.0](https://github.com/Mearman/learn-rust/compare/v1.3.0...v1.4.0) (2026-06-02)
+
+
+### Bug Fixes
+
+* add aria-hidden to decorative icons in ChallengeView and fix label formatting ([a3e327e](https://github.com/Mearman/learn-rust/commit/a3e327eed116ced389087bf020b36851b18dbe25))
+* correct five factual errors in lessons.ts ([56394aa](https://github.com/Mearman/learn-rust/commit/56394aab74e2746dc90b4fc89a768e8068d55018))
+* correct mis-assigned error codes in the error catalogue ([125cff4](https://github.com/Mearman/learn-rust/commit/125cff4dea7665090b40d0090beb3eed56826bb4))
+* correct three inaccurate glossary definitions ([66f1755](https://github.com/Mearman/learn-rust/commit/66f1755faa40c144f9bb4edb8bfae7d3cc9f8b66))
+* correct two factual errors in language-concepts ([d8743a5](https://github.com/Mearman/learn-rust/commit/d8743a5019d00497b7decd1749ecf1da452b13fd))
+* make footer Playground reference a clickable link ([e17db7e](https://github.com/Mearman/learn-rust/commit/e17db7e5dc35e8badf891da29d9640f3e1e01e33))
+* remove F# syntax from the C# enum example ([225a45d](https://github.com/Mearman/learn-rust/commit/225a45d538154b43f0461c6e94b8a7c0bc4ae28c))
+* replace hardcoded [#1](https://github.com/Mearman/learn-rust/issues/1)a0f08 with vars.colour.accentText token ([45340d5](https://github.com/Mearman/learn-rust/commit/45340d5306465d717dfa3074e6fcb04d29dab61f)), closes [#1a0f08](https://github.com/Mearman/learn-rust/issues/1a0f08) [#1a0f08](https://github.com/Mearman/learn-rust/issues/1a0f08) [#ffffff](https://github.com/Mearman/learn-rust/issues/ffffff)
+* show lesson titles instead of raw IDs in ProgressionView ([3453de8](https://github.com/Mearman/learn-rust/commit/3453de8ae63df17cf1704f93973d94721fc0edde))
+* **theme:** WCAG AA contrast, accentText token, spin keyframes, safe-area, focus-visible ([02e5f22](https://github.com/Mearman/learn-rust/commit/02e5f2233f1b38a2cdfd287d6fa0e7d4b00a8f4b)), closes [#f8f6f3](https://github.com/Mearman/learn-rust/issues/f8f6f3) [#ffffff](https://github.com/Mearman/learn-rust/issues/ffffff) [#f0ede8](https://github.com/Mearman/learn-rust/issues/f0ede8) [#f5f3ef](https://github.com/Mearman/learn-rust/issues/f5f3ef) [#a8a29e](https://github.com/Mearman/learn-rust/issues/a8a29e) [#706a64](https://github.com/Mearman/learn-rust/issues/706a64) [#d45a25](https://github.com/Mearman/learn-rust/issues/d45a25) [#b8481c](https://github.com/Mearman/learn-rust/issues/b8481c) [#e87040](https://github.com/Mearman/learn-rust/issues/e87040) [#a0441c](https://github.com/Mearman/learn-rust/issues/a0441c) [#16a34a](https://github.com/Mearman/learn-rust/issues/16a34a) [#147a3a](https://github.com/Mearman/learn-rust/issues/147a3a) [#dc2626](https://github.com/Mearman/learn-rust/issues/dc2626) [#ce1f1f](https://github.com/Mearman/learn-rust/issues/ce1f1f) [#1a0f08](https://github.com/Mearman/learn-rust/issues/1a0f08) [#e2703a](https://github.com/Mearman/learn-rust/issues/e2703a) [#ffffff](https://github.com/Mearman/learn-rust/issues/ffffff) [#b8481c](https://github.com/Mearman/learn-rust/issues/b8481c)
+
+
+### Features
+
+* add fetch timeout and Rust Playground attribution to compiler ([69a6e5c](https://github.com/Mearman/learn-rust/commit/69a6e5ce0f569720d149c87c134460a82395e0ae))
+* add filter input to desktop sidebar TOC ([66fbcbe](https://github.com/Mearman/learn-rust/commit/66fbcbe886aaf3bbb0a874ba751ef4edf73ea56a))
+* add search hint when query is empty or too short ([6958fb4](https://github.com/Mearman/learn-rust/commit/6958fb4d6dcd937e36376fad80784faeba2dbd05))
+* add useBodyScrollLock hook and apply to search overlay and mobile TOC ([d37b890](https://github.com/Mearman/learn-rust/commit/d37b8909619b5f92697c3f6233c23d8f87924baf))
+* **challenge:** loosen beginner filter to include core challenges ([bd5c166](https://github.com/Mearman/learn-rust/commit/bd5c166392b3b78d10169603b1570ce466ee8ac5))
+* **data:** add missing dependency edges to concept graph ([02bd24d](https://github.com/Mearman/learn-rust/commit/02bd24da4b8acbc9d478310439ff50e1a1d5270e))
+* **learn:** deepen traits and lifetimes lessons; add Copy/Clone and Deref coercion ([78fe860](https://github.com/Mearman/learn-rust/commit/78fe86080ecdef00f53b0750abdbbda402a975f1))
+* **learn:** per-lesson background context notes ([ad13f2c](https://github.com/Mearman/learn-rust/commit/ad13f2c92c31445e272a187f60c77b1cfddead55))
+* mark lessons as read after 3 s of dwell time ([6fd36f8](https://github.com/Mearman/learn-rust/commit/6fd36f86416418d1516343ad4209452f1a2c6658))
+* preserve manually-opened TOC sections across scroll changes ([da4d0c1](https://github.com/Mearman/learn-rust/commit/da4d0c1d920ec923a2ac83914bfdb758a489d5c0))
+* show brief visual feedback when tailoring settings change ([1fc8242](https://github.com/Mearman/learn-rust/commit/1fc8242542fe9b15e059f55b86307b987f43a9a0))
+
 # [1.3.0](https://github.com/Mearman/learn-rust/compare/v1.2.0...v1.3.0) (2026-06-02)
 
 
