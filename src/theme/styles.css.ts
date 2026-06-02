@@ -304,6 +304,11 @@ export const cheatCard = style({
     gap: "0.75rem",
     background: vars.colour.panel2,
     border: `1px solid ${vars.colour.border}`,
+    // Grid item: without this it cannot shrink below its content's min-content
+    // width (a code snippet), forcing the grid — and the whole page — wider than
+    // a narrow viewport. With min-width 0 the card tracks the column and the
+    // code block's own `overflow-x: auto` scrolls the long lines instead.
+    minWidth: 0,
 });
 
 export const cheatTitle = style({
