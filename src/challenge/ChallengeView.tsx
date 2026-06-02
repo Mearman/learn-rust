@@ -27,7 +27,7 @@ import { CodeBlock } from "../highlight/CodeBlock.tsx";
 import { EditableCode } from "./EditableCode.tsx";
 import { CompileOutput } from "../compiler/CompileOutput.tsx";
 import { useCompiler } from "../compiler/useCompiler.ts";
-import type { Challenge } from "./challenges.ts";
+import type { Challenge, ChallengeChoice } from "./challenges.ts";
 import type { ChallengeAnswers } from "./useChallengeAnswers.ts";
 import type { ReviewStore } from "./spacedRepetition.ts";
 import { dueChallengeIds } from "./spacedRepetition.ts";
@@ -157,6 +157,11 @@ function ChallengeCard({
 
     const [fixMode, setFixMode] = useState<FixMode>({ kind: "idle" });
 
+    // Multiple-choice selection — card-local state.
+    // undefined = not yet answered; string = chosen option id.
+    const [mcChoice, setMcChoice] = useState<string | undefined>(undefined);
+    const choices = challenge.choices;
+
     function handleToggleFix() {
         if (fixMode.kind !== "idle") {
             clear();
@@ -225,15 +230,34 @@ function ChallengeCard({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fixSolved]);
 
+    // Multiple-choice: resolve the chosen option object (if any).
+    const chosenOption: ChallengeChoice | undefined =
+        mcChoice !== undefined && choices !== undefined
+            ? choices.options.find((o) => o.id === mcChoice)
+            : undefined;
+    const mcAnswered = chosenOption !== undefined;
+    const mcCorrect = chosenOption?.correct === true;
+
+    // Record SR review when MC answer is first submitted.
+    useEffect(() => {
+        if (!mcAnswered) return;
+        onRecordReview(challenge.id, mcCorrect, shownAt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mcAnswered]);
+
     // Fix mode is active when we are in editing, submitted-incorrect, solved,
     // or gave-up states.
     const fixActive = resolvedFixMode.kind !== "idle";
     const fixGaveUp = resolvedFixMode.kind === "gave-up";
 
-    // Reveal explanation when: answered compile-guess AND fix mode is not
-    // active, OR fix mode has reached solved/gave-up.
+    // Reveal explanation when:
+    // - MC mode: an option has been chosen, OR fix mode has resolved
+    // - non-MC: answered compile-guess AND fix mode is not active,
+    //   OR fix mode has reached solved/gave-up.
     const revealExplanation =
-        (answered && !fixActive) || fixSolved || fixGaveUp;
+        choices !== undefined
+            ? mcAnswered || fixSolved || fixGaveUp
+            : (answered && !fixActive) || fixSolved || fixGaveUp;
 
     return (
         <div id={challenge.id} className={challengeCard}>
@@ -281,8 +305,166 @@ function ChallengeCard({
                 />
             ) : null}
 
-            {/* Will-it-compile guess buttons */}
-            {!answered ? (
+            {/* Multiple-choice options — shown when the challenge has choices
+                and no option has been selected yet. */}
+            {choices !== undefined ? (
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.625rem",
+                    }}
+                >
+                    <span
+                        className={monoSm}
+                        style={{ color: vars.colour.dim, fontSize: "0.8rem" }}
+                    >
+                        {choices.prompt}
+                    </span>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        {choices.options.map((option) => {
+                            const isChosen = mcChoice === option.id;
+                            let borderColor = vars.colour.border;
+                            let bgColor = vars.colour.panel2;
+                            let textColor = vars.colour.text;
+                            if (mcAnswered && isChosen) {
+                                if (option.correct) {
+                                    borderColor = vars.colour.good;
+                                    bgColor = vars.colour.goodDim;
+                                    textColor = vars.colour.good;
+                                } else {
+                                    borderColor = vars.colour.bad;
+                                    bgColor = vars.colour.badDim;
+                                    textColor = vars.colour.bad;
+                                }
+                            } else if (mcAnswered && option.correct) {
+                                // After a wrong pick, highlight the correct answer
+                                borderColor = vars.colour.good;
+                                bgColor = vars.colour.goodDim;
+                                textColor = vars.colour.good;
+                            }
+                            return (
+                                <div
+                                    key={option.id}
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "0.375rem",
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        disabled={mcAnswered}
+                                        onClick={() => {
+                                            if (!mcAnswered) {
+                                                setMcChoice(option.id);
+                                            }
+                                        }}
+                                        style={{
+                                            textAlign: "left",
+                                            display: "flex",
+                                            alignItems: "flex-start",
+                                            gap: "0.5rem",
+                                            padding: "0.625rem 0.75rem",
+                                            borderRadius: "0.5rem",
+                                            fontSize: "0.875rem",
+                                            fontWeight:
+                                                mcAnswered && option.correct
+                                                    ? 600
+                                                    : 400,
+                                            background: bgColor,
+                                            color: textColor,
+                                            border: `1px solid ${borderColor}`,
+                                            cursor: mcAnswered
+                                                ? "default"
+                                                : "pointer",
+                                            transition:
+                                                "background 0.15s, border-color 0.15s",
+                                            width: "100%",
+                                            lineHeight: 1.5,
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontFamily:
+                                                    "ui-monospace, monospace",
+                                                fontSize: "0.75rem",
+                                                flexShrink: 0,
+                                                marginTop: "0.1rem",
+                                                color:
+                                                    mcAnswered &&
+                                                    (isChosen || option.correct)
+                                                        ? textColor
+                                                        : vars.colour.faint,
+                                            }}
+                                        >
+                                            {option.id}.
+                                        </span>
+                                        <span>{option.text}</span>
+                                        {mcAnswered && option.correct ? (
+                                            <Check
+                                                size={15}
+                                                aria-hidden="true"
+                                                style={{
+                                                    flexShrink: 0,
+                                                    marginLeft: "auto",
+                                                    marginTop: "0.15rem",
+                                                    color: vars.colour.good,
+                                                }}
+                                            />
+                                        ) : null}
+                                        {mcAnswered &&
+                                        isChosen &&
+                                        !option.correct ? (
+                                            <X
+                                                size={15}
+                                                aria-hidden="true"
+                                                style={{
+                                                    flexShrink: 0,
+                                                    marginLeft: "auto",
+                                                    marginTop: "0.15rem",
+                                                    color: vars.colour.bad,
+                                                }}
+                                            />
+                                        ) : null}
+                                    </button>
+                                    {/* Misconception note — shown below the chosen wrong option */}
+                                    {mcAnswered &&
+                                    isChosen &&
+                                    !option.correct &&
+                                    option.misconception !== undefined ? (
+                                        <div
+                                            style={{
+                                                marginLeft: "0.75rem",
+                                                padding:
+                                                    "0.5rem 0.625rem 0.5rem 0.75rem",
+                                                borderLeft: `2px solid ${vars.colour.bad}`,
+                                                fontSize: "0.8125rem",
+                                                lineHeight: 1.5,
+                                                color: vars.colour.dim,
+                                                background: vars.colour.badDim,
+                                                borderRadius:
+                                                    "0 0.375rem 0.375rem 0",
+                                            }}
+                                        >
+                                            {option.misconception}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            ) : null}
+
+            {/* Will-it-compile guess buttons — only on non-MC challenges */}
+            {choices === undefined && !answered ? (
                 <div className={answerGrid}>
                     <button
                         onClick={() => {
@@ -441,9 +623,8 @@ function ChallengeCard({
                 </div>
             ) : null}
 
-            {/* Compile-guess feedback and explanation — shown when the
-                will-it-compile guess has been answered AND fix mode is not
-                active; OR when fix mode has reached solved/gave-up. */}
+            {/* Explanation revealed after a selection is made (MC) or after
+                the compile-guess has been answered / fix mode resolved. */}
             {revealExplanation ? (
                 <div
                     style={{
@@ -452,9 +633,43 @@ function ChallengeCard({
                         gap: "1rem",
                     }}
                 >
-                    {/* Only show the guess correctness badge when the guess
-                        has been answered. */}
-                    {answered ? (
+                    {/* MC mode: show correct/incorrect badge based on MC result */}
+                    {choices !== undefined ? (
+                        <div
+                            className={`${feedbackBox} ${mcCorrect ? feedbackCorrect : feedbackIncorrect}`}
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                    fontSize: "0.875rem",
+                                    fontWeight: 600,
+                                    color: mcCorrect
+                                        ? vars.colour.good
+                                        : vars.colour.bad,
+                                }}
+                            >
+                                {mcCorrect ? (
+                                    <Check size={16} aria-hidden="true" />
+                                ) : (
+                                    <X size={16} aria-hidden="true" />
+                                )}
+                                {mcCorrect ? "Correct" : "Not quite"}
+                            </div>
+                            <p
+                                style={{
+                                    fontSize: "0.875rem",
+                                    lineHeight: 1.625,
+                                    margin: 0,
+                                    color: vars.colour.text,
+                                }}
+                            >
+                                {challenge.why}
+                            </p>
+                        </div>
+                    ) : answered ? (
+                        /* Non-MC: compile-guess answered — show badge + explanation */
                         <div
                             className={`${feedbackBox} ${isCorrect ? feedbackCorrect : feedbackIncorrect}`}
                         >

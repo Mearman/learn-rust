@@ -1,6 +1,25 @@
 import type { LanguageFamiliarity } from "../data/languages.ts";
 import type { UserProfile } from "../settings/types.ts";
 
+export interface ChallengeChoice {
+    /** Stable id for the option, unique within the challenge (e.g. "a","b","c"). */
+    readonly id: string;
+    /** The option text shown to the reader. */
+    readonly text: string;
+    /** True for the single correct option. */
+    readonly correct: boolean;
+    /** Shown when this WRONG option is chosen — names the misconception.
+     *  Omit on the correct option. */
+    readonly misconception?: string;
+}
+
+export interface MultipleChoice {
+    /** The recall question, e.g. "Which lifetime annotation is wrong?" */
+    readonly prompt: string;
+    /** 3–4 options. Exactly one has correct:true. */
+    readonly options: readonly ChallengeChoice[];
+}
+
 export interface Challenge {
     /** Stable id derived from position in CHALLENGES; used as the scroll
      *  anchor element id and the sidebar sub-section id. */
@@ -12,6 +31,9 @@ export interface Challenge {
     readonly why: string;
     readonly fix?: string;
     readonly whyPerLanguage?: Partial<Record<LanguageFamiliarity, string>>;
+    /** When present, selects multiple-choice presentation instead of the
+     *  binary "will it compile?" guess for this card. */
+    readonly choices?: MultipleChoice;
 }
 
 const RAW_CHALLENGES: readonly Omit<Challenge, "id">[] = [
@@ -296,6 +318,126 @@ const RAW_CHALLENGES: readonly Omit<Challenge, "id">[] = [
             go: "Go returns named interface types for polymorphic return values. Rust's impl Fn(i32) -> i32 is analogous — it guarantees the returned value implements Fn without exposing the concrete type.",
             csharp: "C# can return Func<int, int> delegates, but the actual type is a named delegate. Rust's impl Fn(i32) -> i32 returns an opaque type — you know it implements Fn, but not what specific closure it is.",
             cpp: "C++ auto return type deduces the concrete type and exposes it in the header. Rust's impl Fn hides the concrete type — callers only know it satisfies the trait.",
+        },
+    },
+    // ----- Multiple-choice challenges ----------------------------------------
+    // These use the `choices` field instead of the binary compile-guess.
+    // Code shown in options is verified to compile/fail as claimed.
+    {
+        topic: "Lifetimes",
+        level: "core",
+        // compiles: true so the code shown is the "correct" reference snippet;
+        // the MC question tests understanding of the annotation, not the snippet itself.
+        compiles: true,
+        code: `fn first_word(s: &str) -> &str {\n    let bytes = s.as_bytes();\n    for (i, &b) in bytes.iter().enumerate() {\n        if b == b' ' { return &s[0..i]; }\n    }\n    &s[..]\n}`,
+        why: "Rust's lifetime elision rules mean a function with exactly one input reference automatically assigns that lifetime to any output reference. Rules 1 and 2 together: each input ref gets its own lifetime (rule 1), then if there is exactly one input lifetime it propagates to the output (rule 2). No annotation is needed here.",
+        choices: {
+            prompt: "Which pair of elision rules allows `fn first_word(s: &str) -> &str` to compile without explicit lifetime annotations?",
+            options: [
+                {
+                    id: "a",
+                    text: "Rule 1 alone: each input reference gets its own lifetime parameter.",
+                    correct: false,
+                    misconception:
+                        "Rule 1 assigns lifetimes to inputs, but on its own it doesn't tell the compiler what lifetime to give the output. Rule 2 is also needed.",
+                },
+                {
+                    id: "b",
+                    text: "Rules 1 and 2 together: each input gets its own lifetime, and because there is exactly one input lifetime, it is assigned to the output.",
+                    correct: true,
+                },
+                {
+                    id: "c",
+                    text: "Rule 3: the output lifetime is assigned from &self, because str is special.",
+                    correct: false,
+                    misconception:
+                        "Rule 3 applies only to methods with a &self or &mut self receiver — not to free functions. There is no &self here.",
+                },
+                {
+                    id: "d",
+                    text: "No rule is needed: output references to &str never require a lifetime because str is always 'static.",
+                    correct: false,
+                    misconception:
+                        "&str can borrow from any string, not just static ones. The compiler must prove the output slice doesn't outlive the input — it uses elision rules 1 and 2 to do this automatically.",
+                },
+            ],
+        },
+    },
+    {
+        topic: "Lifetimes",
+        level: "core",
+        compiles: false,
+        code: `fn longer(x: &str, y: &str) -> &str {\n    if x.len() > y.len() { x } else { y }\n}`,
+        why: "When a function takes two input references and returns a reference, the compiler cannot determine which input the output borrows from. Explicit lifetime annotations are required: `fn longer<'a>(x: &'a str, y: &'a str) -> &'a str`.",
+        fix: `fn longer<'a>(x: &'a str, y: &'a str) -> &'a str {\n    if x.len() > y.len() { x } else { y }\n}`,
+        choices: {
+            prompt: "This function fails to compile. Which annotation correctly fixes it so the output lifetime is at least as long as both inputs?",
+            options: [
+                {
+                    id: "a",
+                    text: "fn longer<'a>(x: &'a str, y: &'a str) -> &'a str",
+                    correct: true,
+                },
+                {
+                    id: "b",
+                    text: "fn longer<'a>(x: &'a str, y: &str) -> &'a str",
+                    correct: false,
+                    misconception:
+                        "Tying the output only to x's lifetime compiles, but it is too weak: the function might return y, so the output must be bounded by both. If you call it and use the result, you risk a lifetime error at the call site.",
+                },
+                {
+                    id: "c",
+                    text: "fn longer<'a, 'b>(x: &'a str, y: &'b str) -> &'a str",
+                    correct: false,
+                    misconception:
+                        "This annotation says the output lives as long as x's lifetime. But the body may return y — rustc will reject it because 'b does not necessarily outlive 'a.",
+                },
+                {
+                    id: "d",
+                    text: "fn longer(x: &'static str, y: &'static str) -> &'static str",
+                    correct: false,
+                    misconception:
+                        "Requiring both inputs to be 'static is far too restrictive — the function would only work with string literals, not with references to local Strings.",
+                },
+            ],
+        },
+    },
+    {
+        topic: "Lifetimes",
+        level: "tricky",
+        compiles: true,
+        code: `struct Excerpt<'a> {\n    line: &'a str,\n}\nimpl<'a> Excerpt<'a> {\n    fn announce(&self, msg: &str) -> &str {\n        println!("Attention: {}", msg);\n        self.line\n    }\n}`,
+        why: "The method has &self as receiver, which triggers elision rule 3: the output lifetime is assigned from &self. The compiler knows the returned &str borrows from self.line, whose lifetime is 'a. No explicit annotation is needed on announce.",
+        choices: {
+            prompt: "The `announce` method returns `&str` without explicit lifetime annotations. Which elision rule makes this valid?",
+            options: [
+                {
+                    id: "a",
+                    text: "Rule 2: there is only one input reference, so its lifetime goes to the output.",
+                    correct: false,
+                    misconception:
+                        "There are two input references here — &self and &str msg. Rule 2 applies only when there is exactly one input lifetime. With two, you need rule 3 or explicit annotations.",
+                },
+                {
+                    id: "b",
+                    text: "Rule 3: because the method takes &self, the output lifetime is automatically assigned from &self's lifetime.",
+                    correct: true,
+                },
+                {
+                    id: "c",
+                    text: "The return type borrows from msg, so it inherits msg's anonymous lifetime.",
+                    correct: false,
+                    misconception:
+                        "The body returns self.line, not msg. The lifetime comes from &self (rule 3), not from msg. If you tried to return msg's data the compiler would reject it, because that would require an explicit annotation.",
+                },
+                {
+                    id: "d",
+                    text: "str is always 'static so no lifetime annotation is ever needed on &str.",
+                    correct: false,
+                    misconception:
+                        "&str is not always 'static — it can borrow from any String or slice. In this case self.line borrows from wherever the Excerpt was created, so the compiler must track its lifetime.",
+                },
+            ],
         },
     },
 ];
