@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { GitBranch } from "lucide-react";
+import { CheckCircle, Circle, GitBranch } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     lessonTitle,
@@ -13,14 +13,36 @@ import { CONCEPTS } from "../data/concepts.ts";
 import { conceptDependsOn, conceptRequiredBy } from "../data/dependencies.ts";
 import { LESSONS } from "../learn/lessons.ts";
 
+/** Visual state of a concept node in the dependency graph. */
+type NodeState = "complete" | "started" | "locked";
+
+/**
+ * Derive the visual state of a concept from the set of viewed lesson ids.
+ * complete  = all lessons for this concept have been viewed
+ * started   = at least one lesson viewed but not all
+ * locked    = no lessons viewed
+ */
+function nodeState(
+    lessonIds: readonly string[],
+    viewed: ReadonlySet<string>
+): NodeState {
+    const viewedCount = lessonIds.filter((id) => viewed.has(id)).length;
+    if (viewedCount === lessonIds.length) return "complete";
+    if (viewedCount > 0) return "started";
+    return "locked";
+}
+
 interface ProgressionViewProps {
     readonly onOpenLesson: (lessonId: string) => void;
     readonly onOpenConcept: (conceptId: string) => void;
+    /** Set of lesson ids the reader has viewed (from useViewedLessons). */
+    readonly viewed: ReadonlySet<string>;
 }
 
 export function ProgressionView({
     onOpenLesson,
     onOpenConcept,
+    viewed,
 }: ProgressionViewProps) {
     const layers = useMemo(() => {
         const visited = new Set<string>();
@@ -87,6 +109,61 @@ export function ProgressionView({
                 </span>
             </div>
 
+            {/* Graph legend */}
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "1rem",
+                    fontSize: "0.8rem",
+                    color: vars.colour.faint,
+                }}
+            >
+                <span
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.375rem",
+                    }}
+                >
+                    <CheckCircle
+                        size={13}
+                        aria-hidden="true"
+                        style={{ color: vars.colour.good }}
+                    />
+                    Completed
+                </span>
+                <span
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.375rem",
+                    }}
+                >
+                    <Circle
+                        size={13}
+                        aria-hidden="true"
+                        style={{ color: vars.colour.accent }}
+                    />
+                    In progress
+                </span>
+                <span
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.375rem",
+                    }}
+                >
+                    <Circle
+                        size={13}
+                        aria-hidden="true"
+                        style={{ color: vars.colour.faint }}
+                    />
+                    Not started
+                </span>
+            </div>
+
             {layers.map((layer, layerIndex) => (
                 <div key={layerIndex}>
                     <div
@@ -139,21 +216,83 @@ export function ProgressionView({
                             if (concept === undefined) return null;
                             const deps = conceptDependsOn(conceptId);
                             const requiredBy = conceptRequiredBy(conceptId);
+                            const state = nodeState(concept.lessonIds, viewed);
+                            // Visual treatment per node state:
+                            // complete  → green border + dim green bg
+                            // started   → accent border (in-progress)
+                            // locked    → default card border (greyed title)
+                            const borderColor =
+                                state === "complete"
+                                    ? vars.colour.good
+                                    : state === "started"
+                                      ? vars.colour.accent
+                                      : vars.colour.border;
+                            const bgColor =
+                                state === "complete"
+                                    ? vars.colour.goodDim
+                                    : vars.colour.panel2;
+                            const titleColor =
+                                state === "locked"
+                                    ? vars.colour.faint
+                                    : vars.colour.accentSoft;
                             return (
                                 <section
                                     key={conceptId}
                                     className={cheatCard}
-                                    style={{ flex: "1 1 280px", minWidth: 0 }}
+                                    style={{
+                                        flex: "1 1 280px",
+                                        minWidth: 0,
+                                        border: `1px solid ${borderColor}`,
+                                        background: bgColor,
+                                        transition:
+                                            "border-color 0.2s, background 0.2s",
+                                    }}
                                 >
-                                    <h3 className={cheatTitle}>
-                                        {concept.title}
-                                    </h3>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.375rem",
+                                        }}
+                                    >
+                                        {state === "complete" ? (
+                                            <CheckCircle
+                                                size={14}
+                                                aria-hidden="true"
+                                                style={{
+                                                    color: vars.colour.good,
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        ) : (
+                                            <Circle
+                                                size={14}
+                                                aria-hidden="true"
+                                                style={{
+                                                    color:
+                                                        state === "started"
+                                                            ? vars.colour.accent
+                                                            : vars.colour.faint,
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        )}
+                                        <h3
+                                            className={cheatTitle}
+                                            style={{ color: titleColor }}
+                                        >
+                                            {concept.title}
+                                        </h3>
+                                    </div>
                                     <p
                                         style={{
                                             margin: "0 0 0.75rem",
                                             fontSize: "0.85rem",
                                             lineHeight: 1.5,
-                                            color: vars.colour.dim,
+                                            color:
+                                                state === "locked"
+                                                    ? vars.colour.faint
+                                                    : vars.colour.dim,
                                         }}
                                     >
                                         {concept.description}
@@ -225,6 +364,8 @@ export function ProgressionView({
                                                 lesson !== undefined
                                                     ? lesson.title
                                                     : lessonId;
+                                            const lessonViewed =
+                                                viewed.has(lessonId);
                                             return (
                                                 <button
                                                     key={lessonId}
@@ -238,8 +379,23 @@ export function ProgressionView({
                                                         padding:
                                                             "0.4rem 0.65rem",
                                                         fontSize: "0.8rem",
+                                                        color: lessonViewed
+                                                            ? vars.colour.good
+                                                            : undefined,
                                                     }}
                                                 >
+                                                    {lessonViewed ? (
+                                                        <CheckCircle
+                                                            size={12}
+                                                            aria-hidden="true"
+                                                            style={{
+                                                                marginRight:
+                                                                    "0.25rem",
+                                                                verticalAlign:
+                                                                    "middle",
+                                                            }}
+                                                        />
+                                                    ) : null}
                                                     {label}
                                                 </button>
                                             );

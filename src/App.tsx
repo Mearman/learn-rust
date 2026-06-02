@@ -442,6 +442,7 @@ export function App() {
                             <ProgressionView
                                 onOpenLesson={openLesson}
                                 onOpenConcept={openConcept}
+                                viewed={viewed}
                             />
                         </section>
 
