@@ -280,6 +280,25 @@ export function App() {
         };
     }, []);
 
+    // Warm the code-split view chunks once the page is idle. The whole app is
+    // one long scroll, so a chunk that loads while the reader scrolls towards
+    // its section flashes a fallback and shifts layout under them; prefetching
+    // keeps the initial bundle small while making navigation immediate. The
+    // search overlay is deliberately excluded — it stays on-demand (Cmd/Ctrl+K).
+    useEffect(() => {
+        const prefetch = (): void => {
+            void import("./references/ComparisonView.tsx");
+            void import("./references/SyntaxView.tsx");
+            void import("./references/CompilerErrorsView.tsx");
+            void import("./references/ProgressionView.tsx");
+            void import("./cheatsheet/CheatsheetView.tsx");
+        };
+        const handle = window.requestIdleCallback(prefetch);
+        return () => {
+            window.cancelIdleCallback(handle);
+        };
+    }, []);
+
     return (
         <div className={shell}>
             <a href="#main-content" className={skipLink}>
