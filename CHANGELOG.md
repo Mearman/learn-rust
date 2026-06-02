@@ -1,3 +1,15 @@
+## [1.7.1](https://github.com/Mearman/learn-rust/compare/v1.7.0...v1.7.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* move passWithNoTests to the root vitest config ([f273ae3](https://github.com/Mearman/learn-rust/commit/f273ae3be71c24cc879a05dc316e6ade8946d2fb))
+* shrink and tidy the tailoring panel on mobile ([e00a33b](https://github.com/Mearman/learn-rust/commit/e00a33b51010b68d95085646809386421dc84c29))
+* stop cheatsheet cards forcing horizontal page overflow on mobile ([0cb1e1a](https://github.com/Mearman/learn-rust/commit/0cb1e1a663502ffa22b2c9bf2d94464990a599a5))
+* stop the path-view graph SVG overflowing on narrow viewports ([49d6caa](https://github.com/Mearman/learn-rust/commit/49d6caadecd3cdebf7fe1b6d9cbc5a806dec2bc7))
+* stop the reading-errors transcript overflowing at 320px ([ee24715](https://github.com/Mearman/learn-rust/commit/ee24715d1e4f028d3a990b1e54b555f715abeb1e))
+* stop the TOC sidebar overflowing its column ([4202bbe](https://github.com/Mearman/learn-rust/commit/4202bbec9d2ad2539fe59895a94aa63bfb37d228))
+
 # [1.7.0](https://github.com/Mearman/learn-rust/compare/v1.6.1...v1.7.0) (2026-06-02)
 
 
