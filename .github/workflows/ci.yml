@@ -77,6 +77,38 @@ jobs:
 
             - run: pnpm test
 
+    release:
+        name: Release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        needs: [check, test]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            issues: write
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v6.0.2
+              with:
+                  # semantic-release needs full history and tags to determine
+                  # the next version; persisted credentials let the git plugin
+                  # push the CHANGELOG/version commit and the release tag.
+                  fetch-depth: 0
+                  persist-credentials: true
+
+            - uses: pnpm/action-setup@v6.0.8
+
+            - uses: actions/setup-node@v6.4.0
+              with:
+                  node-version-file: .tool-versions
+                  cache: pnpm
+
+            - run: pnpm install --frozen-lockfile
+
+            - name: Release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: pnpm release
+
     pages-build:
         name: Build Pages site
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
