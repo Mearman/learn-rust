@@ -1,5 +1,23 @@
 import { useEffect, type ReactNode } from "react";
-import "@mantine/core/styles.css";
+// Granular per-component Mantine CSS instead of the full bundle. The app only
+// uses MultiSelect, SegmentedControl, Collapse and TextInput, so only their
+// styles (plus the three core layers) need shipping. The core layers —
+// baseline (CSS reset), default-css-variables (theme tokens), and global
+// (root/body rules) — are required regardless of which components are used.
+// MultiSelect composes Combobox + Input + Pill + PillsInput + ScrollArea +
+// Popover; TextInput composes Input + InlineInput; Collapse has no dedicated
+// stylesheet (its transition is applied inline).
+import "@mantine/core/styles/baseline.css";
+import "@mantine/core/styles/default-css-variables.css";
+import "@mantine/core/styles/global.css";
+import "@mantine/core/styles/Input.css";
+import "@mantine/core/styles/InlineInput.css";
+import "@mantine/core/styles/Combobox.css";
+import "@mantine/core/styles/Pill.css";
+import "@mantine/core/styles/PillsInput.css";
+import "@mantine/core/styles/ScrollArea.css";
+import "@mantine/core/styles/Popover.css";
+import "@mantine/core/styles/SegmentedControl.css";
 import { MantineProvider, createTheme } from "@mantine/core";
 import { vars, darkTheme, lightTheme } from "./theme.css.ts";
 import { useThemeMode } from "./useThemeMode.ts";
