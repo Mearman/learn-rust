@@ -195,10 +195,7 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                 </div>
 
                 <div className={settingsField}>
-                    <label
-                        className={settingsLabel}
-                        htmlFor="experience-level"
-                    >
+                    <label className={settingsLabel} htmlFor="experience-level">
                         Experience level
                     </label>
                     <SegmentedControl

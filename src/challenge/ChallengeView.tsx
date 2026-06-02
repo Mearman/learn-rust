@@ -169,7 +169,7 @@ function ChallengeCard({
                         className={answerButton}
                         style={{ color: vars.colour.good }}
                     >
-                        <Check size={17} /> Compiles
+                        <Check size={17} aria-hidden="true" /> Compiles
                     </button>
                     <button
                         onClick={() => {
@@ -178,7 +178,7 @@ function ChallengeCard({
                         className={answerButton}
                         style={{ color: vars.colour.bad }}
                     >
-                        <X size={17} /> Won&apos;t compile
+                        <X size={17} aria-hidden="true" /> Won&apos;t compile
                     </button>
                 </div>
             ) : (
@@ -204,7 +204,11 @@ function ChallengeCard({
                                     : vars.colour.bad,
                             }}
                         >
-                            {isCorrect ? <Check size={16} /> : <X size={16} />}
+                            {isCorrect ? (
+                                <Check size={16} aria-hidden="true" />
+                            ) : (
+                                <X size={16} aria-hidden="true" />
+                            )}
                             {isCorrect ? "Correct" : "Not quite"}
                             <span
                                 style={{
@@ -298,6 +302,7 @@ function ChallengeView({
                 <div key={note} className={noteBlock}>
                     <Lightbulb
                         size={16}
+                        aria-hidden="true"
                         style={{
                             color: vars.colour.accent,
                             flexShrink: 0,
@@ -317,13 +322,17 @@ function ChallengeView({
                         gap: "0.5rem",
                     }}
                 >
-                    <Trophy size={14} style={{ color: vars.colour.accent }} />
+                    <Trophy
+                        size={14}
+                        aria-hidden="true"
+                        style={{ color: vars.colour.accent }}
+                    />
                     {correctCount} / {answeredCount} correct
                     <span className={dimSm}>· {challenges.length} total</span>
                 </span>
                 {answeredCount > 0 ? (
                     <button onClick={onReset} className={nextButton}>
-                        <RotateCcw size={16} /> Reset answers
+                        <RotateCcw size={16} aria-hidden="true" /> Reset answers
                     </button>
                 ) : null}
             </div>
