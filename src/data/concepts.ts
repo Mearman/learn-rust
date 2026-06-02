@@ -71,6 +71,13 @@ export const CONCEPTS: readonly Concept[] = [
             "Heap allocation, shared ownership, reference counting, and interior mutability as types.",
         lessonIds: ["smart-pointers"],
     },
+    {
+        id: "asynchronous-execution",
+        title: "Asynchronous execution",
+        description:
+            "How concurrent work is expressed without threads — lazy futures, an executor that drives them, and the auto traits that decide what may cross threads.",
+        lessonIds: ["async-basics"],
+    },
 ] as const;
 
 export const LESSON_CONCEPT_MAP: Readonly<Record<string, string>> = {
@@ -84,4 +91,5 @@ export const LESSON_CONCEPT_MAP: Readonly<Record<string, string>> = {
     generics: "generics",
     iterators: "collection-pipelines",
     "smart-pointers": "smart-pointers",
+    "async-basics": "asynchronous-execution",
 };

@@ -10,6 +10,7 @@ import {
     Type,
     Repeat,
     Boxes,
+    Waypoints,
 } from "lucide-react";
 import type {
     LanguageFamiliarity,
@@ -705,6 +706,124 @@ export const LESSONS: readonly Lesson[] = [
                     {
                         kind: "text",
                         text: "Cell<T> replaces the value wholesale (no borrowing, just get/set). It works for Copy types or when replacement is acceptable. RefCell<T> tracks borrows at runtime — borrow()/borrow_mut() panic on conflict. The choice between them is about whether you need a reference into the interior or just want to swap the whole value.",
+                    },
+                ],
+            },
+        ],
+    },
+
+    // ── 11. Async & Send/Sync ───────────────────────────────────────────
+    {
+        id: "async-basics",
+        title: "Async & Send/Sync",
+        icon: Waypoints,
+        tagline:
+            "async fn builds a lazy state machine. An executor drives it. Send/Sync gate what crosses threads.",
+        blocks: [
+            {
+                kind: "text",
+                level: "beginner",
+                text: "An async fn does not spawn a thread. The compiler rewrites its body into a state machine: each .await is a point where the function can pause, hand control back, and resume later from exactly where it left off. Calling the function builds that state machine; it does not run it.",
+            },
+            {
+                kind: "text",
+                level: "beginner",
+                text: "Calling an async fn returns a Future — a value that represents work not yet done. A Future is lazy: it does nothing until something drives it. Inside another async context you drive it with .await; at the top level an executor does the driving.",
+            },
+            {
+                kind: "code",
+                level: "beginner",
+                label: "lazy.rs",
+                code: `// An async fn returns a Future — nothing runs until it is driven.\nasync fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\nfn main() {\n    // Calling add(..) does NOT run the body — it builds a Future.\n    let future = add(2, 3);\n    // \`future\` is inert here. Without an executor (or .await inside\n    // another async context) the addition never happens.\n    let _ = future; // dropped, never driven\n    println!("the future was built but never driven");\n}`,
+            },
+            {
+                kind: "text",
+                text: 'Future is a trait: Future<Output = T> means "a computation that, once driven to completion, yields a T". An async fn returning T desugars to a function returning impl Future<Output = T>. .await takes such a Future and drives it to completion, evaluating to its Output — suspending the surrounding state machine at each pause rather than blocking a thread.',
+            },
+            {
+                kind: "text",
+                text: "Because a Future is inert, something has to poll it: the executor (the runtime). It owns a task queue, polls each Future, and when one reports it is not ready it parks the task and moves on, re-polling only when the task signals it can make progress. Tokio and async-std are the common executors; the language ships the Future trait but no runtime.",
+            },
+            {
+                kind: "code",
+                label: "tokio_main.rs",
+                code: `// #[tokio::main] sets up an executor and drives the top-level Future.\nuse tokio; // available on the Rust Playground\n\nasync fn greet(name: &str) -> String {\n    format!("Hello, {name}")\n}\n\n#[tokio::main]\nasync fn main() {\n    let message = greet("async").await; // drive the Future to completion\n    println!("{message}");\n}`,
+            },
+            {
+                kind: "comparison",
+                conceptId: "asynchronous-execution",
+            },
+            {
+                kind: "note",
+                text: "Send and Sync are auto traits: the compiler implements them automatically for any type built entirely from Send/Sync parts. Send means a value may be moved to another thread; Sync means &T may be shared across threads. You never write impl Send — you compose types that already are, and the marker propagates.",
+            },
+            {
+                kind: "code",
+                label: "rc_not_send.rs",
+                code: `use std::rc::Rc;\n\n// Requires its argument to be Send.\nfn assert_send<T: Send>(_t: T) {}\n\nfn main() {\n    let counter = Rc::new(5);\n    // Rc<T> is NOT Send: its reference count is non-atomic, so moving it\n    // to another thread would race the count. error[E0277].\n    assert_send(counter);\n    // Arc<T> uses an atomic count and IS Send + Sync — use it across threads.\n}`,
+            },
+            {
+                kind: "text",
+                text: "This auto-trait machinery is exactly what async safety hangs on. A multi-threaded executor (the default for tokio::spawn) may move a paused task between worker threads. So a spawned Future must be Send — and a Future is only Send if every value it holds across an .await is Send.",
+            },
+            {
+                kind: "analogy",
+                text: "An async fn is closer to a generator/coroutine than to a thread: .await is a yield point, and the Future is the resumable state. The executor is the scheduler that decides which paused coroutine to resume next.",
+                comparisons: {
+                    go: "A goroutine is scheduled by the Go runtime onto OS threads, and you never see the Future — go f() launches eagerly. Rust's Future is explicit and lazy: it does nothing until an executor (the equivalent of Go's scheduler, but a library you choose) polls it. Channels exist in both; Rust's Send/Sync make 'safe to move across goroutines/threads' a compile-time property rather than a convention.",
+                    typescript:
+                        "A JS Promise is eager — the work starts the moment you call the async function — whereas a Rust Future is lazy and starts only when awaited or spawned. await means the same 'resume here when ready' in both, but JS has one event loop and no Send/Sync because there is only one thread.",
+                    python: "Python's async def / await and asyncio event loop map almost one-to-one: coroutines are lazy and an event loop drives them. The difference is threads — asyncio is single-threaded, so Python has no Send/Sync equivalent and no 'this future can't move between threads' error.",
+                    java: "Closest to a CompletableFuture or a virtual thread (Project Loom), but those are eager and runtime-scheduled. Rust's Future is lazy and the runtime is a library. Send/Sync are compile-time analogues of the thread-safety you otherwise reason about manually with synchronized/volatile.",
+                    kotlin: "Kotlin coroutines are the nearest match: suspend fn ≈ async fn, the suspension points are await points, and a Dispatcher ≈ the executor. Kotlin's coroutines are also lazy-ish (launched into a scope). Rust adds Send/Sync as types so the compiler — not you — proves a coroutine is safe to resume on another thread.",
+                    csharp: "C#'s async/await with the Task type is the familiar shape, but Task is eager (hot) once created, while a Rust Future is cold until driven. The thread-pool scheduler ≈ the executor. C# has no Send/Sync, so cross-thread safety is a runtime/convention concern rather than a compile error.",
+                    cpp: "C++20 coroutines (co_await) are the closest: a lazy, compiler-generated state machine, and you bring your own scheduler — exactly like Rust's bring-your-own executor. Rust layers Send/Sync on top so the borrow checker can prove a suspended coroutine is safe to move between threads.",
+                },
+            },
+            {
+                kind: "text",
+                level: "intermediate",
+                text: "The most common async errors are not about syntax — they are about the lazy/state-machine model. Three recur: building a Future and never awaiting it (so the body never runs); holding a non-Send value across an .await (which makes the whole Future non-Send and rejects it from a multi-threaded spawn); and writing an async fn in a trait you then want to use as a dyn Trait object.",
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "unawaited.rs",
+                code: `async fn fetch() -> i32 {\n    42\n}\n\nasync fn run() {\n    fetch();          // warning: unused implementer of \`Future\` —\n                      // futures do nothing unless you .await or poll them.\n    // correct:       let n = fetch().await;\n}`,
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "across_await.rs",
+                code: `use std::rc::Rc;\nuse std::future::Future;\n\nasync fn yield_once() {}\n\n// Holds an Rc across an .await: the Rc lives inside the suspended state\n// machine, so the whole Future is !Send.\nasync fn holds_rc() {\n    let local = Rc::new(1);\n    yield_once().await;   // suspension point — \`local\` is alive across it\n    println!("{}", local);\n}\n\n// A spawn-like API requires the future to be Send (as tokio::spawn does).\nfn require_send_future<F: Future + Send>(_f: F) {}\n\nfn main() {\n    // error: future cannot be sent between threads safely —\n    // \`local\` of type Rc<i32> is used across an await.\n    require_send_future(holds_rc());\n    // Fix: drop \`local\` before the .await, or use Arc instead of Rc.\n}`,
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "dyn_async.rs",
+                code: `// async fn in a trait, then trying to use the trait as a trait object.\ntrait Fetcher {\n    async fn fetch(&self) -> i32;\n}\n\n// error[E0038]: \`Fetcher\` is not dyn compatible, because method \`fetch\`\n// is \`async\` (it returns an unnameable, per-impl Future type — no fixed\n// vtable entry). Use \`Box<dyn Future>\` returns or the async-trait crate.\nfn use_dyn(_f: &dyn Fetcher) {}\n\nfn main() {}`,
+            },
+            {
+                kind: "deep-dive",
+                level: "advanced",
+                title: "Pin, Unpin, and self-referential futures",
+                blocks: [
+                    {
+                        kind: "text",
+                        text: "The state machine a Future compiles to can be self-referential: while suspended at an .await, it may hold a reference into one of its own fields (e.g. a borrow that spans the await). Moving such a value in memory would leave that internal reference dangling. Pin exists to forbid exactly this move.",
+                    },
+                    {
+                        kind: "text",
+                        text: 'Pin<P> is a pointer wrapper that promises the value it points to will not be moved out again. The executor polls a Future through Pin<&mut F> precisely so a self-referential future can rely on a stable address while suspended. Most types do not care: they implement the auto trait Unpin, which says "pinning me is meaningless — I can still be moved freely".',
+                    },
+                    {
+                        kind: "code",
+                        label: "pin.rs",
+                        code: `use std::pin::Pin;\nuse std::marker::PhantomPinned;\n\n// Most types are Unpin: pinning them is a no-op, they still move freely.\nfn unpin_demo() {\n    let mut value = 5;\n    let mut pinned: Pin<&mut i32> = Pin::new(&mut value);\n    *pinned = 6;                 // i32: Unpin — still fully mutable/movable\n    println!("{}", *pinned);\n}\n\n// Opting OUT of Unpin: once pinned, this value must not be moved.\nstruct SelfRef {\n    data: String,\n    _pin: PhantomPinned,         // makes SelfRef !Unpin\n}\n\nfn main() {\n    unpin_demo();\n    let boxed = Box::pin(SelfRef {\n        data: String::from("anchored"),\n        _pin: PhantomPinned,\n    });\n    println!("{}", boxed.data);  // boxed value is pinned on the heap\n}`,
+                    },
+                    {
+                        kind: "text",
+                        text: "You rarely write Pin by hand: async/await generates the pinning for you, and Box::pin or pin! handle the common cases. The mental model worth keeping is — a suspended Future may point into itself, Pin guarantees it stays put, and Unpin marks the (vast majority of) types for which none of this matters.",
                     },
                 ],
             },

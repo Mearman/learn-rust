@@ -96,6 +96,13 @@ export const CONCEPT_DEPENDENCIES: readonly (readonly [string, string])[] = [
     ["error-signalling", "reference-validity"],
     // Smart pointers require trait knowledge (Deref, Drop)
     ["smart-pointers", "behaviour-abstraction"],
+    // Async builds on smart pointers (Pin, heap-pinned futures, Send/Sync
+    // reasoning sits alongside Rc/Arc), on borrowing (holding a borrow across
+    // an .await is the core hazard), and on traits (Future, Send, and Sync are
+    // all traits).
+    ["asynchronous-execution", "smart-pointers"],
+    ["asynchronous-execution", "reference-semantics"],
+    ["asynchronous-execution", "behaviour-abstraction"],
 ];
 
 export function conceptDependsOn(conceptId: string): readonly string[] {
