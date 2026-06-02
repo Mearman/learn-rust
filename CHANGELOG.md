@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/Mearman/learn-rust/compare/v1.2.0...v1.3.0) (2026-06-02)
+
+
+### Features
+
+* live-update the URL hash from scroll position ([7957a73](https://github.com/Mearman/learn-rust/commit/7957a737c8a40f0458dac76a4da6cdfd05e9731d))
+* nest the URL hash as section/entry, linkable to section headers ([d81e251](https://github.com/Mearman/learn-rust/commit/d81e25114e71994bc0660017589d68aa618baf50)), closes [#section](https://github.com/Mearman/learn-rust/issues/section) [#compare](https://github.com/Mearman/learn-rust/issues/compare) [#section](https://github.com/Mearman/learn-rust/issues/section)
+
 # [1.2.0](https://github.com/Mearman/learn-rust/compare/v1.1.0...v1.2.0) (2026-06-02)
 
 
