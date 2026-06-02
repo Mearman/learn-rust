@@ -320,10 +320,10 @@ ReadOnlySpan<char> t = s.AsSpan(1, 2);
         title: "string and string_view",
         code: `// string_view is the borrowed counterpart
 std::string s = "hello";
-std::string_view t = s.substr(1, 2);
+std::string_view t(s.data() + 1, 2);  // view into s directly
 // string_view ≈ &str, std::string ≈ String`,
         explanation:
-            "C++ string_view is the borrowed counterpart to std::string. The split mirrors Rust's &str/String, but without lifetime enforcement.",
+            "C++ string_view is the borrowed counterpart to std::string. The split mirrors Rust's &str/String, but without lifetime enforcement. Note: binding string_view to the temporary returned by substr() is UB — the temporary is destroyed at the end of the statement. Slice the view directly from s.data() instead.",
     },
 
     // =========================================================================
@@ -742,7 +742,7 @@ class Summary(ABC):
     def preview(self) -> str:
         return self.title()`,
         explanation:
-            "Python relies on duck typing by convention. ABCs can define contracts but are not enforced at runtime.",
+            "Python relies on duck typing by convention. ABCs define contracts and are enforced at instantiation time — Python raises TypeError if a concrete subclass omits an abstract method. Duck typing still governs everything else.",
     },
     {
         id: "trait-typescript",
