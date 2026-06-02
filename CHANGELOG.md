@@ -1,3 +1,11 @@
+# [1.6.0](https://github.com/Mearman/learn-rust/compare/v1.5.0...v1.6.0) (2026-06-02)
+
+
+### Features
+
+* draw visual DAG edges between concept nodes in path view ([dc45e59](https://github.com/Mearman/learn-rust/commit/dc45e59a019f3eb1d8f45bbdb713e9a9811d4b66))
+* opt-in hard gating for lessons with unmet prerequisites ([c943d0f](https://github.com/Mearman/learn-rust/commit/c943d0fa89433a86d46891779d07b570fcf4dfa6))
+
 # [1.5.0](https://github.com/Mearman/learn-rust/compare/v1.4.1...v1.5.0) (2026-06-02)
 
 
