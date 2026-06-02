@@ -88,17 +88,6 @@ interface MorphingTailoringProps {
     readonly setThemeMode: (mode: ThemeMode) => void;
 }
 
-function validateSelections(
-    values: readonly string[],
-    validator: (value: string) => boolean
-): void {
-    for (const value of values) {
-        if (!validator(value)) {
-            throw new Error(`Invalid selection: ${value}`);
-        }
-    }
-}
-
 export function MorphingTailoring({
     profile,
     setProfile,
@@ -109,21 +98,17 @@ export function MorphingTailoring({
     setThemeMode,
 }: MorphingTailoringProps) {
     const handleBackgrounds = (values: string[]) => {
-        validateSelections(values, isDeveloperBackground);
         const narrowed = values.filter(isDeveloperBackground);
         setProfile((prev) => ({ ...prev, backgrounds: narrowed }));
     };
 
     const handleFamiliarities = (values: string[]) => {
-        validateSelections(values, isLanguageFamiliarity);
         const narrowed = values.filter(isLanguageFamiliarity);
         setProfile((prev) => ({ ...prev, familiarities: narrowed }));
     };
 
     const handleExperience = (value: string) => {
-        if (!isExperienceLevel(value)) {
-            throw new Error(`Unknown experience level: ${value}`);
-        }
+        if (!isExperienceLevel(value)) return;
         setProfile((prev) => ({ ...prev, experience: value }));
     };
 
