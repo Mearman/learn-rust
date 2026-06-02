@@ -18,6 +18,19 @@ const SYNTAX_TOPICS = SYNTAX_REFERENCES.reduce<string[]>((acc, entry) => {
     return acc;
 }, []);
 
+/** Longest description preview shown in a search result, in characters. */
+export const DESCRIPTION_PREVIEW_CHARS = 120;
+
+/**
+ * Cap a description preview at {@link DESCRIPTION_PREVIEW_CHARS}, appending an
+ * ellipsis only when the text was actually longer than the cap. Shorter strings
+ * are returned unchanged (no trailing "..." on a complete sentence).
+ */
+export function truncatePreview(text: string): string {
+    if (text.length <= DESCRIPTION_PREVIEW_CHARS) return text;
+    return text.slice(0, DESCRIPTION_PREVIEW_CHARS) + "...";
+}
+
 export function buildSearchResults(
     query: string,
     handlers: {
@@ -75,7 +88,7 @@ export function buildSearchResults(
             found.push({
                 type: "glossary",
                 label: term.term,
-                description: term.definition.slice(0, 120) + "...",
+                description: truncatePreview(term.definition),
                 action: () => {
                     handlers.onOpenGlossary(term.id);
                 },
@@ -92,7 +105,7 @@ export function buildSearchResults(
             found.push({
                 type: "error",
                 label: `${error.code}: ${error.title}`,
-                description: error.explanation.slice(0, 120) + "...",
+                description: truncatePreview(error.explanation),
                 action: () => {
                     handlers.onOpenError(error.id);
                 },
