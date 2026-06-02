@@ -16,6 +16,7 @@ import {
     ListChecks,
     Search,
     ScanSearch,
+    Wrench,
     type LucideIcon,
 } from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
@@ -49,6 +50,8 @@ import type {
     ChallengeAction,
 } from "./challenge/challengeReducer.ts";
 import { getFilteredChallenges } from "./challenge/challenges.ts";
+import { FixView } from "./fix/FixView.tsx";
+import { getFilteredFixExercises } from "./data/fix-exercises.ts";
 import { useCompiler } from "./compiler/useCompiler.ts";
 import { MorphingTailoring } from "./settings/MorphingTailoring.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
@@ -130,6 +133,7 @@ const sectionFallback = (
 const SECTION_ICONS: Record<SectionId, LucideIcon> = {
     learn: BookOpen,
     challenge: ListChecks,
+    fix: Wrench,
     path: GitBranch,
     compare: ArrowLeftRight,
     syntax: Braces,
@@ -179,6 +183,11 @@ export function App() {
         [profile]
     );
 
+    const filteredFixExercises = useMemo(
+        () => getFilteredFixExercises(profile),
+        [profile]
+    );
+
     // Running score across the profile-filtered challenges, derived from the
     // per-challenge answers map.
     const challengeScore = useMemo(() => {
@@ -202,10 +211,17 @@ export function App() {
             id: c.id,
             label: `${String(i + 1)}. ${c.topic}`,
         }));
-        return SECTION_GROUPS.map((g) =>
-            g.id === "challenge" ? { ...g, subSections: challengeSubs } : g
-        );
-    }, [filteredChallenges]);
+        const fixSubs = filteredFixExercises.map((e, i) => ({
+            id: e.id,
+            label: `${String(i + 1)}. ${e.topic}`,
+        }));
+        return SECTION_GROUPS.map((g) => {
+            if (g.id === "challenge")
+                return { ...g, subSections: challengeSubs };
+            if (g.id === "fix") return { ...g, subSections: fixSubs };
+            return g;
+        });
+    }, [filteredChallenges, filteredFixExercises]);
 
     const allSubIds = useMemo(
         () => sectionGroups.flatMap((g) => g.subSections.map((s) => s.id)),
@@ -400,6 +416,13 @@ export function App() {
                                     reviewStore={reviewStore}
                                     onRecordReview={recordReview}
                                 />
+                            </ErrorBoundary>
+                        </section>
+
+                        <section id="fix" className={contentSection}>
+                            <h2 className={sectionHeading}>Fix it</h2>
+                            <ErrorBoundary section="Fix it">
+                                <FixView exercises={filteredFixExercises} />
                             </ErrorBoundary>
                         </section>
 

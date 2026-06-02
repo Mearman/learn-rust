@@ -20,6 +20,7 @@ export interface SubSection {
 export const SECTION_META = [
     { id: "learn", label: "Learn" },
     { id: "challenge", label: "Will it compile?" },
+    { id: "fix", label: "Fix it" },
     { id: "path", label: "Path" },
     { id: "compare", label: "Compare" },
     { id: "syntax", label: "Syntax" },
@@ -86,6 +87,9 @@ const CERROR_SUBS: readonly SubSection[] = COMPILER_ERROR_TRANSCRIPTS.map(
 const SUBSECTION_MAP: Record<SectionId, readonly SubSection[]> = {
     learn: LESSON_SUBS,
     challenge: [],
+    // Injected from the profile-filtered exercise list in App.tsx, like
+    // challenge — which exercises show depends on the reader's experience.
+    fix: [],
     path: [],
     compare: COMPARE_SUBS,
     syntax: SYNTAX_SUBS,
@@ -105,6 +109,7 @@ const ID_PREFIX_SECTION: readonly (readonly [string, SectionId])[] = [
     ["cerror-", "reading-errors"],
     ["error-", "errors"],
     ["challenge-", "challenge"],
+    ["fix-exercise-", "fix"],
 ];
 
 /** The section an element id belongs to: the id itself if it is a section id,
