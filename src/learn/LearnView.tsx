@@ -181,19 +181,21 @@ function LessonArticle({
                 </button>
             </div>
 
-            {backgroundContextNotes(profile.backgrounds).map((note) => (
-                <div key={note} className={noteBlock}>
-                    <Lightbulb
-                        size={16}
-                        style={{
-                            color: vars.colour.accent,
-                            flexShrink: 0,
-                            marginTop: 2,
-                        }}
-                    />
-                    <span>{note}</span>
-                </div>
-            ))}
+            {backgroundContextNotes(profile.backgrounds, lesson.id).map(
+                (note) => (
+                    <div key={note} className={noteBlock}>
+                        <Lightbulb
+                            size={16}
+                            style={{
+                                color: vars.colour.accent,
+                                flexShrink: 0,
+                                marginTop: 2,
+                            }}
+                        />
+                        <span>{note}</span>
+                    </div>
+                )
+            )}
 
             <div
                 style={{
