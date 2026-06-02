@@ -10,8 +10,39 @@ import { App } from "./App.tsx";
 // it at the widths that matter, from a small phone up to desktop.
 const WIDTHS = [320, 360, 390, 414, 768, 1024, 1280] as const;
 
-const tick = (ms: number): Promise<void> =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+const nextFrame = (): Promise<void> =>
+    new Promise((resolve) => {
+        requestAnimationFrame(() => {
+            resolve();
+        });
+    });
+
+/**
+ * Wait until the document height stops changing across consecutive frames, so
+ * lazy-mounted sections (Compare, Syntax) and post-layout effects have settled
+ * before we measure. Polls instead of sleeping a fixed time so the test isn't
+ * flaky when the machine is under load — it waits exactly as long as needed and
+ * gives up after a generous ceiling rather than asserting on a guessed delay.
+ */
+async function waitForStableHeight(): Promise<void> {
+    // Two consecutive equal readings = stable. Cap the wait so a genuinely
+    // never-settling layout fails the test rather than hanging it.
+    const requiredStableFrames = 2;
+    const maxFrames = 240; // ~4s at 60fps — generous headroom under load.
+    let last = -1;
+    let stable = 0;
+    for (let i = 0; i < maxFrames; i += 1) {
+        await nextFrame();
+        const h = document.body.scrollHeight;
+        if (h === last) {
+            stable += 1;
+            if (stable >= requiredStableFrames) return;
+        } else {
+            stable = 0;
+            last = h;
+        }
+    }
+}
 
 /**
  * Describe the widest element that pushes the document past the viewport and is
@@ -69,30 +100,35 @@ describe("responsive layout: the document never overflows horizontally", () => {
             </AppProvider>
         );
         // Let the first paint, effects, and observers settle.
-        await tick(400);
+        await waitForStableHeight();
     });
 
     for (const width of WIDTHS) {
         it(`fits the viewport at ${String(width)}px`, async () => {
             await page.viewport(width, 900);
-            await tick(80);
+            await waitForStableHeight();
             // Scroll to the bottom so the lazy-mounted sections (Compare,
             // Syntax) render, then back to the top, so the whole page width is
             // measured rather than just the eagerly-rendered sections.
             window.scrollTo(0, document.body.scrollHeight);
-            await tick(250);
+            await waitForStableHeight();
             window.scrollTo(0, 0);
-            await tick(100);
+            await waitForStableHeight();
 
             const docEl = document.documentElement;
             const overflow = docEl.scrollWidth - docEl.clientWidth;
-            // Allow 1px for sub-pixel rounding.
+            const culprit = describeOverflowCulprit();
+            // Allow 1px for sub-pixel rounding on the document total.
             if (overflow > 1) {
                 throw new Error(
-                    `Document overflows horizontally by ${String(overflow)}px at ${String(width)}px viewport. Widest offender: ${describeOverflowCulprit()}`
+                    `Document overflows horizontally by ${String(overflow)}px at ${String(width)}px viewport. Widest offender: ${culprit}`
                 );
             }
             expect(overflow).toBeLessThanOrEqual(1);
+            // Stricter than the document total: assert no single unclipped
+            // element pokes past the viewport, even if the document scrollWidth
+            // happens not to have grown.
+            expect(culprit).toBe("(no unclipped overflower found)");
         });
     }
 });
