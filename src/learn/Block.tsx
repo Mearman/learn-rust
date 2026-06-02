@@ -216,8 +216,6 @@ function DeepDiveSection({
 }) {
     const [open, setOpen] = useState(false);
 
-    if (profile.experience !== "advanced") return null;
-
     return (
         <div
             style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}

@@ -48,17 +48,20 @@ export interface AnalogyBlock extends LessonBlockBase {
     readonly kind: "analogy";
     readonly text: string;
     readonly comparisons?: Partial<Record<LanguageFamiliarity, string>>;
+    readonly level?: ExperienceLevel;
 }
 
 export interface ComparisonBlock extends LessonBlockBase {
     readonly kind: "comparison";
     readonly conceptId: string;
+    readonly level?: ExperienceLevel;
 }
 
 export interface DeepDiveBlock extends LessonBlockBase {
     readonly kind: "deep-dive";
     readonly title: string;
     readonly blocks: readonly LessonBlock[];
+    readonly level?: ExperienceLevel;
 }
 
 export type LessonBlock =
@@ -117,6 +120,17 @@ export const LESSONS: readonly Lesson[] = [
                 text: "Scalar types (integers, bool, char, and tuples/arrays of Copy types) implement Copy, so they are duplicated on assignment instead of moved.",
             },
             {
+                kind: "text",
+                level: "intermediate",
+                text: "Copy and Clone are two distinct opt-ins. Copy is a marker trait: types that implement it are duplicated by a cheap bitwise copy on every assignment — no explicit call needed. Clone is the explicit, potentially expensive deep-copy operation that you invoke with .clone(). A type can implement Clone without implementing Copy (e.g. String, Vec), but every Copy type must also implement Clone.",
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "copy_clone.rs",
+                code: `#[derive(Debug, Copy, Clone)]\nstruct Coord { x: i32, y: i32 }\n\n#[derive(Debug, Clone)]\nstruct Label { name: String }\n\nfn main() {\n    // Coord implements Copy: assignment duplicates, original stays valid\n    let c1 = Coord { x: 1, y: 2 };\n    let c2 = c1;            // copy — c1 still usable\n    println!("{:?} {:?}", c1, c2);\n\n    // Label implements Clone but not Copy\n    let l1 = Label { name: String::from("origin") };\n    let l2 = l1.clone();    // explicit deep copy\n    println!("{:?} {:?}", l1, l2);\n    // let l3 = l1;         // would move l1 — cannot use l1 afterwards\n}`,
+            },
+            {
                 kind: "analogy",
                 text: "Close to a std::unique_ptr whose moves the compiler tracks for you, except the old binding is statically forbidden rather than left dangling.",
                 comparisons: {
@@ -132,6 +146,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "How ownership interacts with Drop",
                 blocks: [
                     {
@@ -184,6 +199,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "Non-lexical lifetimes and the borrow checker's MIR",
                 blocks: [
                     {
@@ -234,7 +250,30 @@ export const LESSONS: readonly Lesson[] = [
                 text: "Annotations never change how long anything lives. They only describe a relationship the compiler then verifies.",
             },
             {
+                kind: "text",
+                level: "intermediate",
+                text: "Lifetime elision: the compiler infers lifetimes in most function signatures using three rules. Rule 1 — each input reference gets its own lifetime. Rule 2 — if there is exactly one input reference, its lifetime is used for all outputs. Rule 3 — if one input is &self or &mut self, that lifetime is used for all outputs. When none of the rules produce a unique answer you must annotate explicitly.",
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "elision.rs",
+                code: `// Rule 2 applies: one input → output borrows from it\nfn first_word(s: &str) -> &str {\n    match s.find(' ') {\n        Some(i) => &s[..i],\n        None    => s,\n    }\n}\n\n// Two inputs → cannot infer which one the output borrows from\n// Must annotate: 'a ties both inputs and the output\nfn longest<'a>(x: &'a str, y: &'a str) -> &'a str {\n    if x.len() > y.len() { x } else { y }\n}\n\nstruct Parser<'a> { input: &'a str }\nimpl<'a> Parser<'a> {\n    // Rule 3 applies: &self → output borrows from self\n    fn remaining(&self) -> &str { self.input }\n}\n\nfn main() {\n    let s = String::from("hello world");\n    println!("{}", first_word(&s));\n    println!("{}", longest("longer", "no"));\n    let p = Parser { input: "rest" };\n    println!("{}", p.remaining());\n}`,
+            },
+            {
+                kind: "text",
+                level: "intermediate",
+                text: "'static is a lifetime that lasts for the entire program. String literals are always 'static because they are embedded in the binary. A trait bound T: 'static means T contains no non-static references — the value can be stored indefinitely without dangling.",
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "static.rs",
+                code: `// String literals are 'static — they live in the binary\nfn greeting() -> &'static str {\n    "Hello, world!"\n}\n\n// T: 'static means T may be stored as long as needed\nfn store<T: 'static + std::fmt::Debug>(value: T) {\n    println!("{:?}", value);\n}\n\nfn main() {\n    let s: &'static str = "I outlive all locals";\n    println!("{}", s);\n    store(42i32);\n    store("a static string");\n}`,
+            },
+            {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "Variance and how lifetimes compose",
                 blocks: [
                     {
@@ -297,6 +336,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "String internals and UTF-8 validity",
                 blocks: [
                     {
@@ -313,6 +353,17 @@ export const LESSONS: readonly Lesson[] = [
                         text: "The Deref impl on String to str is what lets &String coerce to &str transparently — a zero-cost conversion that makes the owned/borrowed boundary seamless.",
                     },
                 ],
+            },
+            {
+                kind: "text",
+                level: "intermediate",
+                text: "Deref coercions happen automatically at method calls and function boundaries. When you pass &String to a function expecting &str, the compiler inserts the coercion via the Deref trait. This works through multiple steps: &Box<String> → &String → &str, each step inserting a Deref::deref call. The rule is: deref coercions apply when types don't match at a call site, inserting as many steps as needed.",
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "deref_coercion.rs",
+                code: `fn print_len(s: &str) {\n    println!("len = {}", s.len());\n}\n\nfn main() {\n    let owned = String::from("hello");\n    print_len(&owned);              // &String → &str via Deref\n\n    let boxed: Box<String> = Box::new(String::from("world"));\n    print_len(&boxed);              // &Box<String> → &String → &str\n\n    let v = vec![1i32, 2, 3];\n    let _slice: &[i32] = &v;        // &Vec<i32> → &[i32] via Deref\n}`,
             },
         ],
     },
@@ -344,6 +395,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "Enum layout, niche optimisation, and representation",
                 blocks: [
                     {
@@ -406,6 +458,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "From/Into and the ? operator's type coercion",
                 blocks: [
                     {
@@ -449,7 +502,35 @@ export const LESSONS: readonly Lesson[] = [
                 text: "Constrain generics with trait bounds (T: Summary) for monomorphised static dispatch, or use &dyn Summary for runtime polymorphism behind a single pointer.",
             },
             {
+                kind: "text",
+                level: "intermediate",
+                text: "When bounds become unwieldy inline, move them to a where clause: fn f<T, U>(t: T, u: U) where T: Display + PartialOrd, U: Clone. The semantics are identical — where is purely a readability choice.",
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "where.rs",
+                code: `use std::fmt;\n\nfn print_if_greater<T>(a: T, b: T)\nwhere\n    T: fmt::Display + PartialOrd,\n{\n    if a > b { println!("{} > {}", a, b); }\n}\n\nfn main() {\n    print_if_greater(9, 4);\n    print_if_greater("zebra", "apple");\n}`,
+            },
+            {
+                kind: "text",
+                level: "intermediate",
+                text: "Object safety governs whether a trait can appear as &dyn Trait. A trait is object-safe when its methods do not return Self and do not have generic type parameters — constraints that ensure every method fits in a fixed-size vtable entry. Methods that violate these rules can still exist on the trait if they carry a where Self: Sized bound, which opts them out of the vtable.",
+            },
+            {
+                kind: "code",
+                level: "intermediate",
+                label: "object_safety.rs",
+                code: `trait Drawable {\n    fn draw(&self);\n    fn area(&self) -> f64;\n    // Object-safe — no Self return, no generics\n}\n\n// Using where Self: Sized opts a method out of the vtable\ntrait Clonable {\n    fn clone_it(&self) -> Self where Self: Sized;\n    fn describe(&self);  // still in the vtable\n}\n\nstruct Circle { radius: f64 }\nimpl Drawable for Circle {\n    fn draw(&self) { println!("circle"); }\n    fn area(&self) -> f64 { std::f64::consts::PI * self.radius * self.radius }\n}\n\nfn draw_all(shapes: &[&dyn Drawable]) {\n    for s in shapes { s.draw(); }\n}\n\nfn main() {\n    let c = Circle { radius: 3.0 };\n    draw_all(&[&c]);\n}`,
+            },
+            {
+                kind: "note",
+                level: "intermediate",
+                text: "impl Trait in argument position (fn f(x: &impl Summary)) is sugar for a generic bound. In return position (fn f() -> impl Summary) it hides the concrete type from the caller — useful for returning closures or iterators whose type you cannot name.",
+            },
+            {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "Trait objects, vtables, and dynamic dispatch",
                 blocks: [
                     {
@@ -494,6 +575,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "Monomorphisation vs. dynamic dispatch trade-offs",
                 blocks: [
                     {
@@ -541,6 +623,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "Closure capture modes and the Fn/FnMut/FnOnce hierarchy",
                 blocks: [
                     {
@@ -607,6 +690,7 @@ export const LESSONS: readonly Lesson[] = [
             },
             {
                 kind: "deep-dive",
+                level: "advanced",
                 title: "Interior mutability patterns: Cell, RefCell, and UnsafeCell",
                 blocks: [
                     {
