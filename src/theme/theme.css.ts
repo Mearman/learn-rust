@@ -14,6 +14,7 @@ export const vars = createThemeContract({
         accent: null,
         accentSoft: null,
         accentDim: null,
+        accentText: null,
         good: null,
         goodDim: null,
         bad: null,
@@ -47,6 +48,8 @@ export const darkTheme = createTheme(vars, {
         accent: "#e2703a",
         accentSoft: "#f0915f",
         accentDim: "#5a3526",
+        // Dark text on #e2703a: contrast 5.93:1 (WCAG AA)
+        accentText: "#1a0f08",
         good: "#5dd6a0",
         goodDim: "#1c3b30",
         bad: "#ee6a6a",
@@ -76,13 +79,20 @@ export const lightTheme = createTheme(vars, {
         borderSoft: "#e8e4dc",
         text: "#1c1917",
         dim: "#57534e",
-        faint: "#a8a29e",
-        accent: "#d45a25",
-        accentSoft: "#e87040",
+        // Darkened from #a8a29e (2.16:1 worst) → #706a64 (4.57:1 worst, WCAG AA)
+        faint: "#706a64",
+        // Darkened from #d45a25 (3.40:1 worst) → #b8481c (4.52:1 worst, WCAG AA)
+        accent: "#b8481c",
+        // Darkened from #e87040 (2.64:1 worst) → #a0441c (5.39:1 worst, WCAG AA)
+        accentSoft: "#a0441c",
         accentDim: "#fde8df",
-        good: "#16a34a",
+        // White on #b8481c: contrast 5.27:1 (WCAG AA)
+        accentText: "#ffffff",
+        // Darkened from #16a34a (3.87:1 worst) → #147a3a (4.64:1 worst, WCAG AA)
+        good: "#147a3a",
         goodDim: "#dcfce7",
-        bad: "#dc2626",
+        // Darkened from #dc2626 (4.14:1 worst) → #ce1f1f (4.68:1 worst, WCAG AA)
+        bad: "#ce1f1f",
         badDim: "#fee2e2",
     },
     tok: {

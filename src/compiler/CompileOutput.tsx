@@ -5,6 +5,7 @@ import {
     outputHeader,
     outputPre,
     clearButton,
+    spin,
 } from "../theme/styles.css.ts";
 import type { CompileResult } from "../compiler/types.ts";
 
@@ -63,11 +64,7 @@ export function CompileOutput({
                 >
                     {compiling ? (
                         <>
-                            <Loader
-                                size={13}
-                                style={{ animation: "spin 1s linear infinite" }}
-                            />{" "}
-                            Compiling…
+                            <Loader size={13} className={spin} /> Compiling…
                         </>
                     ) : result?.success ? (
                         <>

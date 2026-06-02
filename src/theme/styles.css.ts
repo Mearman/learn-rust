@@ -1,4 +1,4 @@
-import { style, globalStyle } from "@vanilla-extract/css";
+import { style, globalStyle, keyframes } from "@vanilla-extract/css";
 import { vars } from "./theme.css.js";
 
 // ---------------------------------------------------------------------------
@@ -26,6 +26,28 @@ globalStyle("body", {
 globalStyle("html", {
     scrollPaddingTop: "120px",
     "@media": { [md]: { scrollPaddingTop: "88px" } },
+});
+
+// Keyboard focus outline using the accent token so it adapts to both themes.
+globalStyle(":focus-visible", {
+    outline: `2px solid ${vars.colour.accent}`,
+    outlineOffset: "2px",
+});
+
+// Spinner used by the compiler loading indicator.
+// The keyframes are defined here and gated behind the reduced-motion media
+// query so the animation is suppressed for users who prefer reduced motion.
+const spinFrames = keyframes({
+    from: { transform: "rotate(0deg)" },
+    to: { transform: "rotate(360deg)" },
+});
+
+export const spin = style({
+    "@media": {
+        "not (prefers-reduced-motion: reduce)": {
+            animation: `${spinFrames} 1s linear infinite`,
+        },
+    },
 });
 
 // ---------------------------------------------------------------------------
@@ -93,7 +115,7 @@ export const analogyBlock = style({
     lineHeight: 1.625,
     borderLeft: `3px solid ${vars.colour.accentDim}`,
     background: "transparent",
-    color: vars.colour.faint,
+    color: vars.colour.dim,
 });
 
 export const textBlock = style({
@@ -517,8 +539,8 @@ export const tocSidebar = style({
 
 export const tocFab = style({
     position: "fixed",
-    bottom: "1.25rem",
-    left: "1.25rem",
+    bottom: "calc(1.25rem + env(safe-area-inset-bottom))",
+    left: "calc(1.25rem + env(safe-area-inset-left))",
     zIndex: 15,
     display: "flex",
     alignItems: "center",
@@ -802,26 +824,6 @@ export const settingsHelp = style({
     fontSize: "0.75rem",
     lineHeight: 1.5,
     color: vars.colour.dim,
-});
-
-export const settingsTrigger = style({
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 32,
-    height: 32,
-    borderRadius: "0.5rem",
-    border: `1px solid ${vars.colour.border}`,
-    background: "transparent",
-    color: vars.colour.dim,
-    cursor: "pointer",
-    transition: "color 0.15s, border-color 0.15s",
-    selectors: {
-        "&:hover": {
-            color: vars.colour.text,
-            borderColor: vars.colour.accent,
-        },
-    },
 });
 
 export const accentLabel = style({
