@@ -1328,3 +1328,29 @@ export const revealButton = style({
     cursor: "pointer",
     transition: "opacity 0.15s",
 });
+
+// ---------------------------------------------------------------------------
+// Error boundary fallback
+// ---------------------------------------------------------------------------
+
+/** Fallback shown when a section's view throws during render. */
+export const errorFallback = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+    padding: "1rem",
+    borderRadius: "0.5rem",
+    border: `1px solid ${vars.colour.borderSoft}`,
+    borderLeft: `3px solid ${vars.colour.bad}`,
+    background: vars.colour.panel2,
+    color: vars.colour.dim,
+    fontSize: "0.875rem",
+    lineHeight: 1.625,
+});
+
+export const errorFallbackTitle = style({
+    margin: 0,
+    fontSize: "0.9375rem",
+    fontWeight: 600,
+    color: vars.colour.text,
+});
