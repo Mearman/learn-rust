@@ -76,8 +76,24 @@ jobs:
             - run: pnpm install --frozen-lockfile
 
             # The responsive layout tests run in real Chromium via Playwright
-            # (Vitest browser mode); install the browser + its OS libraries.
-            - run: pnpm exec playwright install chromium --with-deps
+            # (Vitest browser mode). Cache the ~150MB browser download, keyed on
+            # the lockfile so it re-fetches only when the Playwright version
+            # changes. On a cache hit the binary is restored and only the OS
+            # libraries (not cacheable) are installed.
+            - name: Cache Playwright browsers
+              id: playwright-cache
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
+            - name: Install Playwright Chromium and OS libraries
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
+              run: pnpm exec playwright install chromium --with-deps
+
+            - name: Install Playwright OS libraries (cached browser)
+              if: steps.playwright-cache.outputs.cache-hit == 'true'
+              run: pnpm exec playwright install-deps chromium
 
             - run: pnpm test
 
