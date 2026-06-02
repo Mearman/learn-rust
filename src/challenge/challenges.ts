@@ -383,7 +383,7 @@ const RAW_CHALLENGES: readonly Omit<Challenge, "id">[] = [
                     text: "fn longer<'a>(x: &'a str, y: &str) -> &'a str",
                     correct: false,
                     misconception:
-                        "Tying the output only to x's lifetime compiles, but it is too weak: the function might return y, so the output must be bounded by both. If you call it and use the result, you risk a lifetime error at the call site.",
+                        "This ties the output only to x's lifetime, but the body returns y in the else branch. rustc rejects the definition with E0621 (explicit lifetime required in the type of `y`): the signature promises to borrow only from x, yet a value borrowed from y can escape. The output must be bounded by both inputs.",
                 },
                 {
                     id: "c",
