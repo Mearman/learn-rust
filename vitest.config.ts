@@ -11,11 +11,11 @@ import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
 //    CSS all compile — without real CSS there is no layout to measure.
 export default defineConfig({
     test: {
+        passWithNoTests: true,
         projects: [
             {
                 test: {
                     name: "unit",
-                    passWithNoTests: true,
                     // Keep Vitest's default include (covers the eslint-rules
                     // tests outside src/ too) and just exclude the browser test.
                     exclude: [
