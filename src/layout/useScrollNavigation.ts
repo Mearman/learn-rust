@@ -30,6 +30,16 @@ export interface SectionMountMap {
  * the corresponding force-mount callback is called inside `flushSync` first
  * so the element exists in the DOM before the scroll.
  */
+/**
+ * Maximum number of animation frames to wait for a lazily-loaded section body
+ * to mount before giving up. The deferred views are code-split, so after
+ * force-mounting them the module still has to be fetched and rendered — that
+ * can take several frames on a cold cache. 30 frames is ~0.5s at 60fps, long
+ * enough to cover a chunk download on a fast connection while still bailing out
+ * rather than retrying forever if the id genuinely does not exist.
+ */
+const MAX_SCROLL_RETRY_FRAMES = 30;
+
 function scrollToId(id: string, mounts?: SectionMountMap): void {
     // Force-mount a deferred section if needed before looking up the element.
     if (id.startsWith("concept-") && mounts?.compare !== undefined) {
@@ -43,11 +53,23 @@ function scrollToId(id: string, mounts?: SectionMountMap): void {
         flushSync(mounts.syntax);
     }
 
-    const el = document.getElementById(id);
-    if (el !== null) {
-        el.scrollIntoView({ behavior: scrollBehaviour(), block: "start" });
-        history.replaceState(null, "", `#${nestedHashFor(id)}`);
-    }
+    // The element may not exist yet: a force-mounted section's view is
+    // code-split and rendered behind <Suspense>, so its DOM only appears once
+    // the chunk has loaded. Retry across frames until it lands (or we give up).
+    let attempts = 0;
+    const attempt = (): void => {
+        const el = document.getElementById(id);
+        if (el !== null) {
+            el.scrollIntoView({ behavior: scrollBehaviour(), block: "start" });
+            history.replaceState(null, "", `#${nestedHashFor(id)}`);
+            return;
+        }
+        if (attempts < MAX_SCROLL_RETRY_FRAMES) {
+            attempts += 1;
+            requestAnimationFrame(attempt);
+        }
+    };
+    attempt();
 }
 
 export interface ScrollNavigation {
@@ -176,7 +198,7 @@ export function useHashNavigation(mounts?: SectionMountMap): void {
                     el.scrollIntoView({ block: "start" });
                     return;
                 }
-                if (attempts < 30) {
+                if (attempts < MAX_SCROLL_RETRY_FRAMES) {
                     attempts += 1;
                     requestAnimationFrame(attempt);
                 }

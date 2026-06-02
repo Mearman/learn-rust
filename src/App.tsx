@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    lazy,
+    Suspense,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import {
     BookOpen,
     Code2,
@@ -8,7 +15,6 @@ import {
     GitBranch,
     ListChecks,
     Search,
-    X,
     ScanSearch,
     type LucideIcon,
 } from "lucide-react";
@@ -27,12 +33,6 @@ import {
     sectionHeading,
     footer,
     skipLink,
-    searchOverlay,
-    searchPanel,
-    searchInput,
-    searchResults,
-    searchHeaderBar,
-    searchCloseButton,
 } from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
 import { useViewedLessons } from "./learn/useViewedLessons.ts";
@@ -49,18 +49,11 @@ import type {
     ChallengeAction,
 } from "./challenge/challengeReducer.ts";
 import { getFilteredChallenges } from "./challenge/challenges.ts";
-import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
 import { MorphingTailoring } from "./settings/MorphingTailoring.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
-import { ComparisonView } from "./references/ComparisonView.tsx";
-import { SyntaxView } from "./references/SyntaxView.tsx";
 import { GlossaryView } from "./references/GlossaryView.tsx";
 import { ErrorCatalogueView } from "./references/ErrorCatalogueView.tsx";
-import { CompilerErrorsView } from "./references/CompilerErrorsView.tsx";
-import { ProgressionView } from "./references/ProgressionView.tsx";
-import { SearchView } from "./references/SearchView.tsx";
-import { buildSearchResults } from "./references/searchResults.ts";
 import { useThemeMode } from "./theme/useThemeMode.ts";
 import {
     useActiveSection,
@@ -79,6 +72,58 @@ import { useHasBeenVisible } from "./layout/useHasBeenVisible.ts";
 import { useBodyScrollLock } from "./layout/useBodyScrollLock.ts";
 import { useHeaderMorph } from "./layout/useHeaderMorph.ts";
 import { ErrorBoundary } from "./layout/ErrorBoundary.tsx";
+
+// Below-the-fold views are code-split: each pulls in heavy data modules
+// (concepts, languages, syntax references, errors, …) that the reader does not
+// need until they scroll to — or navigate into — that section. `lazy` defers
+// fetching the chunk until the view first renders, which composes with the
+// useHasBeenVisible lazy-MOUNT for Compare/Syntax (mount triggers the fetch)
+// and with the force-mount navigation path (scrollToId retries across frames
+// until the chunk's DOM lands). The modules use named exports, so each is
+// adapted to the default export `lazy` expects.
+const ComparisonView = lazy(() =>
+    import("./references/ComparisonView.tsx").then((m) => ({
+        default: m.ComparisonView,
+    }))
+);
+const SyntaxView = lazy(() =>
+    import("./references/SyntaxView.tsx").then((m) => ({
+        default: m.SyntaxView,
+    }))
+);
+const CompilerErrorsView = lazy(() =>
+    import("./references/CompilerErrorsView.tsx").then((m) => ({
+        default: m.CompilerErrorsView,
+    }))
+);
+const ProgressionView = lazy(() =>
+    import("./references/ProgressionView.tsx").then((m) => ({
+        default: m.ProgressionView,
+    }))
+);
+const CheatsheetView = lazy(() =>
+    import("./cheatsheet/CheatsheetView.tsx").then((m) => ({
+        default: m.CheatsheetView,
+    }))
+);
+// The search overlay is only reachable via the Cmd/Ctrl+K shortcut, so the
+// whole feature — the overlay UI, the result list view, and the search-index
+// builder that pulls in every data module — should not load until it opens.
+const SearchOverlay = lazy(() =>
+    import("./references/SearchOverlay.tsx").then((m) => ({
+        default: m.SearchOverlay,
+    }))
+);
+
+/**
+ * Placeholder shown while a code-split section view's chunk loads. Kept to a
+ * single full-width line of muted text: no fixed widths (so it cannot trigger
+ * the horizontal-overflow regression the responsive test guards) and no
+ * spinner (a section that loads in a frame or two should not flash one).
+ */
+const sectionFallback = (
+    <p style={{ color: vars.colour.faint, fontSize: "0.9rem" }}>Loading…</p>
+);
 
 /** Section icons in canonical order — labels come from SECTION_META in
  *  subSections.ts so they never drift from the TOC tree. */
@@ -342,11 +387,13 @@ export function App() {
                         <section id="path" className={contentSection}>
                             <h2 className={sectionHeading}>Learning path</h2>
                             <ErrorBoundary section="Learning path">
-                                <ProgressionView
-                                    onOpenLesson={openLesson}
-                                    onOpenConcept={openConcept}
-                                    viewed={viewed}
-                                />
+                                <Suspense fallback={sectionFallback}>
+                                    <ProgressionView
+                                        onOpenLesson={openLesson}
+                                        onOpenConcept={openConcept}
+                                        viewed={viewed}
+                                    />
+                                </Suspense>
                             </ErrorBoundary>
                         </section>
 
@@ -362,10 +409,12 @@ export function App() {
                             <div ref={compareSentinelRef} />
                             {compareMounted ? (
                                 <ErrorBoundary section="Compare">
-                                    <ComparisonView
-                                        profile={profile}
-                                        onOpenLesson={openLesson}
-                                    />
+                                    <Suspense fallback={sectionFallback}>
+                                        <ComparisonView
+                                            profile={profile}
+                                            onOpenLesson={openLesson}
+                                        />
+                                    </Suspense>
                                 </ErrorBoundary>
                             ) : null}
                         </section>
@@ -380,7 +429,9 @@ export function App() {
                             <div ref={syntaxSentinelRef} />
                             {syntaxMounted ? (
                                 <ErrorBoundary section="Syntax">
-                                    <SyntaxView profile={profile} />
+                                    <Suspense fallback={sectionFallback}>
+                                        <SyntaxView profile={profile} />
+                                    </Suspense>
                                 </ErrorBoundary>
                             ) : null}
                         </section>
@@ -404,21 +455,25 @@ export function App() {
                         <section id="reading-errors" className={contentSection}>
                             <h2 className={sectionHeading}>Reading errors</h2>
                             <ErrorBoundary section="Reading errors">
-                                <CompilerErrorsView
-                                    onOpenConcept={openConcept}
-                                />
+                                <Suspense fallback={sectionFallback}>
+                                    <CompilerErrorsView
+                                        onOpenConcept={openConcept}
+                                    />
+                                </Suspense>
                             </ErrorBoundary>
                         </section>
 
                         <section id="cheatsheet" className={contentSection}>
                             <h2 className={sectionHeading}>Cheatsheet</h2>
                             <ErrorBoundary section="Cheatsheet">
-                                <CheatsheetView
-                                    onOpenReferences={() => {
-                                        scrollToSection("compare");
-                                    }}
-                                    onOpenConcept={openConcept}
-                                />
+                                <Suspense fallback={sectionFallback}>
+                                    <CheatsheetView
+                                        onOpenReferences={() => {
+                                            scrollToSection("compare");
+                                        }}
+                                        onOpenConcept={openConcept}
+                                    />
+                                </Suspense>
                             </ErrorBoundary>
                         </section>
                     </main>
@@ -438,298 +493,38 @@ export function App() {
             </div>
 
             {showSearch ? (
-                <SearchOverlay
-                    onClose={() => {
-                        setShowSearch(false);
-                    }}
-                    onOpenLesson={(id) => {
-                        openLesson(id);
-                        setShowSearch(false);
-                    }}
-                    onOpenConcept={(id) => {
-                        openConcept(id);
-                        setShowSearch(false);
-                    }}
-                    onOpenSyntax={(topic) => {
-                        openSyntax(topic);
-                        setShowSearch(false);
-                    }}
-                    onOpenGlossary={(id) => {
-                        openGlossary(id);
-                        setShowSearch(false);
-                    }}
-                    onOpenError={(id) => {
-                        openError(id);
-                        setShowSearch(false);
-                    }}
-                />
-            ) : null}
-        </div>
-    );
-}
-
-interface SearchOverlayProps {
-    readonly onClose: () => void;
-    readonly onOpenLesson: (id: string) => void;
-    readonly onOpenConcept: (id: string) => void;
-    readonly onOpenSyntax: (topic: string) => void;
-    readonly onOpenGlossary: (id: string) => void;
-    readonly onOpenError: (id: string) => void;
-}
-
-function SearchOverlay({
-    onClose,
-    onOpenLesson,
-    onOpenConcept,
-    onOpenSyntax,
-    onOpenGlossary,
-    onOpenError,
-}: SearchOverlayProps) {
-    const [query, setQuery] = useState("");
-    const [activeIndex, setActiveIndex] = useState(-1);
-
-    // Ref to the panel so we can trap focus within it.
-    const panelRef = useRef<HTMLDivElement>(null);
-    // Ref to the search input so we can auto-focus it.
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    // Remember which element had focus before the overlay opened so we can
-    // restore it on close.
-    const priorFocusRef = useRef<Element | null>(
-        typeof document !== "undefined" ? document.activeElement : null
-    );
-
-    // Build results so we know the total count for keyboard navigation.
-    // These are the same handlers passed into SearchView, so the result list
-    // is in sync.
-    const results = useMemo(
-        () =>
-            buildSearchResults(query, {
-                onOpenLesson,
-                onOpenConcept,
-                onOpenSyntax,
-                onOpenGlossary,
-                onOpenError,
-            }),
-        [
-            query,
-            onOpenLesson,
-            onOpenConcept,
-            onOpenSyntax,
-            onOpenGlossary,
-            onOpenError,
-        ]
-    );
-
-    // Auto-focus the input when the overlay mounts.
-    useEffect(() => {
-        inputRef.current?.focus();
-    }, []);
-
-    // Restore focus to the previously focused element on unmount.
-    useEffect(() => {
-        // Capture the ref value at setup time so the cleanup function sees
-        // a stable reference (the linter warns about reading .current in
-        // cleanup where the value may have changed).
-        const prior = priorFocusRef.current;
-        return () => {
-            if (prior instanceof HTMLElement) {
-                prior.focus();
-            }
-        };
-    }, []);
-
-    // Keyboard: Escape closes; ArrowUp/Down moves highlight; Enter activates.
-    const handleKeyDown = useCallback(
-        (e: React.KeyboardEvent<HTMLDivElement>) => {
-            if (e.key === "Escape") {
-                e.preventDefault();
-                onClose();
-                return;
-            }
-            if (e.key === "ArrowDown") {
-                e.preventDefault();
-                setActiveIndex((i) =>
-                    results.length === 0
-                        ? -1
-                        : Math.min(i + 1, results.length - 1)
-                );
-                return;
-            }
-            if (e.key === "ArrowUp") {
-                e.preventDefault();
-                setActiveIndex((i) => Math.max(i - 1, -1));
-                return;
-            }
-            if (e.key === "Enter" && activeIndex >= 0) {
-                e.preventDefault();
-                const result = results[activeIndex];
-                if (result !== undefined) {
-                    result.action();
-                }
-            }
-        },
-        [onClose, results, activeIndex]
-    );
-
-    // Focus trap: keep focus inside the panel on Tab.
-    const handleFocusTrap = useCallback(
-        (e: React.KeyboardEvent<HTMLDivElement>) => {
-            if (e.key !== "Tab") return;
-            const panel = panelRef.current;
-            if (panel === null) return;
-
-            const focusable = Array.from(
-                panel.querySelectorAll<HTMLElement>(
-                    'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-                )
-            );
-            if (focusable.length === 0) return;
-
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-            if (first === undefined || last === undefined) return;
-
-            if (e.shiftKey) {
-                if (document.activeElement === first) {
-                    e.preventDefault();
-                    last.focus();
-                }
-            } else {
-                if (document.activeElement === last) {
-                    e.preventDefault();
-                    first.focus();
-                }
-            }
-        },
-        []
-    );
-
-    const handleCombinedKeyDown = useCallback(
-        (e: React.KeyboardEvent<HTMLDivElement>) => {
-            handleFocusTrap(e);
-            handleKeyDown(e);
-        },
-        [handleFocusTrap, handleKeyDown]
-    );
-
-    // Scroll the active result into view when it changes.
-    useEffect(() => {
-        if (activeIndex < 0) return;
-        const el = document.getElementById(
-            `search-result-${String(activeIndex)}`
-        );
-        el?.scrollIntoView({ block: "nearest" });
-    }, [activeIndex]);
-
-    const inputId = "search-overlay-input";
-
-    return (
-        <div
-            className={searchOverlay}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Search"
-            onKeyDown={handleCombinedKeyDown}
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onClose();
-            }}
-        >
-            <div className={searchPanel} ref={panelRef}>
-                <div className={searchHeaderBar}>
-                    <Search
-                        size={18}
-                        style={{
-                            marginLeft: "1rem",
-                            color: vars.colour.faint,
-                            flexShrink: 0,
+                // No visible fallback: the overlay chunk is tiny and loads in a
+                // frame or two, and flashing a spinner over the dimmed page
+                // reads as jank. An empty fallback keeps the dim backdrop until
+                // the panel is ready.
+                <Suspense fallback={null}>
+                    <SearchOverlay
+                        onClose={() => {
+                            setShowSearch(false);
                         }}
-                        aria-hidden="true"
-                    />
-                    <input
-                        ref={inputRef}
-                        id={inputId}
-                        type="text"
-                        role="combobox"
-                        aria-expanded={true}
-                        aria-controls="search-results-listbox"
-                        aria-autocomplete="list"
-                        aria-activedescendant={
-                            activeIndex >= 0
-                                ? `search-result-${String(activeIndex)}`
-                                : undefined
-                        }
-                        className={searchInput}
-                        placeholder="Search lessons, concepts, syntax, glossary, errors..."
-                        value={query}
-                        onChange={(e) => {
-                            setQuery(e.target.value);
-                            // Reset keyboard selection whenever the query changes.
-                            setActiveIndex(-1);
-                        }}
-                    />
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className={searchCloseButton}
-                        aria-label="Close search"
-                    >
-                        <X size={18} aria-hidden="true" />
-                    </button>
-                </div>
-                {/* Visually-hidden live region: announces result count to
-                    screen readers without disrupting keyboard focus. */}
-                <div
-                    role="status"
-                    aria-live="polite"
-                    style={{
-                        position: "absolute",
-                        width: 1,
-                        height: 1,
-                        padding: 0,
-                        margin: -1,
-                        overflow: "hidden",
-                        clip: "rect(0,0,0,0)",
-                        whiteSpace: "nowrap",
-                        borderWidth: 0,
-                    }}
-                >
-                    {query.trim().length >= 2
-                        ? `${String(results.length)} result${results.length === 1 ? "" : "s"}`
-                        : ""}
-                </div>
-                <div
-                    id="search-results-listbox"
-                    role="listbox"
-                    aria-label="Search results"
-                    className={searchResults}
-                >
-                    <SearchView
-                        query={query}
-                        activeIndex={activeIndex}
                         onOpenLesson={(id) => {
-                            onOpenLesson(id);
-                            onClose();
+                            openLesson(id);
+                            setShowSearch(false);
                         }}
                         onOpenConcept={(id) => {
-                            onOpenConcept(id);
-                            onClose();
+                            openConcept(id);
+                            setShowSearch(false);
                         }}
                         onOpenSyntax={(topic) => {
-                            onOpenSyntax(topic);
-                            onClose();
+                            openSyntax(topic);
+                            setShowSearch(false);
                         }}
                         onOpenGlossary={(id) => {
-                            onOpenGlossary(id);
-                            onClose();
+                            openGlossary(id);
+                            setShowSearch(false);
                         }}
                         onOpenError={(id) => {
-                            onOpenError(id);
-                            onClose();
+                            openError(id);
+                            setShowSearch(false);
                         }}
                     />
-                </div>
-            </div>
+                </Suspense>
+            ) : null}
         </div>
     );
 }
