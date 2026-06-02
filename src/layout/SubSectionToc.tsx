@@ -8,6 +8,7 @@ import {
     tocFab,
     tocSheet,
     tocSheetBackdrop,
+    tocSheetBackdropButton,
     tocSheetContent,
     tocSheetHeader,
     tocItem,
@@ -28,6 +29,7 @@ import {
 import type { SectionGroup, SubSection } from "../layout/subSections.ts";
 import type { SectionId } from "../layout/useActiveSection.ts";
 import { useStarredEntries } from "./useStarredEntries.ts";
+import { scrollBehaviour } from "./reducedMotion.ts";
 
 interface SubSectionTocProps {
     readonly groups: readonly SectionGroup[];
@@ -336,11 +338,11 @@ export function SubSectionToc({
         const viewBottom = viewTop + viewport.clientHeight;
 
         if (btnTop < viewTop) {
-            viewport.scrollTo({ top: btnTop - 8, behavior: "smooth" });
+            viewport.scrollTo({ top: btnTop - 8, behavior: scrollBehaviour() });
         } else if (btnBottom > viewBottom) {
             viewport.scrollTo({
                 top: btnBottom - viewport.clientHeight + 8,
-                behavior: "smooth",
+                behavior: scrollBehaviour(),
             });
         }
     }, [activeId]);
@@ -450,7 +452,7 @@ export function SubSectionToc({
     return (
         <>
             {/* Desktop sidebar */}
-            <aside className={tocSidebar}>
+            <aside className={tocSidebar} aria-label="Table of contents">
                 <div
                     style={{
                         padding: "0 0.25rem 0.5rem",
@@ -518,19 +520,17 @@ export function SubSectionToc({
 
             {/* Mobile bottom sheet */}
             {sheetOpen ? (
-                <div
-                    className={tocSheetBackdrop}
-                    onClick={() => {
-                        setSheetOpen(false);
-                        setFilter("");
-                    }}
-                >
-                    <div
-                        className={tocSheet}
-                        onClick={(e) => {
-                            e.stopPropagation();
+                <div className={tocSheetBackdrop}>
+                    <button
+                        type="button"
+                        className={tocSheetBackdropButton}
+                        aria-label="Close table of contents"
+                        onClick={() => {
+                            setSheetOpen(false);
+                            setFilter("");
                         }}
-                    >
+                    />
+                    <div className={tocSheet}>
                         <div
                             ref={sheetContentRef}
                             className={tocSheetContent}
