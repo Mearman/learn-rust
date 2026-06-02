@@ -84,6 +84,11 @@ function nodeState(
     lessonIds: readonly string[],
     viewed: ReadonlySet<string>
 ): NodeState {
+    // A concept with no lessons cannot be "complete" — there is nothing to
+    // view. Without this guard `0 === 0` would report a lesson-less concept as
+    // complete (every-lesson-viewed vacuously true), so treat the empty case as
+    // locked.
+    if (lessonIds.length === 0) return "locked";
     const viewedCount = lessonIds.filter((id) => viewed.has(id)).length;
     if (viewedCount === lessonIds.length) return "complete";
     if (viewedCount > 0) return "started";

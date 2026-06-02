@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isLessonReady, CONCEPT_DEPENDENCIES } from "./dependencies.ts";
+import { CONCEPTS } from "./concepts.ts";
 
 // ---------------------------------------------------------------------------
 // isLessonReady
@@ -94,6 +95,81 @@ describe("isLessonReady — each missing entry carries the concept id", () => {
         for (const m of result.missing) {
             expect(typeof m.conceptId).toBe("string");
             expect(m.conceptId.length).toBeGreaterThan(0);
+        }
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Data integrity: the dependency graph references real concepts, is acyclic,
+// and every concept has at least one lesson.
+// ---------------------------------------------------------------------------
+
+describe("CONCEPT_DEPENDENCIES — data integrity", () => {
+    const conceptIds = new Set(CONCEPTS.map((c) => c.id));
+
+    it("every edge endpoint is a real concept id", () => {
+        for (const [from, to] of CONCEPT_DEPENDENCIES) {
+            expect(
+                conceptIds.has(from),
+                `edge from "${from}" references an unknown concept`
+            ).toBe(true);
+            expect(
+                conceptIds.has(to),
+                `edge to "${to}" references an unknown concept`
+            ).toBe(true);
+        }
+    });
+
+    it("the dependency graph is acyclic and drains fully (Kahn's algorithm)", () => {
+        // Build in-degree per node and an adjacency list. An edge [from, to]
+        // means "from depends on to", so `to` must come first — treat `to` as
+        // the prerequisite (incoming) of `from`.
+        const inDegree = new Map<string, number>();
+        const dependents = new Map<string, string[]>();
+        for (const id of conceptIds) {
+            inDegree.set(id, 0);
+            dependents.set(id, []);
+        }
+        for (const [from, to] of CONCEPT_DEPENDENCIES) {
+            inDegree.set(from, (inDegree.get(from) ?? 0) + 1);
+            const list = dependents.get(to);
+            if (list === undefined) {
+                throw new Error(`prerequisite "${to}" missing from node set`);
+            }
+            list.push(from);
+        }
+
+        // Seed the queue with every node that has no prerequisites.
+        const queue: string[] = [];
+        for (const [id, degree] of inDegree) {
+            if (degree === 0) queue.push(id);
+        }
+
+        let drained = 0;
+        while (queue.length > 0) {
+            const node = queue.shift();
+            if (node === undefined) break;
+            drained += 1;
+            const list = dependents.get(node);
+            if (list === undefined) continue;
+            for (const dependent of list) {
+                const next = (inDegree.get(dependent) ?? 0) - 1;
+                inDegree.set(dependent, next);
+                if (next === 0) queue.push(dependent);
+            }
+        }
+
+        // A full drain (every node emitted) proves the graph is acyclic; a
+        // residual count would mean a cycle left some nodes with in-degree > 0.
+        expect(drained).toBe(conceptIds.size);
+    });
+
+    it("no concept has an empty lessonIds (guards the complete-on-empty node bug)", () => {
+        for (const concept of CONCEPTS) {
+            expect(
+                concept.lessonIds.length,
+                `concept "${concept.id}" has no lessons`
+            ).toBeGreaterThan(0);
         }
     });
 });
