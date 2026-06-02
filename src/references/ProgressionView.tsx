@@ -102,6 +102,19 @@ export function ProgressionView({
     onOpenConcept,
     viewed,
 }: ProgressionViewProps) {
+    // Index concepts and lessons by id once, rather than re-scanning the arrays
+    // linearly inside every edge measurement and every node/dependency render.
+    // CONCEPTS and LESSONS are module-level constants, so these maps are built
+    // a single time for the component's lifetime.
+    const conceptById = useMemo(
+        () => new Map(CONCEPTS.map((c) => [c.id, c])),
+        []
+    );
+    const lessonById = useMemo(
+        () => new Map(LESSONS.map((l) => [l.id, l])),
+        []
+    );
+
     const layers = useMemo(() => {
         const visited = new Set<string>();
         const result: string[][] = [];
@@ -174,7 +187,7 @@ export function ProgressionView({
                 endX
             )} ${String(endY)}`;
 
-            const prereqConcept = CONCEPTS.find((c) => c.id === to);
+            const prereqConcept = conceptById.get(to);
             const state =
                 prereqConcept === undefined
                     ? "locked"
@@ -204,7 +217,8 @@ export function ProgressionView({
         // `layers` is derived once (useMemo with [] deps) so it is stable and
         // does not belong in the dependency array; only `viewed` drives a
         // recompute. Live geometry changes are caught by the ResizeObserver.
-    }, [viewed]);
+        // `conceptById` is built once (useMemo with [] deps) and so is stable.
+    }, [viewed, conceptById]);
 
     useLayoutEffect(() => {
         measureEdges();
@@ -213,12 +227,23 @@ export function ProgressionView({
     useEffect(() => {
         const container = graphContainerRef.current;
         if (container === null) return;
+
+        // Coalesce bursts of resize notifications (a single reflow can fire the
+        // observer repeatedly) into one measurement per animation frame, so the
+        // getBoundingClientRect reads and the resulting state writes happen at
+        // most once per paint instead of synchronously on every callback.
+        let frame = 0;
         const observer = new ResizeObserver(() => {
-            measureEdges();
+            if (frame !== 0) return;
+            frame = requestAnimationFrame(() => {
+                frame = 0;
+                measureEdges();
+            });
         });
         observer.observe(container);
         return () => {
             observer.disconnect();
+            if (frame !== 0) cancelAnimationFrame(frame);
         };
     }, [measureEdges]);
 
@@ -436,9 +461,7 @@ export function ProgressionView({
                             }}
                         >
                             {layer.map((conceptId) => {
-                                const concept = CONCEPTS.find(
-                                    (c) => c.id === conceptId
-                                );
+                                const concept = conceptById.get(conceptId);
                                 if (concept === undefined) return null;
                                 const deps = conceptDependsOn(conceptId);
                                 const requiredBy = conceptRequiredBy(conceptId);
@@ -557,10 +580,7 @@ export function ProgressionView({
                                                 {deps
                                                     .map((d) => {
                                                         const dep =
-                                                            CONCEPTS.find(
-                                                                (c) =>
-                                                                    c.id === d
-                                                            );
+                                                            conceptById.get(d);
                                                         return dep?.title ?? d;
                                                     })
                                                     .join(", ")}
@@ -578,10 +598,7 @@ export function ProgressionView({
                                                 {requiredBy
                                                     .map((d) => {
                                                         const dep =
-                                                            CONCEPTS.find(
-                                                                (c) =>
-                                                                    c.id === d
-                                                            );
+                                                            conceptById.get(d);
                                                         return dep?.title ?? d;
                                                     })
                                                     .join(", ")}
@@ -610,9 +627,10 @@ export function ProgressionView({
                                             </button>
                                             {concept.lessonIds.map(
                                                 (lessonId) => {
-                                                    const lesson = LESSONS.find(
-                                                        (l) => l.id === lessonId
-                                                    );
+                                                    const lesson =
+                                                        lessonById.get(
+                                                            lessonId
+                                                        );
                                                     const label =
                                                         lesson !== undefined
                                                             ? lesson.title
