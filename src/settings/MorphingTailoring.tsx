@@ -46,7 +46,9 @@ const selectInputStyle = {
     background: vars.colour.panel,
     border: `1px solid ${vars.colour.border}`,
     color: vars.colour.text,
-    minHeight: "calc(2.25rem - var(--morph, 0) * 0.6rem)",
+    // Tap target tracks --morph-shrink, which is held at 0 on coarse pointers
+    // so the field never condenses below a comfortable touch height on a phone.
+    minHeight: "calc(2.25rem - var(--morph-shrink, 0) * 0.6rem)",
     fontSize: "calc(0.875rem - var(--morph, 0) * 0.0625rem)",
 } as const;
 
@@ -225,10 +227,12 @@ export function MorphingTailoring({
                                 color: vars.colour.text,
                                 fontSize:
                                     "calc(0.875rem - var(--morph, 0) * 0.125rem)",
+                                // Hold the control's vertical padding (its tap
+                                // target) on coarse pointers via --morph-shrink.
                                 paddingTop:
-                                    "calc(0.4rem - var(--morph, 0) * 0.15rem)",
+                                    "calc(0.4rem - var(--morph-shrink, 0) * 0.15rem)",
                                 paddingBottom:
-                                    "calc(0.4rem - var(--morph, 0) * 0.15rem)",
+                                    "calc(0.4rem - var(--morph-shrink, 0) * 0.15rem)",
                             },
                             indicator: {
                                 background: vars.colour.accent,
