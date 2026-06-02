@@ -167,12 +167,12 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         conceptId: "algebraic-data-types",
     },
     {
-        id: "e0162",
-        code: "E0162",
+        id: "unreachable-pattern",
+        code: "warning",
         title: "Unreachable pattern",
         message: "unreachable pattern",
         explanation:
-            "A `match` arm can never be reached because an earlier arm already matches all the values this arm would match. This usually happens when a wildcard `_` is placed before a more specific pattern.",
+            "A `match` arm can never be reached because an earlier arm already matches all the values this arm would match. This usually happens when a wildcard `_` is placed before a more specific pattern. Modern Rust emits this as a compiler warning rather than a numbered error — there is no stable E-code for it.",
         fix: "Reorder the match arms so more specific patterns come before the wildcard, or remove the unreachable arm entirely.",
         conceptId: "algebraic-data-types",
     },
@@ -248,12 +248,12 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         conceptId: "memory-management",
     },
     {
-        id: "e0602",
-        code: "E0602",
+        id: "top-level-let",
+        code: "(parse error)",
         title: "Expected item",
         message: "expected item, found `let`",
         explanation:
-            "Something that can only appear inside a function body was written at the module level. Items like `struct`, `enum`, `fn`, and `impl` are allowed at module scope — `let` bindings and statements are not.",
+            "Something that can only appear inside a function body was written at the module level. Items like `struct`, `enum`, `fn`, and `impl` are allowed at module scope — `let` bindings and statements are not. The compiler emits a plain parse error for this; there is no stable E-code. (E0602 is an unrelated error about unknown lint names on the CLI.)",
         fix: "Move the code inside a function. Top-level code is not allowed in Rust — all logic must live within a function body.",
         conceptId: "memory-management",
     },
@@ -261,12 +261,12 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     // ── Additional common beginner errors ────────────────────────────────
 
     {
-        id: "e0301",
-        code: "E0301",
-        title: "Expected mutable reference",
-        message: "expected mutable reference, found `&` reference",
+        id: "e0308-mut",
+        code: "E0308",
+        title: "Mismatched types: expected mutable reference",
+        message: "mismatched types: expected `&mut T`, found `&T`",
         explanation:
-            "A function or method expected a `&mut` reference but received a shared `&` reference. Shared references don't allow mutation, so they can't be used where mutable access is required.",
+            "A function or method expected a `&mut` reference but received a shared `&` reference. Shared references don't allow mutation, so they can't be used where mutable access is required. The compiler reports this as E0308 (mismatched types); E0301 is no longer emitted.",
         fix: "Pass a mutable reference by using `&mut` at the call site. Ensure the variable itself is declared as `mut`.",
         conceptId: "reference-semantics",
     },
@@ -362,23 +362,24 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
         conceptId: "behaviour-abstraction",
     },
     {
-        id: "e0451",
-        code: "E0451",
-        title: "Attempted to implement a trait on a foreign type",
+        id: "e0117",
+        code: "E0117",
+        title: "Orphan rule violation",
         message:
-            "only traits defined in the current crate can be implemented for a type defined outside of the crate",
+            "only traits defined in the current crate can be implemented for types defined outside of the crate",
         explanation:
-            "Both the trait and the type are defined in external crates. Rust's orphan rule prevents implementing a foreign trait on a foreign type — this avoids conflicting implementations across crates.",
+            "Both the trait and the type are defined in external crates. Rust's orphan rule (E0117) prevents implementing a foreign trait on a foreign type — this avoids conflicting implementations across crates. (E0451 is an unrelated error about accessing a private field.)",
         fix: "Use the newtype pattern: wrap the foreign type in a local struct (`struct MyString(String);`) and implement the foreign trait on the wrapper. Alternatively, implement a local trait instead.",
         conceptId: "behaviour-abstraction",
     },
     {
-        id: "e0321",
-        code: "E0321",
-        title: "Cross-thread borrow",
-        message: "`Rc<T>` cannot be sent between threads safely",
+        id: "e0277-send",
+        code: "E0277",
+        title: "Send bound not satisfied",
+        message:
+            "`Rc<RefCell<i32>>` cannot be sent between threads safely\nthe trait `Send` is not implemented for `Rc<RefCell<i32>>`",
         explanation:
-            "A type that is not `Send` was used in a context that requires thread safety (e.g. spawning a thread or using `Arc`). `Rc<T>` uses non-atomic reference counting and cannot be safely shared across threads.",
+            "A type that does not implement `Send` was used in a context that requires it (e.g. passing a value to `thread::spawn`). `Rc<T>` uses non-atomic reference counting and cannot be safely transferred across threads. The compiler reports this as E0277 (trait bound not satisfied); E0321 is an unrelated error about implementing a foreign trait on a foreign type.",
         fix: "Replace `Rc<T>` with `Arc<T>` for cross-thread sharing. If the inner value needs mutation, use `Arc<Mutex<T>>` or `Arc<RwLock<T>>`.",
         conceptId: "smart-pointers",
     },
