@@ -24,8 +24,8 @@ globalStyle("body", {
 });
 
 globalStyle("html", {
-    scrollPaddingTop: "80px",
-    "@media": { [md]: { scrollPaddingTop: "56px" } },
+    scrollPaddingTop: "120px",
+    "@media": { [md]: { scrollPaddingTop: "88px" } },
 });
 
 // ---------------------------------------------------------------------------
@@ -367,13 +367,81 @@ export const sectionHeading = style({
 });
 
 // ---------------------------------------------------------------------------
+// Sticky pinned wrapper (compact strip + section nav together)
+// ---------------------------------------------------------------------------
+
+/** Outer sticky container that keeps both the tailoring strip and the section
+ *  nav pinned as a unit at the top of the viewport. */
+export const stickyPinned = style({
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.25rem",
+});
+
+// ---------------------------------------------------------------------------
+// Compact always-visible tailoring strip
+// ---------------------------------------------------------------------------
+
+export const compactStrip = style({
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "0.5rem",
+    padding: "0.375rem 0.625rem",
+    borderRadius: "0.625rem",
+    background: vars.colour.panel,
+    border: `1px solid ${vars.colour.border}`,
+    backdropFilter: "blur(8px)",
+});
+
+export const compactStripTitle = style({
+    fontSize: "0.75rem",
+    fontWeight: 700,
+    letterSpacing: "-0.01em",
+    color: vars.colour.text,
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+    marginRight: "0.25rem",
+    "@media": {
+        [md]: { fontSize: "0.8125rem" },
+    },
+});
+
+export const compactStripControls = style({
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "0.5rem",
+    flex: 1,
+    minWidth: 0,
+});
+
+export const compactStripField = style({
+    display: "flex",
+    alignItems: "center",
+    gap: "0.25rem",
+    minWidth: 0,
+});
+
+export const compactStripLabel = style({
+    fontSize: "0.625rem",
+    fontFamily: "ui-monospace, monospace",
+    color: vars.colour.accentSoft,
+    fontWeight: 600,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+});
+
+// ---------------------------------------------------------------------------
 // Sticky section nav
 // ---------------------------------------------------------------------------
 
 export const stickyNav = style({
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
     display: "flex",
     flexWrap: "wrap",
     gap: "0.25rem",
@@ -434,10 +502,10 @@ export const tocSidebar = style({
             display: "flex",
             flexDirection: "column",
             position: "sticky",
-            top: "4.5rem",
+            top: "6rem",
             width: "200px",
             minWidth: "200px",
-            maxHeight: "calc(100vh - 6rem)",
+            maxHeight: "calc(100vh - 7.5rem)",
             overflowY: "auto",
             flexShrink: 0,
             alignSelf: "flex-start",

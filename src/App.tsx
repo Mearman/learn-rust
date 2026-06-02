@@ -19,6 +19,7 @@ import {
     headerFlex,
     heading,
     stickyNav,
+    stickyPinned,
     tabButton,
     tabButtonActive,
     tabButtonLabel,
@@ -53,6 +54,7 @@ import { getFilteredChallenges } from "./challenge/challenges.ts";
 import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
 import { SettingsPanel } from "./settings/SettingsPanel.tsx";
+import { CompactTailoring } from "./settings/CompactTailoring.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
 import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
 import { joinLanguageFamiliarities } from "./data/languages.ts";
@@ -329,38 +331,44 @@ export function App() {
                     <ThemeToggle mode={themeMode} onChange={setThemeMode} />
                 </header>
 
-                <nav className={stickyNav}>
-                    {SECTION_GROUPS.map((s) => {
-                        const Icon = SECTION_ICONS[s.id];
-                        const on = s.id === activeSection;
-                        return (
-                            <button
-                                key={s.id}
-                                type="button"
-                                onClick={() => {
-                                    scrollToSection(s.id);
-                                }}
-                                className={`${tabButton} ${on ? tabButtonActive : ""}`}
-                            >
-                                <Icon size={15} />
-                                <span className={tabButtonLabel}>
-                                    {s.label}
-                                </span>
-                            </button>
-                        );
-                    })}
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowSearch(true);
-                        }}
-                        className={tabButton}
-                        aria-label="Open search (Cmd+K)"
-                    >
-                        <Search size={15} />
-                        <span className={tabButtonLabel}>Search</span>
-                    </button>
-                </nav>
+                <div className={stickyPinned}>
+                    <CompactTailoring
+                        profile={profile}
+                        setProfile={setProfile}
+                    />
+                    <nav className={stickyNav}>
+                        {SECTION_GROUPS.map((s) => {
+                            const Icon = SECTION_ICONS[s.id];
+                            const on = s.id === activeSection;
+                            return (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => {
+                                        scrollToSection(s.id);
+                                    }}
+                                    className={`${tabButton} ${on ? tabButtonActive : ""}`}
+                                >
+                                    <Icon size={15} />
+                                    <span className={tabButtonLabel}>
+                                        {s.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowSearch(true);
+                            }}
+                            className={tabButton}
+                            aria-label="Open search (Cmd+K)"
+                        >
+                            <Search size={15} />
+                            <span className={tabButtonLabel}>Search</span>
+                        </button>
+                    </nav>
+                </div>
 
                 <div className={tocLayout}>
                     <SubSectionToc
