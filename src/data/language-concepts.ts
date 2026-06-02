@@ -1124,4 +1124,108 @@ auto weak = std::weak_ptr<int>(shared);
         explanation:
             "C++ unique_ptr/shared_ptr/weak_ptr map closely to Rust's Box/Rc/Arc. The main difference is that Rust enforces the rules at compile time.",
     },
+
+    // =========================================================================
+    // Asynchronous execution
+    // =========================================================================
+    {
+        id: "async-rust",
+        languageId: "rust",
+        conceptId: "asynchronous-execution",
+        title: "async/await driven by a runtime",
+        code: `async fn fetch() -> u32 { 42 }
+
+#[tokio::main]
+async fn main() {
+    let value = fetch().await; // the runtime polls the future
+    println!("{value}");
+}`,
+        explanation:
+            "An async fn returns a lazy Future that does nothing until awaited; a runtime such as Tokio polls it to completion. Send and Sync decide which futures may move across threads.",
+    },
+    {
+        id: "async-python",
+        languageId: "python",
+        conceptId: "asynchronous-execution",
+        title: "async def with asyncio",
+        code: `import asyncio
+
+async def fetch() -> int:
+    return 42
+
+asyncio.run(fetch())  # the event loop drives the coroutine`,
+        explanation:
+            "Coroutines declared with async def are driven by an event loop (asyncio). A single thread interleaves awaited tasks cooperatively.",
+    },
+    {
+        id: "async-typescript",
+        languageId: "typescript",
+        conceptId: "asynchronous-execution",
+        title: "async/await over Promises",
+        code: `async function fetchValue(): Promise<number> {
+    return 42;
+}
+
+const value = await fetchValue(); // resolves the promise`,
+        explanation:
+            "async functions return a Promise; await suspends until it resolves. The single-threaded event loop schedules the continuations.",
+    },
+    {
+        id: "async-java",
+        languageId: "java",
+        conceptId: "asynchronous-execution",
+        title: "CompletableFuture and virtual threads",
+        code: `CompletableFuture<Integer> f =
+    CompletableFuture.supplyAsync(() -> 42);
+int value = f.join(); // completes asynchronously`,
+        explanation:
+            "Asynchrony is modelled with CompletableFuture chains, or since Java 21 with virtual threads that make blocking calls cheap. There is no await keyword.",
+    },
+    {
+        id: "async-kotlin",
+        languageId: "kotlin",
+        conceptId: "asynchronous-execution",
+        title: "suspend functions and coroutines",
+        code: `suspend fun fetch(): Int = 42
+
+runBlocking {
+    val value = fetch() // suspends without blocking the thread
+}`,
+        explanation:
+            "suspend functions can pause and resume; coroutine builders (launch, async, runBlocking) and a dispatcher schedule them, with lifetimes tied to a scope.",
+    },
+    {
+        id: "async-go",
+        languageId: "go",
+        conceptId: "asynchronous-execution",
+        title: "goroutines and channels",
+        code: `ch := make(chan int)
+go func() { ch <- 42 }() // lightweight goroutine
+value := <-ch            // receive blocks until ready`,
+        explanation:
+            "Goroutines are cheap green threads scheduled by the runtime, and channels coordinate them. There is no async/await — blocking is fine because goroutines are cheap.",
+    },
+    {
+        id: "async-csharp",
+        languageId: "csharp",
+        conceptId: "asynchronous-execution",
+        title: "async/await over Task",
+        code: `async Task<int> FetchAsync() => 42;
+
+int value = await FetchAsync(); // resumes on completion`,
+        explanation:
+            "async methods return Task or Task<T>; await yields until the task completes. The synchronisation context decides where the continuation resumes.",
+    },
+    {
+        id: "async-cpp",
+        languageId: "cpp",
+        conceptId: "asynchronous-execution",
+        title: "std::async, futures, and coroutines",
+        code: `std::future<int> f = std::async([] { return 42; });
+int value = f.get(); // waits for the result
+
+// C++20 also adds co_await / coroutines`,
+        explanation:
+            "std::async runs work and returns a std::future whose get() waits for the result. C++20 adds co_await coroutines, but they need a library-provided executor.",
+    },
 ] as const;
