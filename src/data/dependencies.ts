@@ -1,3 +1,73 @@
+import { CONCEPTS, LESSON_CONCEPT_MAP } from "./concepts.ts";
+
+export interface PrerequisiteLesson {
+    readonly lessonId: string;
+    readonly conceptId: string;
+}
+
+export interface LessonReadiness {
+    readonly ready: boolean;
+    /** Prerequisite lessons not yet in `viewed`, in dependency order. Empty when ready. */
+    readonly missing: readonly PrerequisiteLesson[];
+}
+
+/**
+ * Returns whether a lesson's prerequisite concepts have all been viewed.
+ *
+ * @param lessonId - The id of the lesson to check.
+ * @param viewed - The set of lesson ids the reader has viewed.
+ * @param dependencies - The concept dependency edges to consult (pass
+ *   CONCEPT_DEPENDENCIES in production; a fixture in tests).
+ */
+export function isLessonReady(
+    lessonId: string,
+    viewed: ReadonlySet<string>,
+    dependencies: readonly (readonly [string, string])[]
+): LessonReadiness {
+    const conceptId = LESSON_CONCEPT_MAP[lessonId];
+    if (conceptId === undefined) {
+        throw new Error(`Unknown lesson: ${lessonId}`);
+    }
+
+    const prereqConceptIds = conceptDependsOnWithDeps(conceptId, dependencies);
+
+    const seen = new Set<string>();
+    const missing: PrerequisiteLesson[] = [];
+
+    for (const depConceptId of prereqConceptIds) {
+        const concept = CONCEPTS.find((c) => c.id === depConceptId);
+        if (concept === undefined) {
+            throw new Error(
+                `Dependency references unknown concept: ${depConceptId}`
+            );
+        }
+        const canonicalLessonId = concept.lessonIds[0];
+        if (canonicalLessonId === undefined) {
+            throw new Error(`Concept ${depConceptId} has no lesson ids`);
+        }
+        if (seen.has(canonicalLessonId)) continue;
+        seen.add(canonicalLessonId);
+        if (!viewed.has(canonicalLessonId)) {
+            missing.push({
+                lessonId: canonicalLessonId,
+                conceptId: depConceptId,
+            });
+        }
+    }
+
+    return { ready: missing.length === 0, missing };
+}
+
+/** Like conceptDependsOn but accepts an explicit dependency list (for purity). */
+function conceptDependsOnWithDeps(
+    conceptId: string,
+    dependencies: readonly (readonly [string, string])[]
+): readonly string[] {
+    return dependencies
+        .filter(([from]) => from === conceptId)
+        .map(([, to]) => to);
+}
+
 /**
  * Directed edges: `[from, to]` means "from depends on to".
  * Learn `from` before `to` for the best experience.

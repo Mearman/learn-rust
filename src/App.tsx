@@ -414,6 +414,7 @@ export function App() {
                                 onCompile={compile}
                                 onClearCompile={clearCompile}
                                 onOpenReference={openConcept}
+                                onOpenLesson={openLesson}
                             />
                         </section>
 

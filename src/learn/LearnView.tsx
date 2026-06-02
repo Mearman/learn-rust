@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, ArrowUpRight } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     lessonTitle,
@@ -14,8 +14,9 @@ import type { LessonBlock } from "./lessons.ts";
 import type { CompileResult } from "../compiler/types.ts";
 import type { UserProfile, ExperienceLevel } from "../settings/types.ts";
 import { backgroundContextNotes } from "../settings/background-context.ts";
-import { CONCEPTS } from "../data/concepts.ts";
-import { LESSON_CONCEPT_MAP } from "../data/concepts.ts";
+import { CONCEPTS, LESSON_CONCEPT_MAP } from "../data/concepts.ts";
+import { isLessonReady, CONCEPT_DEPENDENCIES } from "../data/dependencies.ts";
+import type { PrerequisiteLesson } from "../data/dependencies.ts";
 
 const LEVEL_ORDER: Record<ExperienceLevel, number> = {
     beginner: 0,
@@ -91,6 +92,7 @@ interface LearnViewProps {
     onCompile: (code: string) => Promise<void>;
     onClearCompile: () => void;
     onOpenReference: (id: string) => void;
+    onOpenLesson: (id: string) => void;
 }
 
 function referenceTitleForId(id: string): string {
@@ -112,6 +114,60 @@ interface LessonArticleProps {
     onCompile: (code: string) => Promise<void>;
     onClearCompile: () => void;
     onOpenReference: (id: string) => void;
+    onOpenLesson: (id: string) => void;
+}
+
+function lessonTitleForId(id: string): string {
+    const lesson = LESSONS.find((l) => l.id === id);
+    return lesson !== undefined ? lesson.title : id;
+}
+
+function PrerequisiteBanner({
+    missing,
+    onOpenLesson,
+}: {
+    readonly missing: readonly PrerequisiteLesson[];
+    onOpenLesson: (id: string) => void;
+}) {
+    return (
+        <div className={noteBlock}>
+            <ArrowUpRight
+                size={16}
+                style={{
+                    color: vars.colour.accent,
+                    flexShrink: 0,
+                    marginTop: 2,
+                }}
+            />
+            <span>
+                {"Best read after: "}
+                {missing.map((prereq, i) => (
+                    <span key={prereq.lessonId}>
+                        {i > 0 ? ", " : ""}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onOpenLesson(prereq.lessonId);
+                            }}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                cursor: "pointer",
+                                color: vars.colour.accent,
+                                font: "inherit",
+                                fontSize: "inherit",
+                                textDecoration: "underline",
+                                textUnderlineOffset: "2px",
+                            }}
+                        >
+                            {lessonTitleForId(prereq.lessonId)}
+                        </button>
+                    </span>
+                ))}
+            </span>
+        </div>
+    );
 }
 
 function LessonArticle({
@@ -125,9 +181,12 @@ function LessonArticle({
     onCompile,
     onClearCompile,
     onOpenReference,
+    onOpenLesson,
 }: LessonArticleProps) {
     const articleRef = useRef<HTMLElement | null>(null);
     useDwellRead(lesson.id, articleRef, viewed.has(lesson.id), onMarkViewed);
+
+    const readiness = isLessonReady(lesson.id, viewed, CONCEPT_DEPENDENCIES);
 
     return (
         <article
@@ -180,6 +239,13 @@ function LessonArticle({
                     Compare: {referenceTitleForId(conceptId)}
                 </button>
             </div>
+
+            {!readiness.ready ? (
+                <PrerequisiteBanner
+                    missing={readiness.missing}
+                    onOpenLesson={onOpenLesson}
+                />
+            ) : null}
 
             {backgroundContextNotes(profile.backgrounds, lesson.id).map(
                 (note) => (
@@ -237,6 +303,7 @@ export function LearnView({
     onCompile,
     onClearCompile,
     onOpenReference,
+    onOpenLesson,
 }: LearnViewProps) {
     return (
         <div
@@ -267,6 +334,7 @@ export function LearnView({
                         onCompile={onCompile}
                         onClearCompile={onClearCompile}
                         onOpenReference={onOpenReference}
+                        onOpenLesson={onOpenLesson}
                     />
                 );
             })}
