@@ -1264,6 +1264,10 @@ export const transcriptArticle = style({
     border: `1px solid ${vars.colour.border}`,
     background: vars.colour.panel,
     scrollMarginTop: "5rem",
+    // Without this the embedded source CodeBlock's min-content width forces the
+    // article — and the page — wider than a small (~320px) phone. With min-width
+    // 0 the article shrinks and the code block's own overflow-x: auto scrolls.
+    minWidth: 0,
 });
 
 /** Level badge (warm-up / core / tricky). */
