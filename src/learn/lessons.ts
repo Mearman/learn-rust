@@ -239,16 +239,16 @@ export const LESSONS: readonly Lesson[] = [
                 blocks: [
                     {
                         kind: "text",
-                        text: "Lifetimes have variance — a subtyping relationship. &'a T is covariant in 'a: a longer lifetime satisfies a shorter one. &mut T is invariant: you cannot shorten or lengthen the lifetime of an exclusive reference.",
+                        text: "&'a mut T is covariant in 'a but invariant in T: a longer outer lifetime is acceptable, but the inner type's lifetime cannot be shrunk or grown. This prevents writing a short-lived reference through a long-lived pointer.",
                     },
                     {
                         kind: "text",
-                        text: "This is why you can assign &'static str to a variable expecting &'a str, but cannot assign &mut &'static str to a variable expecting &mut &'a str. Invariance prevents the shorter-lived reference from being written through the longer-lived one.",
+                        text: "This is why you can assign &'static str to a variable expecting &'a str (covariant in 'a), but a function accepting &mut &'a str cannot accept &mut &'static str — invariance in T stops the longer inner lifetime from being treated as the shorter one.",
                     },
                     {
                         kind: "code",
                         label: "variance.rs",
-                        code: `fn covariance() {\n    let s: &'static str = "static";\n    let x: &str = s;  // fine: 'static outlives any 'a\n}\n\nfn invariance() {\n    let mut s: &'static str = "static";\n    // let r: &mut &str = &mut s;  // error: &mut is invariant\n}`,
+                        code: `fn covariance() {\n    let s: &'static str = "static";\n    let x: &str = s;  // fine: 'static outlives any 'a\n}\n\n// invariance in T: the inner lifetime cannot be coerced\nfn assign<'a>(r: &mut &'a str, val: &'a str) {\n    *r = val;\n}\n\nfn invariance_demo() {\n    let mut s: &str = "long-lived";\n    {\n        let short = String::from("short");\n        // assign(&mut s, &short); // error[E0597]: short does not live long enough\n        // Writing &short through &mut s would leave s dangling\n    }\n}`,
                     },
                 ],
             },
@@ -463,7 +463,7 @@ export const LESSONS: readonly Lesson[] = [
                     },
                     {
                         kind: "text",
-                        text: "Trait objects are subject to object safety rules: methods must not return Self, must not have generic type parameters, and must not use Self in argument position. These constraints ensure the vtable has a fixed layout.",
+                        text: "Trait objects are subject to object safety rules: methods that return Self or have generic type parameters make a trait not object-safe. Methods using Self in argument position are accepted only if they carry a `where Self: Sized` bound, which opts them out of vtable inclusion. These constraints ensure the vtable has a fixed layout.",
                     },
                 ],
             },
@@ -507,7 +507,7 @@ export const LESSONS: readonly Lesson[] = [
                     {
                         kind: "code",
                         label: "mono_vs_dyn.rs",
-                        code: `// Static: monomorphised, zero-cost abstraction\nfn sum_static<T: std::ops::Add<Output = T> + Default>(items: &[T]) -> T {\n    items.iter().fold(T::default(), |a, b| a + *b)\n}\n\n// Dynamic: one copy, indirect call\nfn sum_dynamic(items: &[&dyn std::fmt::Display]) {\n    for item in items { print!("{} ", item); }\n}`,
+                        code: `// Static: monomorphised, zero-cost abstraction\nfn sum_static<T: std::ops::Add<Output = T> + Default + Copy>(items: &[T]) -> T {\n    items.iter().fold(T::default(), |a, b| a + *b)\n}\n\n// Dynamic: one copy, indirect call\nfn sum_dynamic(items: &[&dyn std::fmt::Display]) {\n    for item in items { print!("{} ", item); }\n}`,
                     },
                 ],
             },
@@ -554,7 +554,7 @@ export const LESSONS: readonly Lesson[] = [
                     {
                         kind: "code",
                         label: "capture.rs",
-                        code: `fn main() {\n    let name = String::from("Alice");\n\n    // FnOnce: consumes name\n    let greet = move || {\n        println!("Hello, {}", name);  // name moved into closure\n    };\n    greet();\n    // greet();  // error: name already consumed\n\n    let mut count = 0;\n    // FnMut: mutates count\n    let mut increment = || {\n        count += 1;\n        count\n    };\n    increment();\n    increment();\n    println!("{}", count);  // 2\n}`,
+                        code: `fn main() {\n    let name = String::from("Alice");\n\n    // Fn: move captures name, but only reads it via println!\n    // The closure is Fn — callable multiple times.\n    let greet = move || {\n        println!("Hello, {}", name);  // borrows name by shared ref\n    };\n    greet();\n    greet();  // fine: Fn closures can be called repeatedly\n\n    let owned = String::from("consumed");\n    // FnOnce: drop() moves owned out of the closure\n    let consume = move || {\n        drop(owned);  // owned is moved out — genuinely FnOnce\n    };\n    consume();\n    // consume();  // error: use of moved value\n\n    let mut count = 0;\n    // FnMut: mutates count\n    let mut increment = || {\n        count += 1;\n        count\n    };\n    increment();\n    increment();\n    println!("{}", count);  // 2\n}`,
                     },
                     {
                         kind: "text",
@@ -611,7 +611,7 @@ export const LESSONS: readonly Lesson[] = [
                 blocks: [
                     {
                         kind: "text",
-                        text: "UnsafeCell<T> is the only way to get a &mut T from a &T in safe Rust — but only inside unsafe blocks. Every safe interior mutability type builds on it: Cell<T> for Copy types, RefCell<T> for types with dynamic borrow tracking.",
+                        text: "UnsafeCell<T> is the only way to obtain &mut T from &T; it is the primitive on which all safe interior mutability types (Cell, RefCell, Mutex) are built. Dereferencing UnsafeCell's raw pointer requires an unsafe block — safe wrappers like RefCell do that internally so callers don't need to.",
                     },
                     {
                         kind: "code",
