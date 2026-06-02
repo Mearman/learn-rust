@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/Mearman/learn-rust/compare/v1.4.0...v1.4.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* show the compact tailoring strip only after the header scrolls away ([3709d5f](https://github.com/Mearman/learn-rust/commit/3709d5f71824b427cab2195fc5f8e07ffecafc48))
+
 # [1.4.0](https://github.com/Mearman/learn-rust/compare/v1.3.0...v1.4.0) (2026-06-02)
 
 
