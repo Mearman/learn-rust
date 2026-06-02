@@ -10,6 +10,7 @@ import {
     morphMeta,
     morphFields,
     morphField,
+    morphFieldWide,
     morphFieldLabel,
     morphFieldHelp,
     monoSm,
@@ -223,7 +224,7 @@ export function MorphingTailoring({
                     </div>
                 </div>
 
-                <div className={morphField}>
+                <div className={`${morphField} ${morphFieldWide}`}>
                     <label className={morphFieldLabel}>Level</label>
                     <SegmentedControl
                         data={[...EXPERIENCE_OPTIONS]}
@@ -236,25 +237,25 @@ export function MorphingTailoring({
                                 border: `1px solid ${vars.colour.border}`,
                             },
                             label: {
-                                color: vars.colour.dim,
+                                color: vars.colour.text,
                                 fontSize:
                                     "calc(0.875rem - var(--morph, 0) * 0.125rem)",
                                 paddingTop:
-                                    "calc(0.45rem - var(--morph, 0) * 0.25rem)",
+                                    "calc(0.4rem - var(--morph, 0) * 0.15rem)",
                                 paddingBottom:
-                                    "calc(0.45rem - var(--morph, 0) * 0.25rem)",
+                                    "calc(0.4rem - var(--morph, 0) * 0.15rem)",
                             },
                             indicator: {
                                 background: vars.colour.accent,
                             },
                             innerLabel: {
-                                color: "#1a0f08",
+                                color: vars.colour.accentText,
                                 fontWeight: 500,
                             },
                             control: {
                                 "&[data-active]": {
                                     "& .mantine-SegmentedControl-innerLabel": {
-                                        color: "#1a0f08",
+                                        color: vars.colour.accentText,
                                     },
                                 },
                             },

@@ -441,25 +441,41 @@ export const stickyPinned = style({
 export const morphPanel = style({
     display: "flex",
     flexDirection: "column",
-    gap: "calc(0.875rem - var(--morph, 0) * 0.625rem)",
+    gap: "calc(0.625rem - var(--morph, 0) * 0.5rem)",
     padding:
-        "calc(0.875rem - var(--morph, 0) * 0.5rem)" +
-        " calc(1rem - var(--morph, 0) * 0.375rem)",
+        "calc(0.625rem - var(--morph, 0) * 0.375rem)" +
+        " calc(0.75rem - var(--morph, 0) * 0.25rem)",
     borderRadius: "calc(0.875rem - var(--morph, 0) * 0.25rem)",
     background: vars.colour.panel2,
     border: `1px solid ${vars.colour.border}`,
     backdropFilter: "blur(8px)",
     willChange: "gap, padding",
+    "@media": {
+        [sm]: {
+            gap: "calc(0.875rem - var(--morph, 0) * 0.625rem)",
+            padding:
+                "calc(0.875rem - var(--morph, 0) * 0.5rem)" +
+                " calc(1rem - var(--morph, 0) * 0.375rem)",
+        },
+    },
 });
 
 /** Top row: title block on the left, meta (progress + theme) on the right,
  *  justified to the full width so the title never sits in front of dead space. */
 export const morphTopRow = style({
     display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "0.5rem 1.5rem",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: "0.5rem",
+    "@media": {
+        [sm]: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "0.5rem 1.5rem",
+        },
+    },
 });
 
 /** Title column: the always-present title plus the collapsing subtitle. */
@@ -480,19 +496,30 @@ export const morphPanelTitle = style({
     lineHeight: 1.1,
     whiteSpace: "nowrap",
     color: vars.colour.text,
-    fontSize: "calc(1.875rem - var(--morph, 0) * 1.0625rem)",
+    fontSize: "calc(1.5rem - var(--morph, 0) * 0.6875rem)",
     willChange: "font-size",
+    "@media": {
+        [sm]: {
+            fontSize: "calc(1.875rem - var(--morph, 0) * 1.0625rem)",
+        },
+    },
 });
 
 /** Subtitle: expanded-only, collapses to zero height and fades on condense. */
 export const morphSubtitle = style({
+    display: "none",
     margin: 0,
     overflow: "hidden",
     fontSize: "0.875rem",
     color: vars.colour.faint,
-    maxHeight: "calc((1 - var(--morph, 0)) * 2.5rem)",
-    opacity: "calc(1 - var(--morph, 0) * 1.8)",
     willChange: "max-height, opacity",
+    "@media": {
+        [sm]: {
+            display: "block",
+            maxHeight: "calc((1 - var(--morph, 0)) * 2.5rem)",
+            opacity: "calc(1 - var(--morph, 0) * 1.8)",
+        },
+    },
 });
 
 /** Meta cluster (progress stats + theme toggle): sits top-right in both forms.
@@ -501,21 +528,38 @@ export const morphSubtitle = style({
 export const morphMeta = style({
     display: "flex",
     alignItems: "center",
-    gap: "calc(1rem - var(--morph, 0) * 0.4rem)",
-    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    flexWrap: "nowrap",
+    gap: "0.75rem",
     flexShrink: 0,
+    "@media": {
+        [sm]: {
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+            gap: "calc(1rem - var(--morph, 0) * 0.4rem)",
+        },
+    },
 });
 
 /** Theme toggle wrapper: label above the control when expanded, label collapsed
  *  away when condensed so the toggle sits inline with the progress stats. */
 export const morphThemeToggle = style({
     display: "flex",
-    flexDirection: "column",
-    gap: "calc(0.25rem - var(--morph, 0) * 0.25rem)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 0,
+    "@media": {
+        [sm]: {
+            flexDirection: "column",
+            alignItems: "stretch",
+            gap: "calc(0.25rem - var(--morph, 0) * 0.25rem)",
+        },
+    },
 });
 
 /** The "Theme" label above the toggle: expanded-only, collapses on condense. */
 export const morphThemeLabel = style({
+    display: "none",
     fontSize: "0.6875rem",
     fontFamily: "ui-monospace, monospace",
     color: vars.colour.accentSoft,
@@ -523,9 +567,14 @@ export const morphThemeLabel = style({
     textTransform: "uppercase" as const,
     letterSpacing: "0.05em",
     overflow: "hidden",
-    maxHeight: "calc((1 - var(--morph, 0)) * 1.25rem)",
-    opacity: "calc(1 - var(--morph, 0) * 2)",
     willChange: "max-height, opacity",
+    "@media": {
+        [sm]: {
+            display: "block",
+            maxHeight: "calc((1 - var(--morph, 0)) * 1.25rem)",
+            opacity: "calc(1 - var(--morph, 0) * 2)",
+        },
+    },
 });
 
 /** Control grid: an even, responsive set of columns that tighten as the panel
@@ -533,9 +582,26 @@ export const morphThemeLabel = style({
  *  unevenly the way a flex row does. */
 export const morphFields = style({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
     alignItems: "start",
     gap: "calc(0.875rem - var(--morph, 0) * 0.5rem)",
+    "@media": {
+        [md]: {
+            gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+        },
+    },
+});
+
+/** Field spanning the full control grid on mobile (e.g. the Level segmented
+ *  control, which needs horizontal room for all three labels); reverts to a
+ *  normal auto-placed cell once the grid goes auto-fit at md. */
+export const morphFieldWide = style({
+    gridColumn: "1 / -1",
+    "@media": {
+        [md]: {
+            gridColumn: "auto",
+        },
+    },
 });
 
 /** A single control field: label, control, and collapsing help. */
@@ -559,13 +625,19 @@ export const morphFieldLabel = style({
 
 /** Per-field help text: expanded-only, collapses as the panel condenses. */
 export const morphFieldHelp = style({
+    display: "none",
     overflow: "hidden",
-    maxHeight: "calc((1 - var(--morph, 0)) * 3rem)",
-    opacity: "calc(1 - var(--morph, 0) * 1.6)",
     fontSize: "0.75rem",
     lineHeight: 1.5,
     color: vars.colour.dim,
     willChange: "max-height, opacity",
+    "@media": {
+        [sm]: {
+            display: "block",
+            maxHeight: "calc((1 - var(--morph, 0)) * 3rem)",
+            opacity: "calc(1 - var(--morph, 0) * 1.6)",
+        },
+    },
 });
 
 // ---------------------------------------------------------------------------
@@ -574,7 +646,9 @@ export const morphFieldHelp = style({
 
 export const stickyNav = style({
     display: "flex",
-    flexWrap: "wrap",
+    flexWrap: "nowrap",
+    overflowX: "auto",
+    WebkitOverflowScrolling: "touch",
     gap: "0.25rem",
     padding: "0.5rem",
     borderRadius: "0.75rem",
@@ -583,8 +657,6 @@ export const stickyNav = style({
     backdropFilter: "blur(8px)",
     "@media": {
         [md]: {
-            flexWrap: "nowrap",
-            overflowX: "auto",
             padding: "0.25rem",
         },
     },
@@ -593,6 +665,12 @@ export const stickyNav = style({
 export const tabButton = style({
     display: "flex",
     alignItems: "center",
+    justifyContent: "center",
+    // Icon-only tap target at base: 15px icon + 2 * 0.625rem horizontal padding
+    // ≈ 2.25rem, matching the clickable-width fix in commit 4f4e06d. Keeps the
+    // horizontal scroll strip evenly spaced rather than packed around bare icons;
+    // non-binding at md once the text labels show.
+    minWidth: "2.25rem",
     gap: "0.375rem",
     borderRadius: "0.5rem",
     padding: "0.5rem 0.625rem",
