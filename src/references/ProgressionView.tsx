@@ -9,12 +9,12 @@ import {
 import { CheckCircle, Circle, GitBranch } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
-    lessonTitle,
     lessonTagline,
     navButton,
     cheatCard,
     cheatTitle,
     noteBlock,
+    srOnly,
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
 import {
@@ -46,6 +46,19 @@ function strokeForState(state: NodeState): string {
             return vars.colour.accent;
         case "locked":
             return vars.colour.border;
+    }
+}
+
+/** Human-readable progress label for a node, announced to assistive tech since
+ *  the visual state is otherwise conveyed only by colour and icon. */
+function statusLabelForState(state: NodeState): string {
+    switch (state) {
+        case "complete":
+            return "Completed";
+        case "started":
+            return "In progress";
+        case "locked":
+            return "Not started";
     }
 }
 
@@ -220,10 +233,13 @@ export function ProgressionView({
                     gap: "0.375rem",
                 }}
             >
-                <h2 className={lessonTitle}>Learning path</h2>
-                <span
+                {/* The section <h2> ("Learning path") is rendered by App.tsx;
+                    repeating it here would create a duplicate heading, so this
+                    block is the section's lede paragraph, not a heading. */}
+                <p
                     className={lessonTagline}
                     style={{
+                        margin: 0,
                         fontSize: "0.95rem",
                         color: vars.colour.faint,
                         lineHeight: 1.5,
@@ -231,7 +247,7 @@ export function ProgressionView({
                 >
                     Concepts build on each other. Earlier layers are
                     prerequisites for later ones.
-                </span>
+                </p>
             </header>
 
             <div className={noteBlock}>
@@ -512,6 +528,9 @@ export function ProgressionView({
                                             >
                                                 {concept.title}
                                             </h3>
+                                            <span className={srOnly}>
+                                                {statusLabelForState(state)}
+                                            </span>
                                         </div>
                                         <p
                                             style={{
@@ -649,6 +668,7 @@ export function ProgressionView({
                         </div>
                         {layerIndex < layers.length - 1 ? (
                             <div
+                                aria-hidden="true"
                                 style={{
                                     display: "flex",
                                     justifyContent: "center",
