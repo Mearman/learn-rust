@@ -1,3 +1,37 @@
+# [1.8.0](https://github.com/Mearman/learn-rust/compare/v1.7.1...v1.8.0) (2026-06-02)
+
+
+### Bug Fixes
+
+* **a11y:** fix learning-path heading level and announce node status ([37e2bbd](https://github.com/Mearman/learn-rust/commit/37e2bbdad9de486f8a177b4f06e8d0a27345a190))
+* **a11y:** keep tailoring control tap targets large on touch ([afe77a2](https://github.com/Mearman/learn-rust/commit/afe77a231d5bad719034597d71c02785474ee6b4))
+* **a11y:** label the TOC sidebar and make the mobile sheet backdrop a button ([ff41076](https://github.com/Mearman/learn-rust/commit/ff410768bd5ebeeacbc6e66b48f31725c9b93b9e))
+* cap rendered compiler output so a huge stream can't lock the page ([5348c34](https://github.com/Mearman/learn-rust/commit/5348c34f00fffb8131499a38c9c9c4d4ce7b8ee8))
+* drop dead validateSelections throw from MorphingTailoring ([a74c1f9](https://github.com/Mearman/learn-rust/commit/a74c1f94009524096db6647013ddde32a2eab6c7))
+* hold the header morph at 0 until a top-of-page height sample ([a7e606f](https://github.com/Mearman/learn-rust/commit/a7e606f98394c8c7ec8945268abc3c85232b3c7e))
+* **learn:** key compile output to the block that ran it ([7f13c6e](https://github.com/Mearman/learn-rust/commit/7f13c6eecc2ba6014371867998e0223686d41fb0))
+* make scroll-spy pick the active section deterministically ([db5203b](https://github.com/Mearman/learn-rust/commit/db5203bccc7e2f393acaa6b467aabcac3174b14d))
+* only append the ellipsis to search previews that were truncated ([6b40a4e](https://github.com/Mearman/learn-rust/commit/6b40a4ed897a2b3c1e871846bb1787dfd2c48507))
+* stop corrupt localStorage white-screening the app ([28e26f8](https://github.com/Mearman/learn-rust/commit/28e26f84639a0335723688302ab5388328118d41))
+* treat a lesson-less concept as not-complete in the progression graph ([bbf840c](https://github.com/Mearman/learn-rust/commit/bbf840ca176566fd71defdd19163d3b5b6963e35))
+
+
+### Features
+
+* **a11y:** add skip link, main landmark, and shared a11y styles ([fdf3c81](https://github.com/Mearman/learn-rust/commit/fdf3c816a3ae55c1ad86c6ca55e4f403cba32da3))
+* **a11y:** honour prefers-reduced-motion for scroll and the strip morph ([cc2ec3c](https://github.com/Mearman/learn-rust/commit/cc2ec3cdbdef3cb6089c26a5d74029b7249bb3cc))
+* **layout:** add reusable ErrorBoundary with localised fallback ([aaf3604](https://github.com/Mearman/learn-rust/commit/aaf3604aea5bb4a10d089bb3c26e535d3a3e82a7))
+* ship a baseline Content-Security-Policy via meta tag ([8f730db](https://github.com/Mearman/learn-rust/commit/8f730db39ba9aaf8b3183bbf1f35c0b46ec8c454))
+
+
+### Performance Improvements
+
+* **app:** code-split below-the-fold views and the search overlay ([c849155](https://github.com/Mearman/learn-rust/commit/c8491556fa6ecec95fee5e5882fa809dd2e74c4a))
+* **build:** split react and mantine into stable vendor chunks ([9dd841a](https://github.com/Mearman/learn-rust/commit/9dd841aeb056061e716736ad277f708e0605f7a3))
+* prefetch the code-split view chunks on idle ([61fc9ca](https://github.com/Mearman/learn-rust/commit/61fc9ca4cd6a77563cd3306cfa27bf79832e308e))
+* **progression:** index concepts/lessons by id and rAF-throttle resize ([64bd2ac](https://github.com/Mearman/learn-rust/commit/64bd2ac2da5fd7c20b28898b662436abcdc406b0))
+* **theme:** import only the Mantine component CSS the app uses ([371ea12](https://github.com/Mearman/learn-rust/commit/371ea12351c14257c96e7cc3210158c145935ecd))
+
 ## [1.7.1](https://github.com/Mearman/learn-rust/compare/v1.7.0...v1.7.1) (2026-06-02)
 
 
