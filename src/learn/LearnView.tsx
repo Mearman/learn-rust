@@ -301,7 +301,7 @@ function LessonArticle({
                 />
             ) : null}
 
-            <Collapse in={!collapsed}>
+            <Collapse expanded={!collapsed}>
                 <div
                     style={{
                         display: "flex",

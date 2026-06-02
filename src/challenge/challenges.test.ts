@@ -13,7 +13,7 @@ function makeProfile(
     backgrounds: UserProfile["backgrounds"] = [],
     familiarities: UserProfile["familiarities"] = []
 ): UserProfile {
-    return { experience, backgrounds, familiarities };
+    return { experience, backgrounds, familiarities, hardGating: false };
 }
 
 function levels(challenges: readonly Challenge[]): string[] {
