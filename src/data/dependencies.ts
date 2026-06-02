@@ -17,6 +17,15 @@ export const CONCEPT_DEPENDENCIES: readonly (readonly [string, string])[] = [
     // Smart pointers combine ownership + borrowing + interior mutability
     ["smart-pointers", "memory-management"],
     ["smart-pointers", "reference-semantics"],
+    // Generics depend on understanding types through ADTs first
+    ["generics", "algebraic-data-types"],
+    // Collection pipelines rely on understanding iterators over owned data
+    ["collection-pipelines", "memory-management"],
+    // Error signalling with ? requires understanding Option/Result as types,
+    // which in turn requires knowing how to pattern-match ADTs
+    ["error-signalling", "reference-validity"],
+    // Smart pointers require trait knowledge (Deref, Drop)
+    ["smart-pointers", "behaviour-abstraction"],
 ];
 
 export function conceptDependsOn(conceptId: string): readonly string[] {
