@@ -157,9 +157,9 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     },
     {
         id: "cow",
-        term: "Cow<T>",
+        term: "Cow<'a, B>",
         definition:
-            "Clone-on-Write smart pointer from std::borrow. Cow wraps either a borrowed reference (&T) or an owned value (T), letting functions accept borrowed data while still being able to mutate it when necessary — in which case the borrowed data is cloned into an owned copy. It is commonly used in string processing where most transformations leave the data unchanged but some require modification.",
+            "Clone-on-Write smart pointer from std::borrow. The full type is Cow<'a, B: ToOwned>: the borrowed variant holds &'a B and the owned variant holds B::Owned. For example, Cow<str> borrows &str and owns String. This lets functions accept borrowed data while still being able to mutate it when necessary — in which case the borrowed data is cloned into an owned copy. It is commonly used in string processing where most transformations leave the data unchanged but some require modification.",
         relatedTerms: ["borrow-trait", "smart-pointers", "box"],
         conceptId: "smart-pointers",
     },
@@ -204,7 +204,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         id: "interior-mutability",
         term: "Interior mutability",
         definition:
-            "A design pattern where you mutate data through a shared reference, bypassing the usual borrowing rules by moving the enforcement to runtime. The standard library provides Cell<T> for Copy types and RefCell<T> for general types, both of which let you obtain a mutable reference (&mut T) from a &self method. This is necessary when the mutation is an implementation detail that does not affect the logical immutability of the container.",
+            "A design pattern where you mutate data through a shared reference, bypassing the usual borrowing rules by moving the enforcement to runtime. Cell<T> provides get/set for Copy types — it never yields a reference into its interior. RefCell<T> issues a RefMut<T> (a runtime-checked exclusive reference) from borrow_mut(). This is necessary when the mutation is an implementation detail that does not affect the logical immutability of the container.",
         relatedTerms: [
             "refcell",
             "borrowing-rules",
@@ -443,7 +443,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
         id: "panic",
         term: "panic!",
         definition:
-            "A macro that immediately aborts the current thread with an error message and stack trace. Panics are used for unrecoverable errors — situations where the program has reached a state the programmer did not anticipate. Common triggers include indexing out of bounds, dividing by zero, and calling unwrap on a None or Err. In non-test builds a panic unwinds the stack (running Drop implementations); it can also be configured to abort the process.",
+            'A macro that immediately aborts the current thread with an error message and stack trace. Panics are used for unrecoverable errors — situations where the program has reached a state the programmer did not anticipate. Common triggers include indexing out of bounds, dividing by zero, and calling unwrap on a None or Err. By default, a panic unwinds the stack (running Drop implementations); set panic = "abort" in Cargo.toml to abort the process instead.',
         relatedTerms: ["result", "option", "unwrap", "expect"],
         conceptId: "error-signalling",
     },
