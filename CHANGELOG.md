@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/Mearman/learn-rust/compare/v1.0.0...v1.1.0) (2026-06-02)
+
+
+### Features
+
+* star sidebar entries to keep them visible when collapsed ([7335cca](https://github.com/Mearman/learn-rust/commit/7335cca586a2d9063adc302cb86c0aceaf280b65))
+* vertical card stacks and answerable challenge cards as sidebar entries ([0d9c1b1](https://github.com/Mearman/learn-rust/commit/0d9c1b15390c822ad405b8dd0ee98b324860cbf9))
+
 # 1.0.0 (2026-06-02)
 
 
