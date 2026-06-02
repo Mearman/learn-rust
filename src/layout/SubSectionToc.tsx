@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Collapse, ScrollArea, TextInput } from "@mantine/core";
 import { ChevronRight, List, Search, Star, X } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
+import { useBodyScrollLock } from "./useBodyScrollLock.ts";
 import {
     tocSidebar,
     tocFab,
@@ -261,6 +262,8 @@ export function SubSectionToc({
     const [filter, setFilter] = useState("");
     const [starred, toggleStar] = useStarredEntries();
 
+    useBodyScrollLock(sheetOpen);
+
     // Expansion state model.
     //
     // expanded: the set of section IDs currently open.
@@ -467,7 +470,7 @@ export function SubSectionToc({
                     }}
                     aria-label="Table of contents"
                 >
-                    <List size={18} />
+                    <List size={18} aria-hidden="true" />
                 </button>
             ) : null}
 
@@ -521,7 +524,7 @@ export function SubSectionToc({
                                     }}
                                     aria-label="Close"
                                 >
-                                    <X size={18} />
+                                    <X size={18} aria-hidden="true" />
                                 </button>
                             </div>
 
@@ -540,6 +543,7 @@ export function SubSectionToc({
                                     leftSection={
                                         <Search
                                             size={14}
+                                            aria-hidden="true"
                                             style={{
                                                 color: vars.colour.faint,
                                             }}

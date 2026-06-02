@@ -81,6 +81,7 @@ import {
     useHashNavigation,
 } from "./layout/useScrollNavigation.ts";
 import { useHasBeenVisible } from "./layout/useHasBeenVisible.ts";
+import { useBodyScrollLock } from "./layout/useBodyScrollLock.ts";
 
 /** Section icons in canonical order — labels come from SECTION_META in
  *  subSections.ts so they never drift from the TOC tree. */
@@ -212,6 +213,9 @@ export function App() {
     // Scroll to the fragment from the initial URL on first mount.
     useHashNavigation(sectionMounts);
 
+    // Lock background scroll while the search overlay is open.
+    useBodyScrollLock(showSearch);
+
     // Global Cmd/Ctrl+K shortcut to open search overlay.
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -283,6 +287,7 @@ export function App() {
                             >
                                 <BookOpen
                                     size={13}
+                                    aria-hidden="true"
                                     style={{ color: vars.colour.accent }}
                                 />
                                 {viewed.size}/{LESSONS.length} read
@@ -296,6 +301,7 @@ export function App() {
                             >
                                 <Trophy
                                     size={13}
+                                    aria-hidden="true"
                                     style={{ color: vars.colour.accent }}
                                 />
                                 {challengeScore.correct}/{challengeScore.total}
@@ -354,7 +360,7 @@ export function App() {
                                     }}
                                     className={`${tabButton} ${on ? tabButtonActive : ""}`}
                                 >
-                                    <Icon size={15} />
+                                    <Icon size={15} aria-hidden="true" />
                                     <span className={tabButtonLabel}>
                                         {s.label}
                                     </span>
@@ -369,7 +375,7 @@ export function App() {
                             className={tabButton}
                             aria-label="Open search (Cmd+K)"
                         >
-                            <Search size={15} />
+                            <Search size={15} aria-hidden="true" />
                             <span className={tabButtonLabel}>Search</span>
                         </button>
                     </nav>
@@ -693,7 +699,7 @@ function SearchOverlay({
                         id={inputId}
                         type="text"
                         role="combobox"
-                        aria-expanded={results.length > 0}
+                        aria-expanded={true}
                         aria-controls="search-results-listbox"
                         aria-autocomplete="list"
                         aria-activedescendant={
@@ -716,8 +722,29 @@ function SearchOverlay({
                         className={searchCloseButton}
                         aria-label="Close search"
                     >
-                        <X size={18} />
+                        <X size={18} aria-hidden="true" />
                     </button>
+                </div>
+                {/* Visually-hidden live region: announces result count to
+                    screen readers without disrupting keyboard focus. */}
+                <div
+                    role="status"
+                    aria-live="polite"
+                    style={{
+                        position: "absolute",
+                        width: 1,
+                        height: 1,
+                        padding: 0,
+                        margin: -1,
+                        overflow: "hidden",
+                        clip: "rect(0,0,0,0)",
+                        whiteSpace: "nowrap",
+                        borderWidth: 0,
+                    }}
+                >
+                    {query.trim().length >= 2
+                        ? `${String(results.length)} result${results.length === 1 ? "" : "s"}`
+                        : ""}
                 </div>
                 <div
                     id="search-results-listbox"
