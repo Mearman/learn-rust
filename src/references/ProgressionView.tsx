@@ -11,6 +11,7 @@ import {
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
 import { conceptDependsOn, conceptRequiredBy } from "../data/dependencies.ts";
+import { LESSONS } from "../learn/lessons.ts";
 
 interface ProgressionViewProps {
     readonly onOpenLesson: (lessonId: string) => void;
@@ -216,23 +217,33 @@ export function ProgressionView({
                                         >
                                             Compare languages
                                         </button>
-                                        {concept.lessonIds.map((lessonId) => (
-                                            <button
-                                                key={lessonId}
-                                                type="button"
-                                                onClick={() => {
-                                                    onOpenLesson(lessonId);
-                                                }}
-                                                className={navButton}
-                                                style={{
-                                                    width: "auto",
-                                                    padding: "0.4rem 0.65rem",
-                                                    fontSize: "0.8rem",
-                                                }}
-                                            >
-                                                Lesson: {lessonId}
-                                            </button>
-                                        ))}
+                                        {concept.lessonIds.map((lessonId) => {
+                                            const lesson = LESSONS.find(
+                                                (l) => l.id === lessonId
+                                            );
+                                            const label =
+                                                lesson !== undefined
+                                                    ? lesson.title
+                                                    : lessonId;
+                                            return (
+                                                <button
+                                                    key={lessonId}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        onOpenLesson(lessonId);
+                                                    }}
+                                                    className={navButton}
+                                                    style={{
+                                                        width: "auto",
+                                                        padding:
+                                                            "0.4rem 0.65rem",
+                                                        fontSize: "0.8rem",
+                                                    }}
+                                                >
+                                                    {label}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </section>
                             );
