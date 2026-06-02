@@ -171,10 +171,23 @@ export function ProgressionView({
         }
 
         setEdges(computed);
-        setSvgSize({
-            width: container.scrollWidth,
-            height: container.scrollHeight,
-        });
+
+        // Size the SVG to the node extent, measured from the node elements —
+        // NOT `container.scrollWidth`/`scrollHeight`. The SVG is absolutely
+        // positioned at the container's origin, and an overflowing abspos child
+        // counts towards its parent's scroll size, so measuring the container
+        // would feed the SVG's own size back in: once it reached its widest
+        // value on a desktop render it stayed there, overflowing narrow
+        // viewports. Measuring the nodes is feedback-free and shrinks when they
+        // reflow on a smaller screen.
+        let maxX = 0;
+        let maxY = 0;
+        for (const el of nodeRefs.current.values()) {
+            const r = el.getBoundingClientRect();
+            maxX = Math.max(maxX, r.right - containerRect.left);
+            maxY = Math.max(maxY, r.bottom - containerRect.top);
+        }
+        setSvgSize({ width: maxX, height: maxY });
         // `layers` is derived once (useMemo with [] deps) so it is stable and
         // does not belong in the dependency array; only `viewed` drives a
         // recompute. Live geometry changes are caught by the ResizeObserver.
