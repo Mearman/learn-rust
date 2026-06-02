@@ -1,6 +1,6 @@
 import { SegmentedControl } from "@mantine/core";
 import { vars } from "../theme/theme.css.ts";
-import { settingsLabel } from "../theme/styles.css.ts";
+import { morphThemeToggle, morphThemeLabel } from "../theme/styles.css.ts";
 import { isThemeMode, type ThemeMode } from "../theme/useThemeMode.ts";
 
 interface ThemeToggleProps {
@@ -19,10 +19,8 @@ const THEME_OPTIONS = [
 
 export function ThemeToggle({ mode, onChange }: ThemeToggleProps) {
     return (
-        <div
-            style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
-        >
-            <label className={settingsLabel}>Theme</label>
+        <div className={morphThemeToggle}>
+            <label className={morphThemeLabel}>Theme</label>
             <SegmentedControl
                 data={[...THEME_OPTIONS]}
                 value={mode}

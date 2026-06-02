@@ -25,6 +25,13 @@ globalStyle("body", {
 
 globalStyle("html", {
     scrollPaddingTop: "120px",
+    // The tailoring panel condenses with scroll, which moves the content below
+    // it. The browser's default scroll anchoring fights that by nudging the
+    // scroll position to keep content still, which feeds back into the
+    // scroll-driven morph and makes it jitter. Disable anchoring on the scroll
+    // root so the condense moves content freely. (Deferred sections mount below
+    // the viewport, so nothing relies on anchoring to hold position.)
+    overflowAnchor: "none",
     "@media": { [md]: { scrollPaddingTop: "88px" } },
 });
 
@@ -371,30 +378,6 @@ export const shellInner = style({
     },
 });
 
-export const headerFlex = style({
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.75rem",
-    "@media": {
-        [md]: {
-            flexDirection: "row",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-        },
-    },
-});
-
-export const heading = style({
-    fontSize: "1.5rem",
-    fontWeight: 700,
-    margin: 0,
-    letterSpacing: "-0.025em",
-    color: vars.colour.text,
-    "@media": {
-        [sm]: { fontSize: "1.875rem" },
-    },
-});
-
 // ---------------------------------------------------------------------------
 // Section headings
 // ---------------------------------------------------------------------------
@@ -416,72 +399,168 @@ export const sectionHeading = style({
 // ---------------------------------------------------------------------------
 
 /** Outer sticky container that keeps both the tailoring strip and the section
- *  nav pinned as a unit at the top of the viewport. */
+ *  nav pinned as a unit at the top of the viewport.
+ *
+ *  No flex `gap` here: the spacing between the strip and the nav is supplied by
+ *  `morphStripCollapse`'s morph-scaled `marginBottom`, so the gap collapses to
+ *  zero along with the strip at the top of the page (no phantom space above the
+ *  nav while the strip is hidden). */
 export const stickyPinned = style({
     position: "sticky",
     top: 0,
     zIndex: 10,
     display: "flex",
     flexDirection: "column",
-    gap: "0.25rem",
 });
 
 // ---------------------------------------------------------------------------
-// Compact always-visible tailoring strip
+// Scroll-linked tailoring panel morph (one element, two forms)
+//
+// `useHeaderMorph` writes a `--morph` custom property (0 at the top of the
+// page, 1 once the panel's expanded height has been scrolled past) onto the
+// shell container. The *same* tailoring elements — title, the three controls,
+// their labels — read that property and transform between an expanded card and
+// a compact strip: font sizes, padding and gaps interpolate, and the
+// expanded-only parts (subtitle, stats, theme toggle, per-field help) collapse
+// to nothing. Nothing is rendered twice; there is no separate strip to fade in.
+//
+// No CSS `transition` is used: the value updates every animation frame, so a
+// transition would smear the motion against the scroll instead of tracking it.
+// The panel sits in the sticky bar, so as it condenses the bar shrinks and the
+// content below rises to meet it — a deliberate condense, scaled gently by
+// tying the scroll distance to the panel's full height.
 // ---------------------------------------------------------------------------
 
-export const compactStrip = style({
+/** The morphing tailoring panel: a card when expanded, a slim strip when
+ *  condensed. Padding, gap and corner radius interpolate with `--morph`. */
+export const morphPanel = style({
     display: "flex",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: "0.5rem",
-    padding: "0.375rem 0.625rem",
-    borderRadius: "0.625rem",
-    background: vars.colour.panel,
+    flexDirection: "column",
+    gap: "calc(0.875rem - var(--morph, 0) * 0.625rem)",
+    padding:
+        "calc(0.875rem - var(--morph, 0) * 0.5rem)" +
+        " calc(1rem - var(--morph, 0) * 0.375rem)",
+    borderRadius: "calc(0.875rem - var(--morph, 0) * 0.25rem)",
+    background: vars.colour.panel2,
     border: `1px solid ${vars.colour.border}`,
     backdropFilter: "blur(8px)",
+    willChange: "gap, padding",
 });
 
-export const compactStripTitle = style({
-    fontSize: "0.75rem",
-    fontWeight: 700,
-    letterSpacing: "-0.01em",
-    color: vars.colour.text,
-    whiteSpace: "nowrap",
-    flexShrink: 0,
-    marginRight: "0.25rem",
-    "@media": {
-        [md]: { fontSize: "0.8125rem" },
-    },
-});
-
-export const compactStripControls = style({
+/** Top row: title block on the left, meta (progress + theme) on the right,
+ *  justified to the full width so the title never sits in front of dead space. */
+export const morphTopRow = style({
     display: "flex",
-    alignItems: "center",
     flexWrap: "wrap",
-    gap: "0.5rem",
-    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "0.5rem 1.5rem",
+});
+
+/** Title column: the always-present title plus the collapsing subtitle. */
+export const morphTitleCol = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "calc(0.25rem - var(--morph, 0) * 0.25rem)",
     minWidth: 0,
 });
 
-export const compactStripField = style({
+/** Page title — present in both forms; its font size shrinks from heading to
+ *  strip-label scale. A real font-size change (not a transform) so it keeps the
+ *  surrounding layout honest as it condenses. */
+export const morphPanelTitle = style({
+    margin: 0,
+    fontWeight: 700,
+    letterSpacing: "-0.02em",
+    lineHeight: 1.1,
+    whiteSpace: "nowrap",
+    color: vars.colour.text,
+    fontSize: "calc(1.875rem - var(--morph, 0) * 1.0625rem)",
+    willChange: "font-size",
+});
+
+/** Subtitle: expanded-only, collapses to zero height and fades on condense. */
+export const morphSubtitle = style({
+    margin: 0,
+    overflow: "hidden",
+    fontSize: "0.875rem",
+    color: vars.colour.faint,
+    maxHeight: "calc((1 - var(--morph, 0)) * 2.5rem)",
+    opacity: "calc(1 - var(--morph, 0) * 1.8)",
+    willChange: "max-height, opacity",
+});
+
+/** Meta cluster (progress stats + theme toggle): sits top-right in both forms.
+ *  It stays visible when condensed — only its internal spacing tightens and the
+ *  theme toggle sheds its label (see `morphThemeToggle`/`morphThemeLabel`). */
+export const morphMeta = style({
     display: "flex",
     alignItems: "center",
-    gap: "0.25rem",
-    // Keep the field at its natural width (label + a usable control) and let
-    // the row wrap instead of shrinking controls to an unclickable sliver.
+    gap: "calc(1rem - var(--morph, 0) * 0.4rem)",
+    flexWrap: "wrap",
     flexShrink: 0,
 });
 
-export const compactStripLabel = style({
-    fontSize: "0.625rem",
+/** Theme toggle wrapper: label above the control when expanded, label collapsed
+ *  away when condensed so the toggle sits inline with the progress stats. */
+export const morphThemeToggle = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "calc(0.25rem - var(--morph, 0) * 0.25rem)",
+});
+
+/** The "Theme" label above the toggle: expanded-only, collapses on condense. */
+export const morphThemeLabel = style({
+    fontSize: "0.6875rem",
+    fontFamily: "ui-monospace, monospace",
+    color: vars.colour.accentSoft,
+    fontWeight: 600,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
+    overflow: "hidden",
+    maxHeight: "calc((1 - var(--morph, 0)) * 1.25rem)",
+    opacity: "calc(1 - var(--morph, 0) * 2)",
+    willChange: "max-height, opacity",
+});
+
+/** Control grid: an even, responsive set of columns that tighten as the panel
+ *  condenses. `auto-fit` keeps the columns balanced rather than wrapping
+ *  unevenly the way a flex row does. */
+export const morphFields = style({
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+    alignItems: "start",
+    gap: "calc(0.875rem - var(--morph, 0) * 0.5rem)",
+});
+
+/** A single control field: label, control, and collapsing help. */
+export const morphField = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "calc(0.375rem - var(--morph, 0) * 0.2rem)",
+    minWidth: 0,
+});
+
+/** Field label — present in both forms, shrinks slightly when condensed. */
+export const morphFieldLabel = style({
     fontFamily: "ui-monospace, monospace",
     color: vars.colour.accentSoft,
     fontWeight: 600,
     textTransform: "uppercase" as const,
     letterSpacing: "0.05em",
     whiteSpace: "nowrap",
-    flexShrink: 0,
+    fontSize: "calc(0.6875rem - var(--morph, 0) * 0.0625rem)",
+});
+
+/** Per-field help text: expanded-only, collapses as the panel condenses. */
+export const morphFieldHelp = style({
+    overflow: "hidden",
+    maxHeight: "calc((1 - var(--morph, 0)) * 3rem)",
+    opacity: "calc(1 - var(--morph, 0) * 1.6)",
+    fontSize: "0.75rem",
+    lineHeight: 1.5,
+    color: vars.colour.dim,
+    willChange: "max-height, opacity",
 });
 
 // ---------------------------------------------------------------------------
@@ -798,57 +877,6 @@ export const subSection = style({
     },
 });
 
-// ---------------------------------------------------------------------------
-// Settings
-// ---------------------------------------------------------------------------
-
-export const settingsPanel = style({
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.875rem",
-    padding: "0.875rem 1rem",
-    borderRadius: "0.875rem",
-    background: vars.colour.panel2,
-    border: `1px solid ${vars.colour.border}`,
-});
-
-export const settingsPanelHeader = style({
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.25rem",
-});
-
-export const settingsGrid = style({
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: "0.875rem",
-    "@media": {
-        [md]: { gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))" },
-    },
-});
-
-export const settingsField = style({
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.375rem",
-    minWidth: 0,
-});
-
-export const settingsLabel = style({
-    fontSize: "0.6875rem",
-    fontFamily: "ui-monospace, monospace",
-    color: vars.colour.accentSoft,
-    fontWeight: 600,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.05em",
-});
-
-export const settingsHelp = style({
-    fontSize: "0.75rem",
-    lineHeight: 1.5,
-    color: vars.colour.dim,
-});
-
 export const accentLabel = style({
     color: vars.colour.accent,
     fontWeight: 600,
@@ -1118,11 +1146,6 @@ export const searchHeaderBar = style({
     display: "flex",
     alignItems: "center",
     borderBottom: `1px solid ${vars.colour.borderSoft}`,
-});
-
-export const hideOnMobile = style({
-    display: "none",
-    "@media": { [md]: { display: "inline" } },
 });
 
 // ---------------------------------------------------------------------------

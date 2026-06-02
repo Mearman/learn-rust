@@ -8,7 +8,6 @@ import {
     GitBranch,
     ListChecks,
     Search,
-    Trophy,
     X,
     ScanSearch,
     type LucideIcon,
@@ -17,8 +16,6 @@ import { vars } from "./theme/theme.css.ts";
 import {
     shell,
     shellInner,
-    headerFlex,
-    heading,
     stickyNav,
     stickyPinned,
     tabButton,
@@ -29,14 +26,12 @@ import {
     tocContent,
     sectionHeading,
     footer,
-    monoSm,
     searchOverlay,
     searchPanel,
     searchInput,
     searchResults,
     searchHeaderBar,
     searchCloseButton,
-    hideOnMobile,
 } from "./theme/styles.css.ts";
 import { LESSONS } from "./learn/lessons.ts";
 import { useViewedLessons } from "./learn/useViewedLessons.ts";
@@ -55,12 +50,8 @@ import type {
 import { getFilteredChallenges } from "./challenge/challenges.ts";
 import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
-import { SettingsPanel } from "./settings/SettingsPanel.tsx";
-import { CompactTailoring } from "./settings/CompactTailoring.tsx";
-import { useHeaderCollapsed } from "./layout/useHeaderCollapsed.ts";
+import { MorphingTailoring } from "./settings/MorphingTailoring.tsx";
 import { useUserProfile } from "./settings/useUserProfile.ts";
-import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
-import { joinLanguageFamiliarities } from "./data/languages.ts";
 import { ComparisonView } from "./references/ComparisonView.tsx";
 import { SyntaxView } from "./references/SyntaxView.tsx";
 import { GlossaryView } from "./references/GlossaryView.tsx";
@@ -69,7 +60,6 @@ import { CompilerErrorsView } from "./references/CompilerErrorsView.tsx";
 import { ProgressionView } from "./references/ProgressionView.tsx";
 import { SearchView } from "./references/SearchView.tsx";
 import { buildSearchResults } from "./references/searchResults.ts";
-import { ThemeToggle } from "./theme/ThemeToggle.tsx";
 import { useThemeMode } from "./theme/useThemeMode.ts";
 import {
     useActiveSection,
@@ -86,6 +76,7 @@ import {
 } from "./layout/useScrollNavigation.ts";
 import { useHasBeenVisible } from "./layout/useHasBeenVisible.ts";
 import { useBodyScrollLock } from "./layout/useBodyScrollLock.ts";
+import { useHeaderMorph } from "./layout/useHeaderMorph.ts";
 
 /** Section icons in canonical order — labels come from SECTION_META in
  *  subSections.ts so they never drift from the TOC tree. */
@@ -105,8 +96,6 @@ const SECTION_GROUPS = getSectionGroups();
 
 export function App() {
     const activeSection = useActiveSection();
-    const { collapsed: headerCollapsed, sentinelRef: headerSentinelRef } =
-        useHeaderCollapsed();
     const [showSearch, setShowSearch] = useState(false);
 
     const [viewed, markViewed] = useViewedLessons();
@@ -118,6 +107,7 @@ export function App() {
     } = useCompiler();
     const [profile, setProfile] = useUserProfile();
     const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
+    const { containerRef, panelRef } = useHeaderMorph();
 
     const saveAnswers = useChallengeAnswers();
     const [challenge, setChallenge] = useState<ChallengeState>(() => ({
@@ -244,124 +234,19 @@ export function App() {
 
     return (
         <div className={shell}>
-            <div className={shellInner}>
-                <header
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "1rem",
-                    }}
-                >
-                    <div className={headerFlex}>
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.25rem",
-                            }}
-                        >
-                            <h1 className={heading}>
-                                Rust{" "}
-                                <span style={{ color: vars.colour.accent }}>
-                                    by concept
-                                </span>
-                            </h1>
-                            <p
-                                style={{
-                                    fontSize: "0.875rem",
-                                    margin: 0,
-                                    color: vars.colour.faint,
-                                }}
-                            >
-                                The ten ideas that actually make Rust feel
-                                different.
-                            </p>
-                        </div>
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "1rem",
-                                flexWrap: "wrap",
-                            }}
-                            className={monoSm}
-                        >
-                            <span
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "0.375rem",
-                                }}
-                            >
-                                <BookOpen
-                                    size={13}
-                                    aria-hidden="true"
-                                    style={{ color: vars.colour.accent }}
-                                />
-                                {viewed.size}/{LESSONS.length} read
-                            </span>
-                            <span
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "0.375rem",
-                                }}
-                            >
-                                <Trophy
-                                    size={13}
-                                    aria-hidden="true"
-                                    style={{ color: vars.colour.accent }}
-                                />
-                                {challengeScore.correct}/{challengeScore.total}
-                            </span>
-                            <span
-                                className={hideOnMobile}
-                                style={{
-                                    display: "none",
-                                    alignItems: "center",
-                                    gap: "0.375rem",
-                                }}
-                            >
-                                <span style={{ color: vars.colour.accent }}>
-                                    •
-                                </span>
-                                {joinDeveloperBackgrounds(profile.backgrounds)}
-                            </span>
-                            <span
-                                className={hideOnMobile}
-                                style={{
-                                    display: "none",
-                                    alignItems: "center",
-                                    gap: "0.375rem",
-                                }}
-                            >
-                                <span style={{ color: vars.colour.accent }}>
-                                    •
-                                </span>
-                                {joinLanguageFamiliarities(
-                                    profile.familiarities
-                                )}
-                            </span>
-                        </div>
-                    </div>
-
-                    <SettingsPanel profile={profile} setProfile={setProfile} />
-
-                    <ThemeToggle mode={themeMode} onChange={setThemeMode} />
-
-                    {/* Sentinel: once it scrolls out of view the compact
-                        tailoring strip takes over, so the header's title and
-                        full panel aren't duplicated at the top. */}
-                    <div ref={headerSentinelRef} aria-hidden="true" />
-                </header>
-
+            <div className={shellInner} ref={containerRef}>
                 <div className={stickyPinned}>
-                    {headerCollapsed ? (
-                        <CompactTailoring
+                    <div ref={panelRef}>
+                        <MorphingTailoring
                             profile={profile}
                             setProfile={setProfile}
+                            viewedCount={viewed.size}
+                            lessonCount={LESSONS.length}
+                            challengeScore={challengeScore}
+                            themeMode={themeMode}
+                            setThemeMode={setThemeMode}
                         />
-                    ) : null}
+                    </div>
                     <nav className={stickyNav}>
                         {SECTION_GROUPS.map((s) => {
                             const Icon = SECTION_ICONS[s.id];
