@@ -1,5 +1,13 @@
-import { useState } from "react";
-import { Check, Lightbulb, RotateCcw, Trophy, Wrench, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+    Check,
+    ClipboardList,
+    Lightbulb,
+    RotateCcw,
+    Trophy,
+    Wrench,
+    X,
+} from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
     answerGrid,
@@ -21,6 +29,8 @@ import { CompileOutput } from "../compiler/CompileOutput.tsx";
 import { useCompiler } from "../compiler/useCompiler.ts";
 import type { Challenge } from "./challenges.ts";
 import type { ChallengeAnswers } from "./useChallengeAnswers.ts";
+import type { ReviewStore } from "./spacedRepetition.ts";
+import { dueChallengeIds } from "./spacedRepetition.ts";
 import type { LanguageFamiliarity } from "../data/languages.ts";
 import type { UserProfile } from "../settings/types.ts";
 import { languageNameForId } from "../data/languages.ts";
@@ -114,6 +124,12 @@ interface ChallengeCardProps {
     readonly guess: boolean | undefined;
     readonly onAnswer: (id: string, guess: boolean) => void;
     readonly familiarities: readonly LanguageFamiliarity[];
+    /** Record a spaced-repetition review outcome for this challenge. */
+    readonly onRecordReview: (
+        challengeId: string,
+        correct: boolean,
+        shownAt: number
+    ) => void;
 }
 
 /** One challenge, independently answerable. Each card owns its compiler so
@@ -126,12 +142,18 @@ function ChallengeCard({
     guess,
     onAnswer,
     familiarities,
+    onRecordReview,
 }: ChallengeCardProps) {
     const { compiling, result, compile, clear } = useCompiler();
     const answered = guess !== undefined;
     const isCorrect = answered && guess === challenge.compiles;
     const fix = challenge.fix;
     const eligible = isFixEligible(challenge);
+
+    // Epoch ms when this card mounted — used to derive SR answer speed.
+    // useState lazy initialiser runs once at mount, outside render, which
+    // satisfies react-hooks/purity (Date.now() is impure so banned in render).
+    const [shownAt] = useState<number>(() => Date.now());
 
     const [fixMode, setFixMode] = useState<FixMode>({ kind: "idle" });
 
@@ -161,16 +183,9 @@ function ChallengeCard({
                 ? fixMode.editedCode
                 : null;
         if (editedCode === null) return;
-        void compile(editedCode).then(() => {
-            // result is not yet updated here; we handle it via the effect
-            // pattern of reading result after compile resolves — but because
-            // compile updates state asynchronously we derive from result in
-            // the render. Instead set a sentinel that this run is "pending
-            // evaluation" and check result in render.
-        });
+        void compile(editedCode);
         // The actual state transition (solved vs submitted-incorrect) happens
-        // in the render path when result arrives — see the evaluateFixResult
-        // helper below.
+        // in the render path below when the result arrives.
         setFixMode((prev) =>
             prev.kind === "editing" || prev.kind === "submitted-incorrect"
                 ? { kind: "submitted-incorrect", editedCode: prev.editedCode }
@@ -181,12 +196,14 @@ function ChallengeCard({
     function handleGiveUp() {
         clear();
         setFixMode({ kind: "gave-up" });
+        // Give-up counts as incorrect for SR (spec: "wrong answer equivalent").
+        onRecordReview(challenge.id, false, shownAt);
     }
 
-    // When a compile result arrives after a fix run, promote submitted-incorrect
-    // to solved if the run succeeded. We do this synchronously in render to
-    // avoid a double-render cycle from useEffect.
-    let resolvedFixMode = fixMode;
+    // Derive the resolved fix mode synchronously from state: when a successful
+    // compile result arrives while in submitted-incorrect, the UI transitions
+    // to solved without a double-render cycle.
+    let resolvedFixMode: FixMode = fixMode;
     if (fixMode.kind === "submitted-incorrect" && result !== null) {
         if (result.success) {
             resolvedFixMode = {
@@ -196,10 +213,21 @@ function ChallengeCard({
         }
     }
 
+    // Record the correct SR review once when the fix is first solved.
+    // useEffect runs after render so it is outside the render path; it calls
+    // only onRecordReview (no setState), which the linter permits.
+    // The `fixSolved` flag (a boolean derived from resolvedFixMode) is stable
+    // once it flips to true and does not create an effect loop.
+    const fixSolved = resolvedFixMode.kind === "solved";
+    useEffect(() => {
+        if (!fixSolved) return;
+        onRecordReview(challenge.id, true, shownAt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fixSolved]);
+
     // Fix mode is active when we are in editing, submitted-incorrect, solved,
     // or gave-up states.
     const fixActive = resolvedFixMode.kind !== "idle";
-    const fixSolved = resolvedFixMode.kind === "solved";
     const fixGaveUp = resolvedFixMode.kind === "gave-up";
 
     // Reveal explanation when: answered compile-guess AND fix mode is not
@@ -259,6 +287,12 @@ function ChallengeCard({
                     <button
                         onClick={() => {
                             onAnswer(challenge.id, true);
+                            // Guess "compiles" — correct iff code actually compiles.
+                            onRecordReview(
+                                challenge.id,
+                                challenge.compiles,
+                                shownAt
+                            );
                         }}
                         className={answerButton}
                         style={{ color: vars.colour.good }}
@@ -268,6 +302,12 @@ function ChallengeCard({
                     <button
                         onClick={() => {
                             onAnswer(challenge.id, false);
+                            // Guess "won't compile" — correct iff code actually doesn't.
+                            onRecordReview(
+                                challenge.id,
+                                !challenge.compiles,
+                                shownAt
+                            );
                         }}
                         className={answerButton}
                         style={{ color: vars.colour.bad }}
@@ -322,7 +362,7 @@ function ChallengeCard({
                         gap: "0.75rem",
                     }}
                 >
-                    {resolvedFixMode.kind === "solved" ? (
+                    {fixMode.kind === "solved" ? (
                         <div
                             style={{
                                 display: "flex",
@@ -337,15 +377,13 @@ function ChallengeCard({
                         </div>
                     ) : null}
 
-                    {resolvedFixMode.kind !== "gave-up" &&
-                    resolvedFixMode.kind !== "solved" ? (
+                    {fixMode.kind !== "gave-up" && fixMode.kind !== "solved" ? (
                         <>
                             <EditableCode
                                 value={
-                                    resolvedFixMode.kind === "editing" ||
-                                    resolvedFixMode.kind ===
-                                        "submitted-incorrect"
-                                        ? resolvedFixMode.editedCode
+                                    fixMode.kind === "editing" ||
+                                    fixMode.kind === "submitted-incorrect"
+                                        ? fixMode.editedCode
                                         : challenge.code
                                 }
                                 onChange={handleEditChange}
@@ -387,10 +425,10 @@ function ChallengeCard({
 
                     {/* After solving, show the edited code (read-only) and
                         the compile output confirming success. */}
-                    {resolvedFixMode.kind === "solved" ? (
+                    {fixMode.kind === "solved" ? (
                         <>
                             <CodeBlock
-                                code={resolvedFixMode.editedCode}
+                                code={fixMode.editedCode}
                                 label="your fix"
                             />
                             <CompileOutput
@@ -537,6 +575,12 @@ interface ChallengeViewProps {
     readonly onAnswer: (id: string, guess: boolean) => void;
     readonly onReset: () => void;
     readonly profile: UserProfile;
+    readonly reviewStore: ReviewStore;
+    readonly onRecordReview: (
+        challengeId: string,
+        correct: boolean,
+        shownAt: number
+    ) => void;
 }
 
 function ChallengeView({
@@ -545,6 +589,8 @@ function ChallengeView({
     onAnswer,
     onReset,
     profile,
+    reviewStore,
+    onRecordReview,
 }: ChallengeViewProps) {
     let answeredCount = 0;
     let correctCount = 0;
@@ -555,6 +601,31 @@ function ChallengeView({
             if (g === c.compiles) correctCount += 1;
         }
     }
+
+    // Snapshot of the current time taken once at mount; used for the due-for-
+    // review computation. Date.now() is impure so it cannot be called in
+    // render — useState lazy initialiser runs once outside render.
+    const [nowMs] = useState<number>(() => Date.now());
+
+    // Compute the set of challenge ids due for review. Memoised on the store
+    // so it only recomputes when review data changes.
+    const challengeIds = useMemo(
+        () => challenges.map((c) => c.id),
+        [challenges]
+    );
+    const dueIds = useMemo(
+        () => new Set(dueChallengeIds(challengeIds, reviewStore, nowMs)),
+        [challengeIds, reviewStore, nowMs]
+    );
+
+    // Build a lookup map for rendering due items with their labels.
+    const challengeById = useMemo(() => {
+        const map = new Map<string, Challenge>();
+        for (const c of challenges) {
+            map.set(c.id, c);
+        }
+        return map;
+    }, [challenges]);
 
     return (
         <div className={challengeStack}>
@@ -572,6 +643,74 @@ function ChallengeView({
                     <span>{note}</span>
                 </div>
             ))}
+
+            {/* Due-for-review bucket — rendered above the summary when there
+                are challenges whose SR interval has elapsed. */}
+            {dueIds.size > 0 ? (
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.5rem",
+                        padding: "0.875rem",
+                        borderRadius: "0.5rem",
+                        border: `1px solid ${vars.colour.accent}`,
+                        background: vars.colour.accentDim,
+                    }}
+                >
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            fontSize: "0.8125rem",
+                            fontWeight: 600,
+                            color: vars.colour.accent,
+                        }}
+                    >
+                        <ClipboardList size={14} aria-hidden="true" />
+                        Due for review
+                    </div>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        {Array.from(dueIds).map((id) => {
+                            const c = challengeById.get(id);
+                            if (c === undefined) return null;
+                            // Find position for the label
+                            const idx = challenges.findIndex(
+                                (ch) => ch.id === id
+                            );
+                            return (
+                                <a
+                                    key={id}
+                                    href={`#${id}`}
+                                    style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "0.25rem",
+                                        padding: "0.25rem 0.625rem",
+                                        borderRadius: "0.375rem",
+                                        fontSize: "0.8125rem",
+                                        fontWeight: 500,
+                                        background: vars.colour.accentDim,
+                                        color: vars.colour.accent,
+                                        border: `1px solid ${vars.colour.accent}`,
+                                        textDecoration: "none",
+                                    }}
+                                >
+                                    {idx >= 0 ? `${String(idx + 1)}.` : ""}{" "}
+                                    {c.topic}
+                                </a>
+                            );
+                        })}
+                    </div>
+                </div>
+            ) : null}
 
             <div className={challengeSummary}>
                 <span
@@ -606,6 +745,7 @@ function ChallengeView({
                     guess={answers[c.id]}
                     onAnswer={onAnswer}
                     familiarities={profile.familiarities}
+                    onRecordReview={onRecordReview}
                 />
             ))}
         </div>

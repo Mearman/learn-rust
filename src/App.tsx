@@ -47,6 +47,7 @@ import {
     loadChallengeAnswers,
     useChallengeAnswers,
 } from "./challenge/useChallengeAnswers.ts";
+import { useSpacedRepetition } from "./challenge/useSpacedRepetition.ts";
 import type {
     ChallengeState,
     ChallengeAction,
@@ -122,6 +123,7 @@ export function App() {
     const [challenge, setChallenge] = useState<ChallengeState>(() => ({
         answers: loadChallengeAnswers(),
     }));
+    const { store: reviewStore, recordReview } = useSpacedRepetition();
 
     const dispatch = useCallback(
         (action: ChallengeAction) => {
@@ -430,6 +432,8 @@ export function App() {
                                     dispatch({ type: "reset" });
                                 }}
                                 profile={profile}
+                                reviewStore={reviewStore}
+                                onRecordReview={recordReview}
                             />
                         </section>
 
