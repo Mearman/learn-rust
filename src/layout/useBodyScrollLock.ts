@@ -11,11 +11,18 @@ export function useBodyScrollLock(active: boolean): void {
     useEffect(() => {
         if (!active) return;
 
-        const previous = document.body.style.overflow;
+        const previousOverflow = document.body.style.overflow;
+        const previousGutter = document.body.style.scrollbarGutter;
+
+        // Reserve the scrollbar's space while the page scrollbar is suppressed,
+        // so removing it does not widen the content and shift the layout
+        // sideways as the overlay opens (and shift back as it closes).
         document.body.style.overflow = "hidden";
+        document.body.style.scrollbarGutter = "stable";
 
         return () => {
-            document.body.style.overflow = previous;
+            document.body.style.overflow = previousOverflow;
+            document.body.style.scrollbarGutter = previousGutter;
         };
     }, [active]);
 }

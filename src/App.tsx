@@ -26,6 +26,7 @@ import {
     tocContent,
     sectionHeading,
     footer,
+    skipLink,
     searchOverlay,
     searchPanel,
     searchInput,
@@ -236,6 +237,9 @@ export function App() {
 
     return (
         <div className={shell}>
+            <a href="#main-content" className={skipLink}>
+                Skip to content
+            </a>
             <div className={shellInner} ref={containerRef}>
                 <div className={stickyPinned}>
                     <div ref={panelRef}>
@@ -261,6 +265,8 @@ export function App() {
                                         scrollToSection(s.id);
                                     }}
                                     className={`${tabButton} ${on ? tabButtonActive : ""}`}
+                                    aria-label={s.label}
+                                    aria-current={on ? "true" : undefined}
                                 >
                                     <Icon size={15} aria-hidden="true" />
                                     <span className={tabButtonLabel}>
@@ -291,7 +297,7 @@ export function App() {
                         onSelectEntry={scrollToSubSection}
                         onSelectSection={scrollToSection}
                     />
-                    <div className={tocContent}>
+                    <main id="main-content" className={tocContent}>
                         <section id="learn" className={contentSection}>
                             <h2 className={sectionHeading}>Learn</h2>
                             <ErrorBoundary section="Learn">
@@ -415,7 +421,7 @@ export function App() {
                                 />
                             </ErrorBoundary>
                         </section>
-                    </div>
+                    </main>
                 </div>
 
                 <footer className={footer}>

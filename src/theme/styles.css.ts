@@ -23,6 +23,22 @@ globalStyle("body", {
     minHeight: "100vh",
 });
 
+// The morph shrink applied to *tap-target* dimensions (control heights and the
+// segmented-control padding). On a fine pointer (mouse/trackpad) it tracks the
+// full morph, so the controls condense with the rest of the strip. On a coarse
+// pointer (touch) it is pinned to 0 so those controls never interpolate below a
+// comfortable ~44px tap target as the strip condenses. Cosmetic morphing (font
+// sizes, gaps, the title) keeps using `--morph` directly and still condenses on
+// touch; only the hit areas are held.
+globalStyle(":root", {
+    vars: { "--morph-shrink": "var(--morph, 0)" },
+    "@media": {
+        "(pointer: coarse)": {
+            vars: { "--morph-shrink": "0" },
+        },
+    },
+});
+
 globalStyle("html", {
     scrollPaddingTop: "120px",
     // The tailoring panel condenses with scroll, which moves the content below
@@ -39,6 +55,44 @@ globalStyle("html", {
 globalStyle(":focus-visible", {
     outline: `2px solid ${vars.colour.accent}`,
     outlineOffset: "2px",
+});
+
+/** Visually-hidden content that remains in the accessibility tree. The standard
+ *  clip-rect pattern: collapses to a 1px box clipped to nothing, so it conveys
+ *  text to assistive tech without occupying layout or being visible. */
+export const srOnly = style({
+    position: "absolute",
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    borderWidth: 0,
+});
+
+/** Skip link: the first focusable element on the page. Visually hidden until it
+ *  receives keyboard focus, at which point it pins to the top-left and lets a
+ *  keyboard user jump straight to the main content past the header and nav. */
+export const skipLink = style({
+    position: "absolute",
+    top: "-3rem",
+    left: "0.5rem",
+    zIndex: 100,
+    padding: "0.5rem 0.875rem",
+    borderRadius: "0.5rem",
+    background: vars.colour.accent,
+    color: vars.colour.accentText,
+    fontSize: "0.875rem",
+    fontWeight: 600,
+    textDecoration: "none",
+    transition: "top 0.15s",
+    selectors: {
+        "&:focus": {
+            top: "0.5rem",
+        },
+    },
 });
 
 // Spinner used by the compiler loading indicator.
@@ -640,6 +694,19 @@ export const morphFieldHelp = style({
     },
 });
 
+// Once the panel is fully condensed, the expanded-only helper text above is
+// faded to zero opacity and zero height but is otherwise still in the
+// accessibility tree, so a screen reader would announce text the sighted reader
+// can no longer see. `useHeaderMorph` sets `data-morph-collapsed="true"` on the
+// shell container at that point; hiding the visibility takes these elements out
+// of the AT tree to match what is on screen. CSS cannot derive this discrete
+// step from the continuous `--morph` value, hence the attribute hook.
+for (const target of [morphSubtitle, morphThemeLabel, morphFieldHelp]) {
+    globalStyle(`[data-morph-collapsed="true"] ${target}`, {
+        visibility: "hidden",
+    });
+}
+
 // ---------------------------------------------------------------------------
 // Sticky section nav
 // ---------------------------------------------------------------------------
@@ -776,14 +843,31 @@ export const tocSheetBackdrop = style({
     left: 0,
     right: 0,
     bottom: 0,
-    background: "rgba(0, 0, 0, 0.5)",
     zIndex: 20,
     display: "flex",
     alignItems: "flex-end",
     justifyContent: "center",
 });
 
+/** The dimmed click-to-dismiss layer behind the sheet. A real <button> rather
+ *  than a bare onClick <div>, so it carries an accessible name and can be
+ *  reached and activated by keyboard/assistive tech. It sits behind the sheet
+ *  content (lower in the DOM order with the sheet raised above it). */
+export const tocSheetBackdropButton = style({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    margin: 0,
+    padding: 0,
+    border: "none",
+    background: "rgba(0, 0, 0, 0.5)",
+    cursor: "pointer",
+});
+
 export const tocSheet = style({
+    position: "relative",
     width: "100%",
     maxWidth: "32rem",
     maxHeight: "70vh",
