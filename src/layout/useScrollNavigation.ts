@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { flushSync } from "react-dom";
 import { nestedHashFor, elementIdFromHash } from "./subSections.ts";
+import { scrollBehaviour } from "./reducedMotion.ts";
 
 /**
  * Maps section-content prefixes to force-mount callbacks for deferred
@@ -44,7 +45,7 @@ function scrollToId(id: string, mounts?: SectionMountMap): void {
 
     const el = document.getElementById(id);
     if (el !== null) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.scrollIntoView({ behavior: scrollBehaviour(), block: "start" });
         history.replaceState(null, "", `#${nestedHashFor(id)}`);
     }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { REDUCED_MOTION_QUERY } from "./reducedMotion.ts";
 
 /**
  * Normalise a scroll position into a 0..1 morph progress.
@@ -41,6 +42,30 @@ export interface HeaderMorph {
  *  its current height can be trusted as the expanded-height reference. */
 const EXPANDED_SAMPLE_THRESHOLD = 1;
 
+/** Progress past which the panel is treated as condensed under reduced motion.
+ *  At or above the halfway point of the morph window the panel snaps fully
+ *  condensed; below it, fully expanded — so a reduced-motion reader sees two
+ *  discrete states rather than a per-frame interpolation tied to the scroll. */
+const REDUCED_MOTION_SNAP_POINT = 0.5;
+
+/** Progress past which the expanded-only helper text (subtitle, theme label,
+ *  per-field help) has fully faded out. The largest of those opacity ramps
+ *  reaches zero at `1 / 1.6 = 0.625`, so by this point every one of them is
+ *  visually gone; the styles then take them out of the accessibility tree with
+ *  `visibility: hidden`, keyed off the `data-morph-collapsed` attribute the
+ *  hook sets here, so screen readers stop announcing invisible text. */
+const HELPER_COLLAPSE_POINT = 1 / 1.6;
+
+/**
+ * Quantise a continuous morph progress to the nearest discrete endpoint when
+ * `snap` is set, so reduced-motion readers get a binary expanded/condensed
+ * switch rather than a scroll-linked tween. Returns the raw progress otherwise.
+ */
+function morphValue(progress: number, snap: boolean): number {
+    if (!snap) return progress;
+    return progress >= REDUCED_MOTION_SNAP_POINT ? 1 : 0;
+}
+
 /**
  * Drives the scroll-linked condense of the tailoring panel from its expanded
  * form to its compact strip form.
@@ -70,14 +95,34 @@ export function useHeaderMorph(): HeaderMorph {
         // at 0 (`computeMorphProgress` returns 0 for a non-positive distance).
         let expandedHeight = 0;
 
+        // Reduced-motion preference, kept live via the listener below. When set,
+        // the morph snaps to a discrete endpoint rather than tweening per frame.
+        const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY);
+        let snap = reducedMotion.matches;
+
         const apply = () => {
             frame = 0;
             const progress = computeMorphProgress(
                 window.scrollY,
                 expandedHeight
             );
-            container.style.setProperty("--morph", progress.toString());
+            const morph = morphValue(progress, snap);
+            container.style.setProperty("--morph", morph.toString());
+            // Flag full collapse so the styles can pull the faded-out helper
+            // text from the accessibility tree (a discrete state CSS cannot
+            // derive from the continuous `--morph` value alone).
+            container.dataset.morphCollapsed = String(
+                morph >= HELPER_COLLAPSE_POINT
+            );
         };
+
+        // Re-evaluate (and re-paint) when the reduced-motion preference flips so
+        // the panel adopts the new mode without needing a scroll to trigger it.
+        const onReducedMotionChange = (e: MediaQueryListEvent) => {
+            snap = e.matches;
+            apply();
+        };
+        reducedMotion.addEventListener("change", onReducedMotionChange);
 
         const schedule = () => {
             if (frame !== 0) return;
@@ -108,6 +153,7 @@ export function useHeaderMorph(): HeaderMorph {
         window.addEventListener("scroll", sampleExpanded, { passive: true });
         return () => {
             window.removeEventListener("scroll", sampleExpanded);
+            reducedMotion.removeEventListener("change", onReducedMotionChange);
             resizeObserver.disconnect();
             if (frame !== 0) window.cancelAnimationFrame(frame);
         };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { observeScrollSpy } from "./scrollSpy.ts";
+import { scrollBehaviour } from "./reducedMotion.ts";
 
 const SECTION_IDS = [
     "learn",
@@ -18,7 +19,7 @@ export type SectionId = (typeof SECTION_IDS)[number];
 export function scrollToSection(id: SectionId): void {
     const element = document.getElementById(id);
     if (element !== null) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        element.scrollIntoView({ behavior: scrollBehaviour(), block: "start" });
         history.replaceState(null, "", `#${id}`);
     }
 }
