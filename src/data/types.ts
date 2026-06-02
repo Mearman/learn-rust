@@ -35,3 +35,42 @@ export interface SyntaxReference {
     readonly code: string;
     readonly explanation: string;
 }
+
+/** One annotated line (or contiguous span of lines) within a rustc transcript. */
+export interface TranscriptAnnotation {
+    /** 0-based index of the first transcript line this annotation covers. */
+    readonly line: number;
+    /** Inclusive count of lines covered. */
+    readonly span: number;
+    /** What this part of the output means and what to do about it. */
+    readonly note: string;
+    /** Which structural role this line plays — drives the marker colour/label. */
+    readonly role:
+        | "error-code"
+        | "primary-span"
+        | "secondary-span"
+        | "note"
+        | "help";
+}
+
+/** A full annotated rustc error transcript for the "reading errors" skill section. */
+export interface CompilerErrorTranscript {
+    readonly id: string;
+    /** rustc error code, e.g. "E0308". */
+    readonly code: string;
+    readonly title: string;
+    /** Difficulty ordering for progressive presentation. */
+    readonly level: "warm-up" | "core" | "tricky";
+    /** The Rust source that triggers the error (shown as a CodeBlock). */
+    readonly source: string;
+    /** The raw rustc stderr transcript, line-split-friendly (literal newlines). */
+    readonly transcript: string;
+    /** Inline annotations keyed to transcript line indices. */
+    readonly annotations: readonly TranscriptAnnotation[];
+    /** "Decode this error" exercise prompt — asked before the answer is revealed. */
+    readonly question: string;
+    /** The root-cause + fix answer revealed after the reader attempts the question. */
+    readonly answer: string;
+    /** Optional cross-link into the Compare section. */
+    readonly conceptId?: string;
+}
