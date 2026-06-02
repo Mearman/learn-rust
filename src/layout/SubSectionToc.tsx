@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollArea, TextInput } from "@mantine/core";
+import { Collapse, ScrollArea, TextInput } from "@mantine/core";
 import { ChevronRight, List, Search, X } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
@@ -136,34 +136,36 @@ function TocTree({
                         </button>
 
                         {/* Nested entry list */}
-                        {showEntries ? (
-                            <div id={entriesId} className={tocGroupEntries}>
-                                {matchingEntries.map((entry) => {
-                                    const isActive = entry.id === activeId;
-                                    return (
-                                        <button
-                                            key={entry.id}
-                                            ref={
-                                                isActive
-                                                    ? activeEntryRef
-                                                    : undefined
-                                            }
-                                            type="button"
-                                            onClick={() => {
-                                                onSelectEntry(entry.id);
-                                            }}
-                                            className={`${tocItem} ${isActive ? tocItemActive : ""}`}
-                                            aria-current={
-                                                isActive
-                                                    ? "location"
-                                                    : undefined
-                                            }
-                                        >
-                                            {entry.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                        {hasEntries ? (
+                            <Collapse expanded={showEntries}>
+                                <div id={entriesId} className={tocGroupEntries}>
+                                    {matchingEntries.map((entry) => {
+                                        const isActive = entry.id === activeId;
+                                        return (
+                                            <button
+                                                key={entry.id}
+                                                ref={
+                                                    isActive
+                                                        ? activeEntryRef
+                                                        : undefined
+                                                }
+                                                type="button"
+                                                onClick={() => {
+                                                    onSelectEntry(entry.id);
+                                                }}
+                                                className={`${tocItem} ${isActive ? tocItemActive : ""}`}
+                                                aria-current={
+                                                    isActive
+                                                        ? "location"
+                                                        : undefined
+                                                }
+                                            >
+                                                {entry.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </Collapse>
                         ) : null}
                     </div>
                 );
@@ -194,8 +196,9 @@ export function SubSectionToc({
     // Auto-expansion on scroll: we use the "adjust state when a prop changes"
     // pattern from the React docs (preferred over useEffect + setState, which
     // triggers cascading renders). We track prevActiveSection; when it differs
-    // from activeSection in the current render, we union the new section into
-    // expanded. React batches both setState calls into one re-render.
+    // from activeSection in the current render, we replace the open set with
+    // just the new active section, so the previously-open section animates
+    // closed. React batches both setState calls into one re-render.
     const [expanded, setExpanded] = useState<ReadonlySet<SectionId>>(
         () => new Set([activeSection])
     );
@@ -204,13 +207,11 @@ export function SubSectionToc({
 
     if (prevActiveSection !== activeSection) {
         setPrevActiveSection(activeSection);
-        if (!expanded.has(activeSection)) {
-            setExpanded((prev) => {
-                const next = new Set(prev);
-                next.add(activeSection);
-                return next;
-            });
-        }
+        // Scrolling to a new section collapses the previous one — only the
+        // active section stays open (a single-open accordion driven by
+        // scroll). Manual caret toggles still work but reset on the next
+        // section change.
+        setExpanded(new Set([activeSection]));
     }
 
     const handleToggle = (id: SectionId) => {
@@ -245,9 +246,12 @@ export function SubSectionToc({
         const viewBottom = viewTop + viewport.clientHeight;
 
         if (btnTop < viewTop) {
-            viewport.scrollTop = btnTop - 8;
+            viewport.scrollTo({ top: btnTop - 8, behavior: "smooth" });
         } else if (btnBottom > viewBottom) {
-            viewport.scrollTop = btnBottom - viewport.clientHeight + 8;
+            viewport.scrollTo({
+                top: btnBottom - viewport.clientHeight + 8,
+                behavior: "smooth",
+            });
         }
     }, [activeId]);
 
