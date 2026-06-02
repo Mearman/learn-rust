@@ -55,6 +55,7 @@ import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
 import { SettingsPanel } from "./settings/SettingsPanel.tsx";
 import { CompactTailoring } from "./settings/CompactTailoring.tsx";
+import { useHeaderCollapsed } from "./layout/useHeaderCollapsed.ts";
 import { useUserProfile } from "./settings/useUserProfile.ts";
 import { joinDeveloperBackgrounds } from "./settings/backgrounds.ts";
 import { joinLanguageFamiliarities } from "./data/languages.ts";
@@ -100,6 +101,8 @@ const SECTION_GROUPS = getSectionGroups();
 
 export function App() {
     const activeSection = useActiveSection();
+    const { collapsed: headerCollapsed, sentinelRef: headerSentinelRef } =
+        useHeaderCollapsed();
     const [showSearch, setShowSearch] = useState(false);
 
     const [viewed, markViewed] = useViewedLessons();
@@ -340,13 +343,20 @@ export function App() {
                     <SettingsPanel profile={profile} setProfile={setProfile} />
 
                     <ThemeToggle mode={themeMode} onChange={setThemeMode} />
+
+                    {/* Sentinel: once it scrolls out of view the compact
+                        tailoring strip takes over, so the header's title and
+                        full panel aren't duplicated at the top. */}
+                    <div ref={headerSentinelRef} aria-hidden="true" />
                 </header>
 
                 <div className={stickyPinned}>
-                    <CompactTailoring
-                        profile={profile}
-                        setProfile={setProfile}
-                    />
+                    {headerCollapsed ? (
+                        <CompactTailoring
+                            profile={profile}
+                            setProfile={setProfile}
+                        />
+                    ) : null}
                     <nav className={stickyNav}>
                         {SECTION_GROUPS.map((s) => {
                             const Icon = SECTION_ICONS[s.id];
