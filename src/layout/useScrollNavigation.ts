@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { flushSync } from "react-dom";
+import { nestedHashFor, elementIdFromHash } from "./subSections.ts";
 
 /**
  * Maps section-content prefixes to force-mount callbacks for deferred
@@ -44,7 +45,7 @@ function scrollToId(id: string, mounts?: SectionMountMap): void {
     const el = document.getElementById(id);
     if (el !== null) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
-        history.replaceState(null, "", `#${id}`);
+        history.replaceState(null, "", `#${nestedHashFor(id)}`);
     }
 }
 
@@ -144,23 +145,52 @@ export function useScrollNavigation(
  */
 export function useHashNavigation(mounts?: SectionMountMap): void {
     useEffect(() => {
-        const hash = window.location.hash.slice(1); // strip leading "#"
-        if (hash.length === 0) return;
+        // Own scroll position via the hash rather than the browser's scroll
+        // restoration, which otherwise clobbers the programmatic scroll on
+        // reload and leaves deep links stuck at the top.
+        history.scrollRestoration = "manual";
 
-        // Force-mount the containing section so the target element exists.
-        if (hash.startsWith("concept-") && mounts?.compare !== undefined) {
-            flushSync(mounts.compare);
-        } else if (
-            hash.startsWith("syntax-") &&
-            hash !== "syntax" &&
-            mounts?.syntax !== undefined
-        ) {
-            flushSync(mounts.syntax);
-        }
+        const scrollToHash = (): void => {
+            // The hash may be nested (`#section/element-id`); the scroll target
+            // is the last path segment.
+            const target = elementIdFromHash(window.location.hash);
+            if (target.length === 0) return;
 
-        const el = document.getElementById(hash);
-        if (el !== null) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, [mounts]); // mounts is stable; effect fires once on mount
+            // Trigger a mount of the containing deferred section. Call the
+            // setter normally — flushSync is ineffective (and warns) inside an
+            // effect, "React cannot flush when already rendering" — then retry
+            // the scroll across frames until the element has mounted and laid
+            // out. Instant, not smooth: a deep link should land, not animate
+            // thousands of pixels.
+            if (target.startsWith("concept-")) {
+                mounts?.compare?.();
+            } else if (target.startsWith("syntax-") && target !== "syntax") {
+                mounts?.syntax?.();
+            }
+
+            let attempts = 0;
+            const attempt = (): void => {
+                const el = document.getElementById(target);
+                if (el !== null) {
+                    el.scrollIntoView({ block: "start" });
+                    return;
+                }
+                if (attempts < 30) {
+                    attempts += 1;
+                    requestAnimationFrame(attempt);
+                }
+            };
+            requestAnimationFrame(attempt);
+        };
+
+        scrollToHash();
+        // Also handle in-page hash changes (URL-bar edits, back/forward):
+        // nested hashes cannot be resolved by native anchor scrolling.
+        // replaceState (used by the scroll-spy and click handlers) does not
+        // fire hashchange, so this never loops on our own writes.
+        window.addEventListener("hashchange", scrollToHash);
+        return () => {
+            window.removeEventListener("hashchange", scrollToHash);
+        };
+    }, [mounts]);
 }

@@ -80,11 +80,49 @@ const SUBSECTION_MAP: Record<SectionId, readonly SubSection[]> = {
     cheatsheet: [],
 };
 
+// Maps a sub-section id prefix to the section it belongs to. The same naming
+// convention drives the force-mount logic in useScrollNavigation.
+const ID_PREFIX_SECTION: readonly (readonly [string, SectionId])[] = [
+    ["lesson-", "learn"],
+    ["concept-", "compare"],
+    ["syntax-", "syntax"],
+    ["glossary-", "glossary"],
+    ["error-", "errors"],
+    ["challenge-", "challenge"],
+];
+
+/** The section an element id belongs to: the id itself if it is a section id,
+ *  otherwise resolved from its prefix. Undefined for unrecognised ids. */
+export function sectionForElementId(id: string): SectionId | undefined {
+    const asSection = SECTION_META.find((m) => m.id === id);
+    if (asSection !== undefined) return asSection.id;
+    for (const [prefix, section] of ID_PREFIX_SECTION) {
+        if (id.startsWith(prefix)) return section;
+    }
+    return undefined;
+}
+
+/** The nested hash path for an element id: `section/element-id` for a
+ *  sub-section, or just `section` for a section header. Falls back to the bare
+ *  id for unrecognised ids. */
+export function nestedHashFor(id: string): string {
+    const section = sectionForElementId(id);
+    if (section === undefined || section === id) return id;
+    return `${section}/${id}`;
+}
+
+/** The element id a (possibly nested) hash points at — the last path segment.
+ *  Accepts the hash with or without a leading `#`. */
+export function elementIdFromHash(hash: string): string {
+    const raw = hash.startsWith("#") ? hash.slice(1) : hash;
+    return raw.split("/").at(-1) ?? raw;
+}
+
 /**
- * Resolve the URL-hash target for the current scroll position: the active
- * sub-section when one is in view within the active section, otherwise the
- * section id itself (so sections without sub-sections — challenge has them,
- * but path and cheatsheet do not — still reflect in the URL).
+ * Resolve the nested URL-hash path for the current scroll position:
+ * `section/sub` when a sub-section is in view within the active section,
+ * otherwise just the section id (so a section header — and sub-less sections
+ * like path and cheatsheet — are linkable and reflected).
  */
 export function resolveActiveHash(
     groups: readonly SectionGroup[],
@@ -94,7 +132,7 @@ export function resolveActiveHash(
     if (activeSub !== undefined) {
         const group = groups.find((g) => g.id === activeSection);
         if (group?.subSections.some((s) => s.id === activeSub) === true) {
-            return activeSub;
+            return `${activeSection}/${activeSub}`;
         }
     }
     return activeSection;
