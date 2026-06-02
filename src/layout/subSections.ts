@@ -80,19 +80,14 @@ const SUBSECTION_MAP: Record<SectionId, readonly SubSection[]> = {
     cheatsheet: [],
 };
 
-/** All sections as a flat list of groups in canonical display order. */
+/** All sections as a flat list of groups in canonical display order. The
+ *  challenge group's sub-sections are empty here — App.tsx injects them from
+ *  the profile-filtered challenge list, since which challenges show (and their
+ *  order) depends on the reader's experience level. */
 export function getSectionGroups(): readonly SectionGroup[] {
     return SECTION_META.map((meta) => ({
         id: meta.id,
         label: meta.label,
         subSections: SUBSECTION_MAP[meta.id],
     }));
-}
-
-/** All sub-section ids across every section, flattened. Used to observe all
- *  entries simultaneously in useActiveSubSection. */
-export function getAllSubSectionIds(): readonly string[] {
-    return SECTION_META.flatMap((meta) =>
-        SUBSECTION_MAP[meta.id].map((s) => s.id)
-    );
 }

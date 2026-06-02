@@ -2,6 +2,9 @@ import type { LanguageFamiliarity } from "../data/languages.ts";
 import type { UserProfile } from "../settings/types.ts";
 
 export interface Challenge {
+    /** Stable id derived from position in CHALLENGES; used as the scroll
+     *  anchor element id and the sidebar sub-section id. */
+    readonly id: string;
     readonly topic: string;
     readonly level: "warm-up" | "core" | "tricky";
     readonly compiles: boolean;
@@ -11,7 +14,7 @@ export interface Challenge {
     readonly whyPerLanguage?: Partial<Record<LanguageFamiliarity, string>>;
 }
 
-export const CHALLENGES: readonly Challenge[] = [
+const RAW_CHALLENGES: readonly Omit<Challenge, "id">[] = [
     {
         topic: "Ownership",
         level: "warm-up",
@@ -296,6 +299,12 @@ export const CHALLENGES: readonly Challenge[] = [
         },
     },
 ];
+
+/** Challenges with a stable id derived from their position. */
+export const CHALLENGES: readonly Challenge[] = RAW_CHALLENGES.map((c, i) => ({
+    ...c,
+    id: `challenge-${String(i)}`,
+}));
 
 export function getFilteredChallenges(
     profile: UserProfile

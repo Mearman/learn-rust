@@ -42,13 +42,13 @@ import { LearnView } from "./learn/LearnView.tsx";
 import { ChallengeView } from "./challenge/ChallengeView.tsx";
 import { challengeReducer } from "./challenge/challengeReducer.ts";
 import {
-    loadChallengeScore,
-    useChallengeScore,
-} from "./challenge/useChallengeScore.ts";
+    loadChallengeAnswers,
+    useChallengeAnswers,
+} from "./challenge/useChallengeAnswers.ts";
 import type {
     ChallengeState,
     ChallengeAction,
-} from "./challenge/ChallengeView.tsx";
+} from "./challenge/challengeReducer.ts";
 import { getFilteredChallenges } from "./challenge/challenges.ts";
 import { CheatsheetView } from "./cheatsheet/CheatsheetView.tsx";
 import { useCompiler } from "./compiler/useCompiler.ts";
@@ -70,7 +70,7 @@ import {
     scrollToSection,
     type SectionId,
 } from "./layout/useActiveSection.ts";
-import { getSectionGroups, getAllSubSectionIds } from "./layout/subSections.ts";
+import { getSectionGroups } from "./layout/subSections.ts";
 import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
 import { SubSectionToc } from "./layout/SubSectionToc.tsx";
 import {
@@ -94,10 +94,6 @@ const SECTION_ICONS: Record<SectionId, LucideIcon> = {
 
 const SECTION_GROUPS = getSectionGroups();
 
-/** All sub-section IDs flattened across all sections — computed once at module
- *  level so useActiveSubSection receives a stable array reference. */
-const ALL_SUB_IDS = getAllSubSectionIds();
-
 export function App() {
     const activeSection = useActiveSection();
     const [showSearch, setShowSearch] = useState(false);
@@ -112,27 +108,58 @@ export function App() {
     const [profile, setProfile] = useUserProfile();
     const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
 
-    const saveScore = useChallengeScore();
-    const [challenge, setChallenge] = useState<ChallengeState>(() => {
-        const { correct, total } = loadChallengeScore();
-        return { index: 0, answered: false, guess: null, correct, total };
-    });
+    const saveAnswers = useChallengeAnswers();
+    const [challenge, setChallenge] = useState<ChallengeState>(() => ({
+        answers: loadChallengeAnswers(),
+    }));
 
     const dispatch = useCallback(
         (action: ChallengeAction) => {
             setChallenge((s) => {
-                const next = challengeReducer(
-                    s,
-                    action,
-                    getFilteredChallenges(profile)
-                );
-                // Persist only the cumulative score; per-session fields
-                // (index, answered, guess) reset on the next load.
-                saveScore(next.correct, next.total);
+                const next = challengeReducer(s, action);
+                saveAnswers(next.answers);
                 return next;
             });
         },
-        [profile, saveScore]
+        [saveAnswers]
+    );
+
+    const filteredChallenges = useMemo(
+        () => getFilteredChallenges(profile),
+        [profile]
+    );
+
+    // Running score across the profile-filtered challenges, derived from the
+    // per-challenge answers map.
+    const challengeScore = useMemo(() => {
+        let correct = 0;
+        let total = 0;
+        for (const c of filteredChallenges) {
+            const g = challenge.answers[c.id];
+            if (g !== undefined) {
+                total += 1;
+                if (g === c.compiles) correct += 1;
+            }
+        }
+        return { correct, total };
+    }, [filteredChallenges, challenge.answers]);
+
+    // Inject the profile-filtered challenge entries into the TOC tree, numbered
+    // by display position to match the rendered stack. Recomputed only when the
+    // filtered set changes, so useActiveSubSection sees a stable id array.
+    const sectionGroups = useMemo(() => {
+        const challengeSubs = filteredChallenges.map((c, i) => ({
+            id: c.id,
+            label: `${String(i + 1)}. ${c.topic}`,
+        }));
+        return SECTION_GROUPS.map((g) =>
+            g.id === "challenge" ? { ...g, subSections: challengeSubs } : g
+        );
+    }, [filteredChallenges]);
+
+    const allSubIds = useMemo(
+        () => sectionGroups.flatMap((g) => g.subSections.map((s) => s.id)),
+        [sectionGroups]
     );
 
     // Lazy-mount controls for the two heaviest sections.
@@ -154,7 +181,7 @@ export function App() {
     // mountVersion bumps when a deferred section mounts so the hook re-runs
     // its effect and attaches observers to elements that are now in the DOM.
     const activeSub = useActiveSubSection(
-        ALL_SUB_IDS,
+        allSubIds,
         Number(compareMounted) + Number(syntaxMounted) * 2
     );
 
@@ -264,7 +291,7 @@ export function App() {
                                     size={13}
                                     style={{ color: vars.colour.accent }}
                                 />
-                                {challenge.correct}/{challenge.total}
+                                {challengeScore.correct}/{challengeScore.total}
                             </span>
                             <span
                                 className={hideOnMobile}
@@ -337,7 +364,7 @@ export function App() {
 
                 <div className={tocLayout}>
                     <SubSectionToc
-                        groups={SECTION_GROUPS}
+                        groups={sectionGroups}
                         activeSection={activeSection}
                         activeId={activeSub}
                         onSelectEntry={scrollToSubSection}
@@ -360,13 +387,15 @@ export function App() {
                         <section id="challenge" className={contentSection}>
                             <h2 className={sectionHeading}>Will it compile?</h2>
                             <ChallengeView
-                                state={challenge}
-                                dispatch={dispatch}
+                                challenges={filteredChallenges}
+                                answers={challenge.answers}
+                                onAnswer={(id, guess) => {
+                                    dispatch({ type: "answer", id, guess });
+                                }}
+                                onReset={() => {
+                                    dispatch({ type: "reset" });
+                                }}
                                 profile={profile}
-                                compiling={compiling}
-                                compileResult={compileResult}
-                                onCompile={compile}
-                                onClearCompile={clearCompile}
                             />
                         </section>
 

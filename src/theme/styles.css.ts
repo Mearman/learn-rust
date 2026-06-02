@@ -241,12 +241,7 @@ export const nextButton = style({
 export const cheatsGrid = style({
     display: "grid",
     gap: "1rem",
-    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-    "@media": {
-        [md]: { gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
-        [lg]: { gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" },
-        [xl]: { gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" },
-    },
+    gridTemplateColumns: "1fr",
 });
 
 export const cheatCard = style({
@@ -274,9 +269,35 @@ export const referenceListGrid = style({
     display: "grid",
     gap: "1rem",
     gridTemplateColumns: "1fr",
-    "@media": {
-        [lg]: { gridTemplateColumns: "1fr 1fr" },
-    },
+});
+
+/** Vertical stack of "Will it compile?" challenge cards. */
+export const challengeStack = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5rem",
+});
+
+/** A single challenge card; anchored as a sidebar sub-section. */
+export const challengeCard = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    padding: "1.25rem",
+    borderRadius: "0.75rem",
+    border: `1px solid ${vars.colour.border}`,
+    background: vars.colour.panel,
+    // Keep the anchored card clear of the sticky nav when scrolled to.
+    scrollMarginTop: "5rem",
+});
+
+/** Answered/correct tally and reset control above the challenge stack. */
+export const challengeSummary = style({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "1rem",
+    flexWrap: "wrap",
 });
 
 // ---------------------------------------------------------------------------
@@ -746,9 +767,6 @@ export const comparisonGrid = style({
     display: "grid",
     gridTemplateColumns: "1fr",
     gap: "1rem",
-    "@media": {
-        [md]: { gridTemplateColumns: "1fr 1fr" },
-    },
 });
 
 export const comparisonColumn = style({

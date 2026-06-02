@@ -1,53 +1,27 @@
-import type { Challenge } from "./challenges.ts";
-import { CHALLENGES } from "./challenges.ts";
-
 export interface ChallengeState {
-    readonly index: number;
-    readonly answered: boolean;
-    readonly guess: boolean | null;
-    readonly correct: number;
-    readonly total: number;
+    /** Map of challenge id to the learner's guess (true = "compiles").
+     *  A key's presence means that challenge has been answered. */
+    readonly answers: Readonly<Record<string, boolean>>;
 }
 
 export type ChallengeAction =
-    | { readonly type: "answer"; readonly guess: boolean }
-    | { readonly type: "next" }
+    | { readonly type: "answer"; readonly id: string; readonly guess: boolean }
     | { readonly type: "reset" };
 
 export function challengeReducer(
     state: ChallengeState,
-    action: ChallengeAction,
-    challenges: readonly Challenge[] = CHALLENGES
+    action: ChallengeAction
 ): ChallengeState {
     switch (action.type) {
         case "answer": {
-            const ch = challenges[state.index];
+            // A challenge locks once answered — the first guess stands.
+            if (action.id in state.answers) return state;
             return {
-                ...state,
-                answered: true,
-                guess: action.guess,
-                total: state.total + 1,
-                correct:
-                    state.correct +
-                    (ch !== undefined && action.guess === ch.compiles ? 1 : 0),
-            };
-        }
-        case "next": {
-            return {
-                ...state,
-                index: state.index + 1,
-                answered: false,
-                guess: null,
+                answers: { ...state.answers, [action.id]: action.guess },
             };
         }
         case "reset": {
-            return {
-                index: 0,
-                answered: false,
-                guess: null,
-                correct: 0,
-                total: 0,
-            };
+            return { answers: {} };
         }
     }
 }

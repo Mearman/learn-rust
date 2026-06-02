@@ -1,15 +1,6 @@
-import { useMemo } from "react";
-import {
-    Check,
-    ChevronRight,
-    Lightbulb,
-    RotateCcw,
-    Trophy,
-    X,
-} from "lucide-react";
+import { Check, Lightbulb, RotateCcw, Trophy, X } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
-    challengeResult,
     answerGrid,
     answerButton,
     feedbackBox,
@@ -19,18 +10,19 @@ import {
     monoSm,
     dimSm,
     noteBlock,
+    challengeStack,
+    challengeCard,
+    challengeSummary,
 } from "../theme/styles.css.ts";
 import { CodeBlock } from "../highlight/CodeBlock.tsx";
 import { CompileOutput } from "../compiler/CompileOutput.tsx";
-import { getFilteredChallenges } from "./challenges.ts";
+import { useCompiler } from "../compiler/useCompiler.ts";
 import type { Challenge } from "./challenges.ts";
-import type { CompileResult } from "../compiler/types.ts";
+import type { ChallengeAnswers } from "./useChallengeAnswers.ts";
 import type { LanguageFamiliarity } from "../data/languages.ts";
 import type { UserProfile } from "../settings/types.ts";
 import { languageNameForId } from "../data/languages.ts";
 import { backgroundContextNotes } from "../settings/background-context.ts";
-import type { ChallengeAction } from "./challengeReducer.ts";
-import type { ChallengeState } from "./challengeReducer.ts";
 
 function levelColour(level: string): string {
     if (level === "warm-up") return vars.colour.good;
@@ -100,106 +92,34 @@ function PerLanguageNotes({
     );
 }
 
-function Results({
-    state,
-    dispatch,
-    totalChallenges,
-}: {
-    readonly state: ChallengeState;
-    readonly dispatch: (a: ChallengeAction) => void;
-    readonly totalChallenges: number;
-}) {
-    const pct =
-        totalChallenges === 0
-            ? 0
-            : Math.round((state.correct / totalChallenges) * 100);
-    return (
-        <div className={challengeResult}>
-            <Trophy size={44} style={{ color: vars.colour.accent }} />
-            <h2
-                style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 700,
-                    margin: 0,
-                    color: vars.colour.text,
-                }}
-            >
-                {state.correct} / {totalChallenges} correct
-            </h2>
-            <p
-                style={{
-                    fontSize: "0.875rem",
-                    margin: 0,
-                    color: vars.colour.dim,
-                }}
-            >
-                {pct >= 80
-                    ? "The borrow checker holds no fear for you."
-                    : pct >= 50
-                      ? "Solid instincts. The tricky borrows are where the points hide."
-                      : "Replay the Borrowing and Lifetimes lessons, then run it back."}
-            </p>
-            <button
-                onClick={() => {
-                    dispatch({ type: "reset" });
-                }}
-                className={nextButton}
-            >
-                <RotateCcw size={16} /> Start over
-            </button>
-        </div>
-    );
+interface ChallengeCardProps {
+    readonly challenge: Challenge;
+    readonly number: number;
+    readonly total: number;
+    /** The learner's guess, or undefined if not yet answered. */
+    readonly guess: boolean | undefined;
+    readonly onAnswer: (id: string, guess: boolean) => void;
+    readonly familiarities: readonly LanguageFamiliarity[];
 }
 
-interface ChallengeViewProps {
-    readonly state: ChallengeState;
-    readonly dispatch: (action: ChallengeAction) => void;
-    readonly profile: UserProfile;
-    readonly compiling: boolean;
-    readonly compileResult: CompileResult | null;
-    onCompile: (code: string) => Promise<void>;
-    onClearCompile: () => void;
-}
-
-function ChallengeView({
-    state,
-    dispatch,
-    profile,
-    compiling,
-    compileResult,
-    onCompile,
-    onClearCompile,
-}: ChallengeViewProps) {
-    const filtered = useMemo(() => getFilteredChallenges(profile), [profile]);
-
-    const done = state.index >= filtered.length;
-
-    if (done) {
-        return (
-            <Results
-                state={state}
-                dispatch={dispatch}
-                totalChallenges={filtered.length}
-            />
-        );
-    }
-
-    const ch = filtered[state.index];
-    if (ch === undefined) return null;
-
-    const isCorrect = state.answered && state.guess === ch.compiles;
+/** One challenge, independently answerable. Each card owns its compiler so
+ *  running a snippet only shows output on that card. The card root carries the
+ *  challenge id so it is a scroll-tracked sidebar sub-section. */
+function ChallengeCard({
+    challenge,
+    number,
+    total,
+    guess,
+    onAnswer,
+    familiarities,
+}: ChallengeCardProps) {
+    const { compiling, result, compile, clear } = useCompiler();
+    const answered = guess !== undefined;
+    const isCorrect = answered && guess === challenge.compiles;
+    const fix = challenge.fix;
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-                maxWidth: "42rem",
-                margin: "0 auto",
-                width: "100%",
-            }}
-        >
+        <div id={challenge.id} className={challengeCard}>
             <div
                 style={{
                     display: "flex",
@@ -209,7 +129,7 @@ function ChallengeView({
                 className={monoSm}
             >
                 <span>
-                    challenge {state.index + 1} / {filtered.length}
+                    challenge {number} / {total}
                 </span>
                 <span
                     style={{
@@ -218,58 +138,33 @@ function ChallengeView({
                         gap: "0.75rem",
                     }}
                 >
-                    <span style={{ color: levelColour(ch.level) }}>
-                        {ch.level}
+                    <span style={{ color: levelColour(challenge.level) }}>
+                        {challenge.level}
                     </span>
-                    <span className={dimSm}>{ch.topic}</span>
+                    <span className={dimSm}>{challenge.topic}</span>
                 </span>
             </div>
 
-            <h2
-                style={{
-                    fontSize: "1.25rem",
-                    fontWeight: 700,
-                    margin: 0,
-                    color: vars.colour.text,
-                }}
-            >
-                Will this compile?
-            </h2>
-
-            {backgroundContextNotes(profile.backgrounds).map((note) => (
-                <div key={note} className={noteBlock}>
-                    <Lightbulb
-                        size={16}
-                        style={{
-                            color: vars.colour.accent,
-                            flexShrink: 0,
-                            marginTop: 2,
-                        }}
-                    />
-                    <span>{note}</span>
-                </div>
-            ))}
-
             <CodeBlock
-                code={ch.code}
+                code={challenge.code}
                 label="snippet.rs"
                 onRun={() => {
-                    void onCompile(ch.code);
+                    void compile(challenge.code);
                 }}
                 compiling={compiling}
             />
 
             <CompileOutput
-                result={compileResult}
+                result={result}
                 compiling={compiling}
-                onClear={onClearCompile}
+                onClear={clear}
             />
 
-            {!state.answered ? (
+            {!answered ? (
                 <div className={answerGrid}>
                     <button
                         onClick={() => {
-                            dispatch({ type: "answer", guess: true });
+                            onAnswer(challenge.id, true);
                         }}
                         className={answerButton}
                         style={{ color: vars.colour.good }}
@@ -278,7 +173,7 @@ function ChallengeView({
                     </button>
                     <button
                         onClick={() => {
-                            dispatch({ type: "answer", guess: false });
+                            onAnswer(challenge.id, false);
                         }}
                         className={answerButton}
                         style={{ color: vars.colour.bad }}
@@ -318,7 +213,10 @@ function ChallengeView({
                                 }}
                             >
                                 — this code{" "}
-                                {ch.compiles ? "compiles" : "does not compile"}.
+                                {challenge.compiles
+                                    ? "compiles"
+                                    : "does not compile"}
+                                .
                             </span>
                         </div>
                         <p
@@ -329,17 +227,17 @@ function ChallengeView({
                                 color: vars.colour.text,
                             }}
                         >
-                            {ch.why}
+                            {challenge.why}
                         </p>
-                        {profile.familiarities.length > 0 ? (
+                        {familiarities.length > 0 ? (
                             <PerLanguageNotes
-                                challenge={ch}
-                                familiarities={profile.familiarities}
+                                challenge={challenge}
+                                familiarities={familiarities}
                             />
                         ) : null}
                     </div>
 
-                    {ch.fix ? (
+                    {fix !== undefined ? (
                         <div
                             style={{
                                 display: "flex",
@@ -349,37 +247,100 @@ function ChallengeView({
                         >
                             <span className={monoSm}>one way to fix it</span>
                             <CodeBlock
-                                code={ch.fix}
+                                code={fix}
                                 label="fixed.rs"
                                 onRun={() => {
-                                    void onCompile(ch.fix ?? "");
+                                    void compile(fix);
                                 }}
                                 compiling={compiling}
                             />
                             <CompileOutput
-                                result={compileResult}
+                                result={result}
                                 compiling={compiling}
-                                onClear={onClearCompile}
+                                onClear={clear}
                             />
                         </div>
                     ) : null}
-
-                    <button
-                        onClick={() => {
-                            dispatch({ type: "next" });
-                        }}
-                        className={nextButton}
-                    >
-                        {state.index + 1 >= filtered.length
-                            ? "See results"
-                            : "Next challenge"}
-                        <ChevronRight size={16} />
-                    </button>
                 </div>
             )}
         </div>
     );
 }
 
+interface ChallengeViewProps {
+    readonly challenges: readonly Challenge[];
+    readonly answers: ChallengeAnswers;
+    readonly onAnswer: (id: string, guess: boolean) => void;
+    readonly onReset: () => void;
+    readonly profile: UserProfile;
+}
+
+function ChallengeView({
+    challenges,
+    answers,
+    onAnswer,
+    onReset,
+    profile,
+}: ChallengeViewProps) {
+    let answeredCount = 0;
+    let correctCount = 0;
+    for (const c of challenges) {
+        const g = answers[c.id];
+        if (g !== undefined) {
+            answeredCount += 1;
+            if (g === c.compiles) correctCount += 1;
+        }
+    }
+
+    return (
+        <div className={challengeStack}>
+            {backgroundContextNotes(profile.backgrounds).map((note) => (
+                <div key={note} className={noteBlock}>
+                    <Lightbulb
+                        size={16}
+                        style={{
+                            color: vars.colour.accent,
+                            flexShrink: 0,
+                            marginTop: 2,
+                        }}
+                    />
+                    <span>{note}</span>
+                </div>
+            ))}
+
+            <div className={challengeSummary}>
+                <span
+                    className={monoSm}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                    }}
+                >
+                    <Trophy size={14} style={{ color: vars.colour.accent }} />
+                    {correctCount} / {answeredCount} correct
+                    <span className={dimSm}>· {challenges.length} total</span>
+                </span>
+                {answeredCount > 0 ? (
+                    <button onClick={onReset} className={nextButton}>
+                        <RotateCcw size={16} /> Reset answers
+                    </button>
+                ) : null}
+            </div>
+
+            {challenges.map((c, i) => (
+                <ChallengeCard
+                    key={c.id}
+                    challenge={c}
+                    number={i + 1}
+                    total={challenges.length}
+                    guess={answers[c.id]}
+                    onAnswer={onAnswer}
+                    familiarities={profile.familiarities}
+                />
+            ))}
+        </div>
+    );
+}
+
 export { ChallengeView };
-export type { ChallengeState, ChallengeAction };
