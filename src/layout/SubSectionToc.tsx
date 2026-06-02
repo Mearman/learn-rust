@@ -266,33 +266,46 @@ export function SubSectionToc({
 
     // Expansion state model.
     //
-    // expanded: the set of section IDs currently open.
-    // User manual toggles update it directly via handleToggle.
+    // manuallyOpened: sections the user explicitly opened via the caret toggle.
+    //   These persist across scroll-driven section changes.
+    // expanded (derived): the union of manuallyOpened and the active section.
+    //   The active section is always open so the TOC reflects where the user
+    //   is; manually-opened extra sections stay open until the user closes them.
     //
-    // Auto-expansion on scroll: we use the "adjust state when a prop changes"
-    // pattern from the React docs (preferred over useEffect + setState, which
-    // triggers cascading renders). We track prevActiveSection; when it differs
-    // from activeSection in the current render, we replace the open set with
-    // just the new active section, so the previously-open section animates
-    // closed. React batches both setState calls into one re-render.
-    const [expanded, setExpanded] = useState<ReadonlySet<SectionId>>(
-        () => new Set([activeSection])
-    );
+    // We use the "adjust state when a prop changes" pattern from the React docs
+    // (preferred over useEffect + setState) to detect when activeSection changes
+    // and open it without resetting manual opens.
+    const [manuallyOpened, setManuallyOpened] = useState<
+        ReadonlySet<SectionId>
+    >(() => new Set());
     const [prevActiveSection, setPrevActiveSection] =
         useState<SectionId>(activeSection);
 
     if (prevActiveSection !== activeSection) {
         setPrevActiveSection(activeSection);
-        // Scrolling to a new section collapses the previous one — only the
-        // active section stays open (a single-open accordion driven by
-        // scroll). Manual caret toggles still work but reset on the next
-        // section change.
-        setExpanded(new Set([activeSection]));
+        // Remove the previously-active section from manuallyOpened so it
+        // collapses as the user scrolls away, unless they re-open it manually.
+        setManuallyOpened((prev) => {
+            const next = new Set(prev);
+            next.delete(prevActiveSection);
+            return next;
+        });
     }
 
+    // Derived: the scroll-active section is always open; manually-opened
+    // sections are added on top.
+    const expanded: ReadonlySet<SectionId> = new Set([
+        activeSection,
+        ...manuallyOpened,
+    ]);
+
     const handleToggle = (id: SectionId) => {
-        setExpanded((prev) => {
+        setManuallyOpened((prev) => {
             const next = new Set(prev);
+            // Toggle the section in the manual set. The active section is
+            // always in expanded regardless, so clicking its caret won't
+            // actually close it — this matches standard accordion UX where
+            // the active item stays open.
             if (next.has(id)) {
                 next.delete(id);
             } else {
