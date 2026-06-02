@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Collapse, ScrollArea, TextInput } from "@mantine/core";
+import { Collapse, TextInput } from "@mantine/core";
 import { ChevronRight, List, Search, Star, X } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import { useBodyScrollLock } from "./useBodyScrollLock.ts";
@@ -23,6 +23,7 @@ import {
     tocEntryRow,
     tocStarButton,
     tocStarButtonActive,
+    tocScroll,
 } from "../theme/styles.css.ts";
 import type { SectionGroup, SubSection } from "../layout/subSections.ts";
 import type { SectionId } from "../layout/useActiveSection.ts";
@@ -480,13 +481,10 @@ export function SubSectionToc({
                         }}
                     />
                 </div>
-                <ScrollArea.Autosize
-                    mah="calc(100vh - 160px)"
-                    offsetScrollbars
-                    viewportRef={viewportRef}
-                    styles={{
-                        root: { minWidth: 0 },
-                    }}
+                <div
+                    ref={viewportRef}
+                    className={tocScroll}
+                    style={{ maxHeight: "calc(100vh - 160px)" }}
                 >
                     <TocTree
                         groups={groups}
@@ -501,7 +499,7 @@ export function SubSectionToc({
                         filter={filter}
                         activeEntryRef={activeEntryRef}
                     />
-                </ScrollArea.Autosize>
+                </div>
             </aside>
 
             {/* Mobile FAB — always rendered for the combined tree */}
@@ -609,12 +607,9 @@ export function SubSectionToc({
                                 />
                             </div>
 
-                            <ScrollArea.Autosize
-                                mah="50vh"
-                                offsetScrollbars
-                                styles={{
-                                    root: { minWidth: 0 },
-                                }}
+                            <div
+                                className={tocScroll}
+                                style={{ maxHeight: "50vh" }}
                             >
                                 <div
                                     style={{
@@ -648,7 +643,7 @@ export function SubSectionToc({
                                         </span>
                                     ) : null}
                                 </div>
-                            </ScrollArea.Autosize>
+                            </div>
                         </div>
                     </div>
                 </div>

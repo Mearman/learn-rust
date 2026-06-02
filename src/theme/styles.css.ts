@@ -639,6 +639,25 @@ export const tocSidebar = style({
     },
 });
 
+/** Native scroll container for the TOC tree.
+ *
+ *  Replaces Mantine's `ScrollArea.Autosize`, whose content element is
+ *  `display: table; min-width: 100%` and which (in the Autosize variant) also
+ *  gets `min-width: min-content`. Together those size the scroll area to the
+ *  widest `white-space: nowrap` label, so once an entry's text exceeds the
+ *  200px column the area overflows and a horizontal scrollbar appears. A plain
+ *  block scroller fills the column width instead, so the labels ellipsis-
+ *  truncate as intended. `position: relative` keeps the active-entry
+ *  scroll-into-view maths (`button.offsetTop` within this viewport) correct. */
+export const tocScroll = style({
+    position: "relative",
+    overflowY: "auto",
+    overflowX: "hidden",
+    minWidth: 0,
+    scrollbarWidth: "thin",
+    scrollbarGutter: "stable",
+});
+
 export const tocFab = style({
     position: "fixed",
     bottom: "calc(1.25rem + env(safe-area-inset-bottom))",
