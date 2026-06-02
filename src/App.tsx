@@ -58,9 +58,9 @@ import { useThemeMode } from "./theme/useThemeMode.ts";
 import {
     useActiveSection,
     scrollToSection,
-    type SectionId,
 } from "./layout/useActiveSection.ts";
 import { getSectionGroups, resolveActiveHash } from "./layout/subSections.ts";
+import type { SectionId } from "./layout/subSections.ts";
 import { useActiveSubSection } from "./layout/useActiveSubSection.ts";
 import { useActiveHash } from "./layout/useActiveHash.ts";
 import { SubSectionToc } from "./layout/SubSectionToc.tsx";

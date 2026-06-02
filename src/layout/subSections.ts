@@ -4,23 +4,20 @@ import { GLOSSARY } from "../data/glossary.ts";
 import { ERROR_CATALOGUE } from "../data/errors.ts";
 import { SYNTAX_REFERENCES } from "../data/syntax-references.ts";
 import { COMPILER_ERROR_TRANSCRIPTS } from "../data/compiler-errors.ts";
-import type { SectionId } from "./useActiveSection.ts";
+import { syntaxId } from "./sectionIds.ts";
 
 export interface SubSection {
     readonly id: string;
     readonly label: string;
 }
 
-/** Canonical id + label for a top-level section, shared between the nav and
- *  the TOC tree. Icons live in App.tsx alongside the nav buttons. */
-export interface SectionMeta {
-    readonly id: SectionId;
-    readonly label: string;
-}
-
-/** Canonical section id + label in display order. App.tsx imports this via
- *  getSectionGroups() so nav labels and TOC labels cannot drift apart. */
-export const SECTION_META: readonly SectionMeta[] = [
+/** Canonical section id + label in display order. This is the single source of
+ *  truth for the top-level sections: `SectionId` is derived from it, App.tsx
+ *  reads it via getSectionGroups() so nav labels and TOC labels cannot drift
+ *  apart, and useActiveSection iterates its ids for the scroll-spy. Declared
+ *  `as const` so the ids stay literal for the derived union. Icons live in
+ *  App.tsx alongside the nav buttons. */
+export const SECTION_META = [
     { id: "learn", label: "Learn" },
     { id: "challenge", label: "Will it compile?" },
     { id: "path", label: "Path" },
@@ -30,7 +27,15 @@ export const SECTION_META: readonly SectionMeta[] = [
     { id: "errors", label: "Errors" },
     { id: "reading-errors", label: "Reading errors" },
     { id: "cheatsheet", label: "Cheatsheet" },
-];
+] as const;
+
+/** A top-level section's stable id, derived from SECTION_META so the union and
+ *  the rendered sections cannot drift. */
+export type SectionId = (typeof SECTION_META)[number]["id"];
+
+/** The canonical section ids in display order — the keys the scroll-spy
+ *  observes. Derived from SECTION_META so they stay in lockstep with it. */
+export const SECTION_IDS: readonly SectionId[] = SECTION_META.map((m) => m.id);
 
 /** A section group for the combined TOC tree. */
 export interface SectionGroup {
@@ -57,7 +62,7 @@ const COMPARE_SUBS: readonly SubSection[] = CONCEPTS.map((c) => ({
 }));
 
 const SYNTAX_SUBS: readonly SubSection[] = SYNTAX_TOPICS.map((topic) => ({
-    id: `syntax-${topic.replace(/\s+/g, "-").toLowerCase()}`,
+    id: syntaxId(topic),
     label: topic,
 }));
 

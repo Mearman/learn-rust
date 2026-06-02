@@ -26,8 +26,11 @@ import {
     tocStarButtonActive,
     tocScroll,
 } from "../theme/styles.css.ts";
-import type { SectionGroup, SubSection } from "../layout/subSections.ts";
-import type { SectionId } from "../layout/useActiveSection.ts";
+import type {
+    SectionGroup,
+    SubSection,
+    SectionId,
+} from "../layout/subSections.ts";
 import { useStarredEntries } from "./useStarredEntries.ts";
 import { scrollBehaviour } from "./reducedMotion.ts";
 

@@ -1,20 +1,8 @@
 import { useEffect, useState } from "react";
 import { observeScrollSpy } from "./scrollSpy.ts";
 import { scrollBehaviour } from "./reducedMotion.ts";
-
-const SECTION_IDS = [
-    "learn",
-    "challenge",
-    "path",
-    "compare",
-    "syntax",
-    "glossary",
-    "errors",
-    "reading-errors",
-    "cheatsheet",
-] as const;
-
-export type SectionId = (typeof SECTION_IDS)[number];
+import { SECTION_IDS } from "./subSections.ts";
+import type { SectionId } from "./subSections.ts";
 
 export function scrollToSection(id: SectionId): void {
     const element = document.getElementById(id);
