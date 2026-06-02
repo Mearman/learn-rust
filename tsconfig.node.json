@@ -25,6 +25,7 @@
         "eslint-rules/**/*.ts",
         "lint-staged.config.ts",
         "prettier.config.ts",
+        "release.config.ts",
         "vite.config.ts",
         "vitest.config.ts"
     ]
