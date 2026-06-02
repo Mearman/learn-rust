@@ -188,7 +188,7 @@ function ChallengeCard({
                 ? fixMode.editedCode
                 : null;
         if (editedCode === null) return;
-        void compile(editedCode);
+        void compile(editedCode, `${challenge.id}-fix`);
         // The actual state transition (solved vs submitted-incorrect) happens
         // in the render path below when the result arrives.
         setFixMode((prev) =>
@@ -290,7 +290,7 @@ function ChallengeCard({
                 code={challenge.code}
                 label="snippet.rs"
                 onRun={() => {
-                    void compile(challenge.code);
+                    void compile(challenge.code, challenge.id);
                 }}
                 compiling={compiling}
             />
@@ -765,7 +765,10 @@ function ChallengeCard({
                                 code={fix}
                                 label="fixed.rs"
                                 onRun={() => {
-                                    void compile(fix);
+                                    void compile(
+                                        fix,
+                                        `${challenge.id}-revealed-fix`
+                                    );
                                 }}
                                 compiling={compiling}
                             />

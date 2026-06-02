@@ -92,7 +92,9 @@ interface LearnViewProps {
     readonly profile: UserProfile;
     readonly compiling: boolean;
     readonly compileResult: CompileResult | null;
-    onCompile: (code: string) => Promise<void>;
+    /** Id of the block that produced compileResult, or null when nothing ran. */
+    readonly compileBlockId: string | null;
+    onCompile: (code: string, blockId: string) => Promise<void>;
     onClearCompile: () => void;
     onOpenReference: (id: string) => void;
     onOpenLesson: (id: string) => void;
@@ -114,7 +116,8 @@ interface LessonArticleProps {
     readonly profile: UserProfile;
     readonly compiling: boolean;
     readonly compileResult: CompileResult | null;
-    onCompile: (code: string) => Promise<void>;
+    readonly compileBlockId: string | null;
+    onCompile: (code: string, blockId: string) => Promise<void>;
     onClearCompile: () => void;
     onOpenReference: (id: string) => void;
     onOpenLesson: (id: string) => void;
@@ -221,6 +224,7 @@ function LessonArticle({
     profile,
     compiling,
     compileResult,
+    compileBlockId,
     onCompile,
     onClearCompile,
     onOpenReference,
@@ -334,23 +338,35 @@ function LessonArticle({
                     >
                         {lesson.blocks
                             .filter((b) => blockVisible(b, profile.experience))
-                            .map((b, i) => (
-                                <Block
-                                    key={i}
-                                    block={b}
-                                    profile={profile}
-                                    compiling={compiling}
-                                    onRun={
-                                        b.kind === "code"
-                                            ? () => {
-                                                  void onCompile(b.code);
-                                              }
-                                            : undefined
-                                    }
-                                    compileResult={compileResult}
-                                    onClearCompile={onClearCompile}
-                                />
-                            ))}
+                            .map((b, i) => {
+                                // Stable per-block id so compile output renders
+                                // only under the block that ran, not under every
+                                // block in the lesson.
+                                const blockId = `${lesson.id}-${String(i)}`;
+                                const ranHere = compileBlockId === blockId;
+                                return (
+                                    <Block
+                                        key={i}
+                                        block={b}
+                                        profile={profile}
+                                        compiling={ranHere && compiling}
+                                        onRun={
+                                            b.kind === "code"
+                                                ? () => {
+                                                      void onCompile(
+                                                          b.code,
+                                                          blockId
+                                                      );
+                                                  }
+                                                : undefined
+                                        }
+                                        compileResult={
+                                            ranHere ? compileResult : null
+                                        }
+                                        onClearCompile={onClearCompile}
+                                    />
+                                );
+                            })}
                     </div>
                 </div>
             </Collapse>
@@ -364,6 +380,7 @@ export function LearnView({
     profile,
     compiling,
     compileResult,
+    compileBlockId,
     onCompile,
     onClearCompile,
     onOpenReference,
@@ -395,6 +412,7 @@ export function LearnView({
                         profile={profile}
                         compiling={compiling}
                         compileResult={compileResult}
+                        compileBlockId={compileBlockId}
                         onCompile={onCompile}
                         onClearCompile={onClearCompile}
                         onOpenReference={onOpenReference}

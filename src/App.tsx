@@ -77,6 +77,7 @@ import {
 import { useHasBeenVisible } from "./layout/useHasBeenVisible.ts";
 import { useBodyScrollLock } from "./layout/useBodyScrollLock.ts";
 import { useHeaderMorph } from "./layout/useHeaderMorph.ts";
+import { ErrorBoundary } from "./layout/ErrorBoundary.tsx";
 
 /** Section icons in canonical order — labels come from SECTION_META in
  *  subSections.ts so they never drift from the TOC tree. */
@@ -102,6 +103,7 @@ export function App() {
     const {
         compiling,
         result: compileResult,
+        blockId: compileBlockId,
         compile,
         clear: clearCompile,
     } = useCompiler();
@@ -292,43 +294,54 @@ export function App() {
                     <div className={tocContent}>
                         <section id="learn" className={contentSection}>
                             <h2 className={sectionHeading}>Learn</h2>
-                            <LearnView
-                                viewed={viewed}
-                                onMarkViewed={markViewed}
-                                profile={profile}
-                                compiling={compiling}
-                                compileResult={compileResult}
-                                onCompile={compile}
-                                onClearCompile={clearCompile}
-                                onOpenReference={openConcept}
-                                onOpenLesson={openLesson}
-                            />
+                            <ErrorBoundary section="Learn">
+                                <LearnView
+                                    viewed={viewed}
+                                    onMarkViewed={markViewed}
+                                    profile={profile}
+                                    compiling={compiling}
+                                    compileResult={compileResult}
+                                    compileBlockId={compileBlockId}
+                                    onCompile={compile}
+                                    onClearCompile={clearCompile}
+                                    onOpenReference={openConcept}
+                                    onOpenLesson={openLesson}
+                                />
+                            </ErrorBoundary>
                         </section>
 
                         <section id="challenge" className={contentSection}>
                             <h2 className={sectionHeading}>Will it compile?</h2>
-                            <ChallengeView
-                                challenges={filteredChallenges}
-                                answers={challenge.answers}
-                                onAnswer={(id, guess) => {
-                                    dispatch({ type: "answer", id, guess });
-                                }}
-                                onReset={() => {
-                                    dispatch({ type: "reset" });
-                                }}
-                                profile={profile}
-                                reviewStore={reviewStore}
-                                onRecordReview={recordReview}
-                            />
+                            <ErrorBoundary section="Will it compile?">
+                                <ChallengeView
+                                    challenges={filteredChallenges}
+                                    answers={challenge.answers}
+                                    onAnswer={(id, guess) => {
+                                        dispatch({
+                                            type: "answer",
+                                            id,
+                                            guess,
+                                        });
+                                    }}
+                                    onReset={() => {
+                                        dispatch({ type: "reset" });
+                                    }}
+                                    profile={profile}
+                                    reviewStore={reviewStore}
+                                    onRecordReview={recordReview}
+                                />
+                            </ErrorBoundary>
                         </section>
 
                         <section id="path" className={contentSection}>
                             <h2 className={sectionHeading}>Learning path</h2>
-                            <ProgressionView
-                                onOpenLesson={openLesson}
-                                onOpenConcept={openConcept}
-                                viewed={viewed}
-                            />
+                            <ErrorBoundary section="Learning path">
+                                <ProgressionView
+                                    onOpenLesson={openLesson}
+                                    onOpenConcept={openConcept}
+                                    viewed={viewed}
+                                />
+                            </ErrorBoundary>
                         </section>
 
                         <section id="compare" className={contentSection}>
@@ -342,10 +355,12 @@ export function App() {
                              */}
                             <div ref={compareSentinelRef} />
                             {compareMounted ? (
-                                <ComparisonView
-                                    profile={profile}
-                                    onOpenLesson={openLesson}
-                                />
+                                <ErrorBoundary section="Compare">
+                                    <ComparisonView
+                                        profile={profile}
+                                        onOpenLesson={openLesson}
+                                    />
+                                </ErrorBoundary>
                             ) : null}
                         </section>
 
@@ -358,33 +373,47 @@ export function App() {
                              */}
                             <div ref={syntaxSentinelRef} />
                             {syntaxMounted ? (
-                                <SyntaxView profile={profile} />
+                                <ErrorBoundary section="Syntax">
+                                    <SyntaxView profile={profile} />
+                                </ErrorBoundary>
                             ) : null}
                         </section>
 
                         <section id="glossary" className={contentSection}>
                             <h2 className={sectionHeading}>Glossary</h2>
-                            <GlossaryView onOpenConcept={openConcept} />
+                            <ErrorBoundary section="Glossary">
+                                <GlossaryView onOpenConcept={openConcept} />
+                            </ErrorBoundary>
                         </section>
 
                         <section id="errors" className={contentSection}>
                             <h2 className={sectionHeading}>Errors</h2>
-                            <ErrorCatalogueView onOpenConcept={openConcept} />
+                            <ErrorBoundary section="Errors">
+                                <ErrorCatalogueView
+                                    onOpenConcept={openConcept}
+                                />
+                            </ErrorBoundary>
                         </section>
 
                         <section id="reading-errors" className={contentSection}>
                             <h2 className={sectionHeading}>Reading errors</h2>
-                            <CompilerErrorsView onOpenConcept={openConcept} />
+                            <ErrorBoundary section="Reading errors">
+                                <CompilerErrorsView
+                                    onOpenConcept={openConcept}
+                                />
+                            </ErrorBoundary>
                         </section>
 
                         <section id="cheatsheet" className={contentSection}>
                             <h2 className={sectionHeading}>Cheatsheet</h2>
-                            <CheatsheetView
-                                onOpenReferences={() => {
-                                    scrollToSection("compare");
-                                }}
-                                onOpenConcept={openConcept}
-                            />
+                            <ErrorBoundary section="Cheatsheet">
+                                <CheatsheetView
+                                    onOpenReferences={() => {
+                                        scrollToSection("compare");
+                                    }}
+                                    onOpenConcept={openConcept}
+                                />
+                            </ErrorBoundary>
                         </section>
                     </div>
                 </div>
