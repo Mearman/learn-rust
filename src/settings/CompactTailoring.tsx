@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { MultiSelect, SegmentedControl } from "@mantine/core";
 import { vars } from "../theme/theme.css.ts";
 import {
@@ -6,6 +7,7 @@ import {
     compactStripControls,
     compactStripField,
     compactStripLabel,
+    savedBadge,
 } from "../theme/styles.css.ts";
 import { DEVELOPER_BACKGROUND_OPTIONS } from "./backgrounds.ts";
 import { LANGUAGE_FAMILIARITY_OPTIONS } from "../data/languages.ts";
@@ -42,6 +44,14 @@ export function CompactTailoring({
     profile,
     setProfile,
 }: CompactTailoringProps) {
+    // Increment this counter each time a setting changes; used as a `key` on
+    // the saved badge so the CSS animation re-triggers on every change.
+    const [savedCount, setSavedCount] = useState(0);
+
+    const notifySaved = useCallback(() => {
+        setSavedCount((n) => n + 1);
+    }, []);
+
     const handleBackgrounds = (values: string[]) => {
         validateSelections(values, isDeveloperBackground);
         const narrowed = values.filter(isDeveloperBackground);
@@ -49,6 +59,7 @@ export function CompactTailoring({
             ...prev,
             backgrounds: narrowed,
         }));
+        notifySaved();
     };
 
     const handleFamiliarities = (values: string[]) => {
@@ -58,6 +69,7 @@ export function CompactTailoring({
             ...prev,
             familiarities: narrowed,
         }));
+        notifySaved();
     };
 
     const handleExperience = (value: string) => {
@@ -68,6 +80,7 @@ export function CompactTailoring({
             ...prev,
             experience: value,
         }));
+        notifySaved();
     };
 
     return (
@@ -76,6 +89,17 @@ export function CompactTailoring({
                 Rust{" "}
                 <span style={{ color: vars.colour.accent }}>by concept</span>
             </span>
+
+            {savedCount > 0 ? (
+                <span
+                    key={savedCount}
+                    className={savedBadge}
+                    aria-live="polite"
+                    aria-atomic="true"
+                >
+                    ✓ Applied
+                </span>
+            ) : null}
 
             <div className={compactStripControls}>
                 <div className={compactStripField}>

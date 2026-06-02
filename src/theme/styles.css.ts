@@ -50,6 +50,29 @@ export const spin = style({
     },
 });
 
+// Fade-in-out keyframe used by the tailoring-saved badge.
+const fadeInOutFrames = keyframes({
+    "0%": { opacity: 0 },
+    "15%": { opacity: 1 },
+    "70%": { opacity: 1 },
+    "100%": { opacity: 0 },
+});
+
+/** Transient "✓ Applied" badge shown after a tailoring change. */
+export const savedBadge = style({
+    fontSize: "0.625rem",
+    fontFamily: "ui-monospace, monospace",
+    fontWeight: 600,
+    color: vars.colour.good,
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+    "@media": {
+        "not (prefers-reduced-motion: reduce)": {
+            animation: `${fadeInOutFrames} 2s ease-in-out forwards`,
+        },
+    },
+});
+
 // ---------------------------------------------------------------------------
 // CodeBlock
 // ---------------------------------------------------------------------------
