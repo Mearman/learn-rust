@@ -36,6 +36,30 @@ export interface SyntaxReference {
     readonly explanation: string;
 }
 
+/** A single progressive hint for a fix exercise. */
+export interface FixHint {
+    readonly label: string;
+    readonly text: string;
+}
+
+/** A broken Rust snippet the learner repairs until the live compiler accepts it. */
+export interface FixExercise {
+    readonly id: string;
+    /** Maps to a Concept.id in concepts.ts. */
+    readonly conceptId: string;
+    /** Card header and TOC label. */
+    readonly topic: string;
+    readonly level: "warm-up" | "core" | "tricky";
+    /** Must NOT compile as written. */
+    readonly brokenCode: string;
+    /** Shown only after the oracle accepts the learner's edit. */
+    readonly idiomaticFix: string;
+    /** Why the fix is idiomatic. */
+    readonly idiomaticNote: string;
+    /** Non-empty tuple — the first hint needs no index guard. */
+    readonly hints: readonly [FixHint, ...FixHint[]];
+}
+
 /** One annotated line (or contiguous span of lines) within a rustc transcript. */
 export interface TranscriptAnnotation {
     /** 0-based index of the first transcript line this annotation covers. */
