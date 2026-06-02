@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/Mearman/learn-rust/compare/v1.6.1...v1.7.0) (2026-06-02)
+
+
+### Features
+
+* scroll-linked morphing tailoring panel ([af98a16](https://github.com/Mearman/learn-rust/commit/af98a16df35d7ec517313f67b3ea4d0ea4f0151f))
+
 ## [1.6.1](https://github.com/Mearman/learn-rust/compare/v1.6.0...v1.6.1) (2026-06-02)
 
 
