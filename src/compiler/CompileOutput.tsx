@@ -102,6 +102,25 @@ export function CompileOutput({
                         content={result.stdout}
                         colour={vars.colour.text}
                     />
+                    <div
+                        style={{
+                            padding: "0.375rem 0.75rem",
+                            fontSize: "0.65rem",
+                            fontFamily: "ui-monospace, monospace",
+                            color: vars.colour.faint,
+                            borderTop: `1px solid ${vars.colour.borderSoft}`,
+                        }}
+                    >
+                        Powered by{" "}
+                        <a
+                            href="https://play.rust-lang.org"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: vars.colour.faint }}
+                        >
+                            Rust Playground
+                        </a>
+                    </div>
                 </>
             ) : null}
         </div>
