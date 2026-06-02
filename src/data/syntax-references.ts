@@ -1326,11 +1326,6 @@ func area(s Shape) float64 {
         title: "Enums and discriminated unions via OneOf",
         code: `enum Status { Active, Inactive }
 
-// Discriminated union via one-of library or manual
-type Shape =
-    | Circle of radius: float
-    | Rectangle of width: float * height: float;
-
 // Pure C# approach: abstract record
 abstract record Shape {
     public sealed record Circle(double Radius) : Shape;
