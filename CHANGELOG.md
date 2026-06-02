@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/Mearman/learn-rust/compare/v1.1.0...v1.2.0) (2026-06-02)
+
+
+### Bug Fixes
+
+* keep compact strip selects at a clickable width ([4f4e06d](https://github.com/Mearman/learn-rust/commit/4f4e06d7bfedf1cd989a4ea04cb00ab7531b656d))
+
+
+### Features
+
+* pin a slim always-visible tailoring strip above the nav ([cb50e92](https://github.com/Mearman/learn-rust/commit/cb50e92ffe5e09fba64217fb33151e24d8b040fe))
+
 # [1.1.0](https://github.com/Mearman/learn-rust/compare/v1.0.0...v1.1.0) (2026-06-02)
 
 
