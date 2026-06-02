@@ -423,7 +423,9 @@ export const compactStripField = style({
     display: "flex",
     alignItems: "center",
     gap: "0.25rem",
-    minWidth: 0,
+    // Keep the field at its natural width (label + a usable control) and let
+    // the row wrap instead of shrinking controls to an unclickable sliver.
+    flexShrink: 0,
 });
 
 export const compactStripLabel = style({

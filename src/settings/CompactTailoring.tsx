@@ -88,6 +88,8 @@ export function CompactTailoring({
                         aria-label="Actual background"
                         placeholder="Any"
                         maxDropdownHeight={200}
+                        w={170}
+                        comboboxProps={{ withinPortal: true, zIndex: 400 }}
                         styles={{
                             input: {
                                 background: vars.colour.panel2,
@@ -127,6 +129,8 @@ export function CompactTailoring({
                         aria-label="Language familiarity"
                         placeholder="Any"
                         maxDropdownHeight={200}
+                        w={170}
+                        comboboxProps={{ withinPortal: true, zIndex: 400 }}
                         styles={{
                             input: {
                                 background: vars.colour.panel2,
