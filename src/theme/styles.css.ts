@@ -1124,3 +1124,78 @@ export const hideOnMobile = style({
     display: "none",
     "@media": { [md]: { display: "inline" } },
 });
+
+// ---------------------------------------------------------------------------
+// Compiler error reading section
+// ---------------------------------------------------------------------------
+
+/** Full-width transcript article in the reading-errors section. */
+export const transcriptArticle = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    padding: "1.25rem",
+    borderRadius: "0.75rem",
+    border: `1px solid ${vars.colour.border}`,
+    background: vars.colour.panel,
+    scrollMarginTop: "5rem",
+});
+
+/** Level badge (warm-up / core / tricky). */
+export const levelBadge = style({
+    display: "inline-block",
+    fontSize: "0.625rem",
+    fontWeight: 700,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+    padding: "0.15rem 0.45rem",
+    borderRadius: "0.25rem",
+    fontFamily: "ui-monospace, monospace",
+});
+
+/** Annotation popup below an annotated transcript line. */
+export const annotationNote = style({
+    marginTop: "0.25rem",
+    marginBottom: "0.375rem",
+    marginLeft: "1.5rem",
+    padding: "0.375rem 0.625rem",
+    borderRadius: "0.375rem",
+    fontSize: "0.8rem",
+    lineHeight: 1.55,
+    borderLeft: "2px solid currentColor",
+    background: vars.colour.panel2,
+});
+
+/** Transcript line that has an associated annotation — slightly highlighted. */
+export const annotatedLine = style({
+    background: vars.colour.panel2,
+    borderRadius: "0.2rem",
+});
+
+/** "Decode this error" exercise box. */
+export const exerciseBox = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.75rem",
+    padding: "1rem",
+    borderRadius: "0.5rem",
+    border: `1px solid ${vars.colour.borderSoft}`,
+    background: vars.colour.panel2,
+});
+
+/** Reveal-answer button. */
+export const revealButton = style({
+    alignSelf: "flex-start",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.375rem",
+    padding: "0.5rem 0.875rem",
+    borderRadius: "0.375rem",
+    fontSize: "0.8125rem",
+    fontWeight: 500,
+    background: vars.colour.accent,
+    color: vars.colour.accentText,
+    border: "none",
+    cursor: "pointer",
+    transition: "opacity 0.15s",
+});

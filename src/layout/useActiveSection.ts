@@ -8,6 +8,7 @@ const SECTION_IDS = [
     "syntax",
     "glossary",
     "errors",
+    "reading-errors",
     "cheatsheet",
 ] as const;
 

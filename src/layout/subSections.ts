@@ -3,6 +3,7 @@ import { CONCEPTS } from "../data/concepts.ts";
 import { GLOSSARY } from "../data/glossary.ts";
 import { ERROR_CATALOGUE } from "../data/errors.ts";
 import { SYNTAX_REFERENCES } from "../data/syntax-references.ts";
+import { COMPILER_ERROR_TRANSCRIPTS } from "../data/compiler-errors.ts";
 import type { SectionId } from "./useActiveSection.ts";
 
 export interface SubSection {
@@ -27,6 +28,7 @@ export const SECTION_META: readonly SectionMeta[] = [
     { id: "syntax", label: "Syntax" },
     { id: "glossary", label: "Glossary" },
     { id: "errors", label: "Errors" },
+    { id: "reading-errors", label: "Reading errors" },
     { id: "cheatsheet", label: "Cheatsheet" },
 ];
 
@@ -69,6 +71,13 @@ const ERRORS_SUBS: readonly SubSection[] = ERROR_CATALOGUE.map((e) => ({
     label: `${e.code}: ${e.title}`,
 }));
 
+const CERROR_SUBS: readonly SubSection[] = COMPILER_ERROR_TRANSCRIPTS.map(
+    (t) => ({
+        id: `cerror-${t.id}`,
+        label: `${t.code}: ${t.title}`,
+    })
+);
+
 const SUBSECTION_MAP: Record<SectionId, readonly SubSection[]> = {
     learn: LESSON_SUBS,
     challenge: [],
@@ -77,6 +86,7 @@ const SUBSECTION_MAP: Record<SectionId, readonly SubSection[]> = {
     syntax: SYNTAX_SUBS,
     glossary: GLOSSARY_SUBS,
     errors: ERRORS_SUBS,
+    "reading-errors": CERROR_SUBS,
     cheatsheet: [],
 };
 
@@ -87,6 +97,7 @@ const ID_PREFIX_SECTION: readonly (readonly [string, SectionId])[] = [
     ["concept-", "compare"],
     ["syntax-", "syntax"],
     ["glossary-", "glossary"],
+    ["cerror-", "reading-errors"],
     ["error-", "errors"],
     ["challenge-", "challenge"],
 ];

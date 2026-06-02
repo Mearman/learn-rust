@@ -10,6 +10,7 @@ import {
     Search,
     Trophy,
     X,
+    ScanSearch,
     type LucideIcon,
 } from "lucide-react";
 import { vars } from "./theme/theme.css.ts";
@@ -63,6 +64,7 @@ import { ComparisonView } from "./references/ComparisonView.tsx";
 import { SyntaxView } from "./references/SyntaxView.tsx";
 import { GlossaryView } from "./references/GlossaryView.tsx";
 import { ErrorCatalogueView } from "./references/ErrorCatalogueView.tsx";
+import { CompilerErrorsView } from "./references/CompilerErrorsView.tsx";
 import { ProgressionView } from "./references/ProgressionView.tsx";
 import { SearchView } from "./references/SearchView.tsx";
 import { buildSearchResults } from "./references/searchResults.ts";
@@ -94,6 +96,7 @@ const SECTION_ICONS: Record<SectionId, LucideIcon> = {
     syntax: Braces,
     glossary: BookOpen,
     errors: AlertTriangle,
+    "reading-errors": ScanSearch,
     cheatsheet: Code2,
 };
 
@@ -476,6 +479,11 @@ export function App() {
                         <section id="errors" className={contentSection}>
                             <h2 className={sectionHeading}>Errors</h2>
                             <ErrorCatalogueView onOpenConcept={openConcept} />
+                        </section>
+
+                        <section id="reading-errors" className={contentSection}>
+                            <h2 className={sectionHeading}>Reading errors</h2>
+                            <CompilerErrorsView onOpenConcept={openConcept} />
                         </section>
 
                         <section id="cheatsheet" className={contentSection}>
