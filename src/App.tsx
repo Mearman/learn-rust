@@ -394,6 +394,7 @@ export function App() {
                             <h2 className={sectionHeading}>Learn</h2>
                             <LearnView
                                 viewed={viewed}
+                                onMarkViewed={markViewed}
                                 profile={profile}
                                 compiling={compiling}
                                 compileResult={compileResult}

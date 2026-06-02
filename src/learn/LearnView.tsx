@@ -1,3 +1,4 @@
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { Lightbulb } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
@@ -22,6 +23,58 @@ const LEVEL_ORDER: Record<ExperienceLevel, number> = {
     advanced: 2,
 };
 
+// Time the user must keep a lesson in view before it is marked read (ms).
+const DWELL_MS = 3000;
+
+/**
+ * Marks a lesson as read when it has been continuously visible for DWELL_MS.
+ * Uses IntersectionObserver to detect visibility; cancels the timer if the
+ * article scrolls out of view before the dwell threshold.
+ */
+function useDwellRead(
+    lessonId: string,
+    articleRef: React.RefObject<HTMLElement | null>,
+    alreadyViewed: boolean,
+    onMarkViewed: (id: string) => void
+): void {
+    // Keep a stable ref to the callback so the observer closure always calls
+    // the latest version without needing it as an effect dependency.
+    const onMarkViewedRef = useRef(onMarkViewed);
+    useLayoutEffect(() => {
+        onMarkViewedRef.current = onMarkViewed;
+    }, [onMarkViewed]);
+
+    useEffect(() => {
+        if (alreadyViewed) return;
+        const el = articleRef.current;
+        if (el === null) return;
+
+        let timerId: ReturnType<typeof window.setTimeout> | undefined;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        timerId = window.setTimeout(() => {
+                            onMarkViewedRef.current(lessonId);
+                        }, DWELL_MS);
+                    } else {
+                        window.clearTimeout(timerId);
+                    }
+                }
+            },
+            // Fire when at least 30 % of the article is in view.
+            { threshold: 0.3 }
+        );
+
+        observer.observe(el);
+        return () => {
+            window.clearTimeout(timerId);
+            observer.disconnect();
+        };
+    }, [lessonId, articleRef, alreadyViewed]);
+}
+
 function blockVisible(block: LessonBlock, level: ExperienceLevel): boolean {
     if (!("level" in block)) return true;
     const blockLevel = block.level;
@@ -31,6 +84,7 @@ function blockVisible(block: LessonBlock, level: ExperienceLevel): boolean {
 
 interface LearnViewProps {
     readonly viewed: ReadonlySet<string>;
+    readonly onMarkViewed: (id: string) => void;
     readonly profile: UserProfile;
     readonly compiling: boolean;
     readonly compileResult: CompileResult | null;
@@ -47,8 +101,134 @@ function referenceTitleForId(id: string): string {
     return concept.title;
 }
 
+interface LessonArticleProps {
+    readonly lesson: (typeof LESSONS)[number];
+    readonly conceptId: string;
+    readonly viewed: ReadonlySet<string>;
+    readonly onMarkViewed: (id: string) => void;
+    readonly profile: UserProfile;
+    readonly compiling: boolean;
+    readonly compileResult: CompileResult | null;
+    onCompile: (code: string) => Promise<void>;
+    onClearCompile: () => void;
+    onOpenReference: (id: string) => void;
+}
+
+function LessonArticle({
+    lesson,
+    conceptId,
+    viewed,
+    onMarkViewed,
+    profile,
+    compiling,
+    compileResult,
+    onCompile,
+    onClearCompile,
+    onOpenReference,
+}: LessonArticleProps) {
+    const articleRef = useRef<HTMLElement | null>(null);
+    useDwellRead(lesson.id, articleRef, viewed.has(lesson.id), onMarkViewed);
+
+    return (
+        <article
+            ref={articleRef}
+            id={`lesson-${lesson.id}`}
+            className={subSection}
+        >
+            <header
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.375rem",
+                }}
+            >
+                <h3 className={lessonTitle}>
+                    {lesson.title}
+                    {viewed.has(lesson.id) ? (
+                        <span
+                            style={{
+                                fontSize: "0.75rem",
+                                marginLeft: "0.5rem",
+                                color: vars.colour.good,
+                            }}
+                        >
+                            ✓ read
+                        </span>
+                    ) : null}
+                </h3>
+                <p className={lessonTagline}>{lesson.tagline}</p>
+            </header>
+
+            <div
+                style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "0.5rem",
+                }}
+            >
+                <button
+                    type="button"
+                    onClick={() => {
+                        onOpenReference(conceptId);
+                    }}
+                    className={navButton}
+                    style={{
+                        width: "auto",
+                        padding: "0.45rem 0.75rem",
+                    }}
+                >
+                    Compare: {referenceTitleForId(conceptId)}
+                </button>
+            </div>
+
+            {backgroundContextNotes(profile.backgrounds).map((note) => (
+                <div key={note} className={noteBlock}>
+                    <Lightbulb
+                        size={16}
+                        style={{
+                            color: vars.colour.accent,
+                            flexShrink: 0,
+                            marginTop: 2,
+                        }}
+                    />
+                    <span>{note}</span>
+                </div>
+            ))}
+
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                }}
+            >
+                {lesson.blocks
+                    .filter((b) => blockVisible(b, profile.experience))
+                    .map((b, i) => (
+                        <Block
+                            key={i}
+                            block={b}
+                            profile={profile}
+                            compiling={compiling}
+                            onRun={
+                                b.kind === "code"
+                                    ? () => {
+                                          void onCompile(b.code);
+                                      }
+                                    : undefined
+                            }
+                            compileResult={compileResult}
+                            onClearCompile={onClearCompile}
+                        />
+                    ))}
+            </div>
+        </article>
+    );
+}
+
 export function LearnView({
     viewed,
+    onMarkViewed,
     profile,
     compiling,
     compileResult,
@@ -73,103 +253,19 @@ export function LearnView({
                 }
 
                 return (
-                    <article
+                    <LessonArticle
                         key={lesson.id}
-                        id={`lesson-${lesson.id}`}
-                        className={subSection}
-                    >
-                        <header
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.375rem",
-                            }}
-                        >
-                            <h3 className={lessonTitle}>
-                                {lesson.title}
-                                {viewed.has(lesson.id) ? (
-                                    <span
-                                        style={{
-                                            fontSize: "0.75rem",
-                                            marginLeft: "0.5rem",
-                                            color: vars.colour.good,
-                                        }}
-                                    >
-                                        ✓ read
-                                    </span>
-                                ) : null}
-                            </h3>
-                            <p className={lessonTagline}>{lesson.tagline}</p>
-                        </header>
-
-                        <div
-                            style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: "0.5rem",
-                            }}
-                        >
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    onOpenReference(conceptId);
-                                }}
-                                className={navButton}
-                                style={{
-                                    width: "auto",
-                                    padding: "0.45rem 0.75rem",
-                                }}
-                            >
-                                Compare: {referenceTitleForId(conceptId)}
-                            </button>
-                        </div>
-
-                        {backgroundContextNotes(profile.backgrounds).map(
-                            (note) => (
-                                <div key={note} className={noteBlock}>
-                                    <Lightbulb
-                                        size={16}
-                                        style={{
-                                            color: vars.colour.accent,
-                                            flexShrink: 0,
-                                            marginTop: 2,
-                                        }}
-                                    />
-                                    <span>{note}</span>
-                                </div>
-                            )
-                        )}
-
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "1rem",
-                            }}
-                        >
-                            {lesson.blocks
-                                .filter((b) =>
-                                    blockVisible(b, profile.experience)
-                                )
-                                .map((b, i) => (
-                                    <Block
-                                        key={i}
-                                        block={b}
-                                        profile={profile}
-                                        compiling={compiling}
-                                        onRun={
-                                            b.kind === "code"
-                                                ? () => {
-                                                      void onCompile(b.code);
-                                                  }
-                                                : undefined
-                                        }
-                                        compileResult={compileResult}
-                                        onClearCompile={onClearCompile}
-                                    />
-                                ))}
-                        </div>
-                    </article>
+                        lesson={lesson}
+                        conceptId={conceptId}
+                        viewed={viewed}
+                        onMarkViewed={onMarkViewed}
+                        profile={profile}
+                        compiling={compiling}
+                        compileResult={compileResult}
+                        onCompile={onCompile}
+                        onClearCompile={onClearCompile}
+                        onOpenReference={onOpenReference}
+                    />
                 );
             })}
         </div>
