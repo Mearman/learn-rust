@@ -15,6 +15,26 @@ interface CompileOutputProps {
     onClear: () => void;
 }
 
+/**
+ * Hard cap on how many characters of a single output stream are rendered. The
+ * Playground can return arbitrarily large stdout/stderr (e.g. a program in a
+ * tight println loop, or a wall of compiler errors); rendering all of it into a
+ * single <pre> can lock the main thread. Truncate to this many characters and
+ * tell the reader the output was cut, rather than silently dropping the tail.
+ */
+const MAX_OUTPUT_CHARS = 20000;
+
+/** Cap a stream at {@link MAX_OUTPUT_CHARS}, flagging whether it was cut. */
+function capOutput(content: string): {
+    readonly text: string;
+    readonly truncated: boolean;
+} {
+    if (content.length <= MAX_OUTPUT_CHARS) {
+        return { text: content, truncated: false };
+    }
+    return { text: content.slice(0, MAX_OUTPUT_CHARS), truncated: true };
+}
+
 function OutputSection({
     label,
     content,
@@ -25,6 +45,7 @@ function OutputSection({
     readonly colour: string;
 }) {
     if (content.trim() === "") return null;
+    const { text, truncated } = capOutput(content);
     return (
         <div>
             <div
@@ -39,7 +60,8 @@ function OutputSection({
                 {label}
             </div>
             <pre className={outputPre} style={{ color: colour }}>
-                {content}
+                {text}
+                {truncated ? "\n\n(output truncated)" : null}
             </pre>
         </div>
     );
