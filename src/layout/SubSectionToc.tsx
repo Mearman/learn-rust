@@ -437,8 +437,38 @@ export function SubSectionToc({
         <>
             {/* Desktop sidebar */}
             <aside className={tocSidebar}>
+                <div
+                    style={{
+                        padding: "0 0.25rem 0.5rem",
+                    }}
+                >
+                    <TextInput
+                        placeholder="Filter..."
+                        leftSection={
+                            <Search
+                                size={12}
+                                aria-hidden="true"
+                                style={{ color: vars.colour.faint }}
+                            />
+                        }
+                        value={filter}
+                        onChange={(e) => {
+                            setFilter(e.currentTarget.value);
+                        }}
+                        size="xs"
+                        aria-label="Filter table of contents"
+                        styles={{
+                            input: {
+                                background: vars.colour.panel2,
+                                border: `1px solid ${vars.colour.border}`,
+                                color: vars.colour.text,
+                                fontSize: "0.75rem",
+                            },
+                        }}
+                    />
+                </div>
                 <ScrollArea.Autosize
-                    mah="calc(100vh - 120px)"
+                    mah="calc(100vh - 160px)"
                     offsetScrollbars
                     viewportRef={viewportRef}
                     styles={{
@@ -455,6 +485,7 @@ export function SubSectionToc({
                         onSelectSection={onSelectSection}
                         starred={starred}
                         onToggleStar={toggleStar}
+                        filter={filter}
                         activeEntryRef={activeEntryRef}
                     />
                 </ScrollArea.Autosize>
