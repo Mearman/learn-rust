@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/Mearman/learn-rust/compare/v1.6.0...v1.6.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* add hardGating to test fixture and use Collapse expanded prop ([6b48694](https://github.com/Mearman/learn-rust/commit/6b4869487bd47b324f8dc52d672d4f4fbe3b9ff2))
+
 # [1.6.0](https://github.com/Mearman/learn-rust/compare/v1.5.0...v1.6.0) (2026-06-02)
 
 
