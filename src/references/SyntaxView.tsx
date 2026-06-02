@@ -17,6 +17,7 @@ import {
     TARGET_LANGUAGE_ID,
 } from "../data/languages.ts";
 import { SYNTAX_REFERENCES } from "../data/syntax-references.ts";
+import { syntaxId } from "../layout/sectionIds.ts";
 import type { UserProfile } from "../settings/types.ts";
 
 interface SyntaxViewProps {
@@ -73,7 +74,7 @@ export function SyntaxView({ profile }: SyntaxViewProps) {
                 return (
                     <article
                         key={topic}
-                        id={`syntax-${topic.replace(/\s+/g, "-").toLowerCase()}`}
+                        id={syntaxId(topic)}
                         className={subSection}
                     >
                         <header

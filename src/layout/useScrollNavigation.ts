@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { flushSync } from "react-dom";
 import { nestedHashFor, elementIdFromHash } from "./subSections.ts";
+import { syntaxId } from "./sectionIds.ts";
 import { scrollBehaviour } from "./reducedMotion.ts";
 
 /**
@@ -122,10 +123,7 @@ export function useScrollNavigation(
 
     const openSyntax = useCallback(
         (topic: string) => {
-            scrollToId(
-                `syntax-${topic.replace(/\s+/g, "-").toLowerCase()}`,
-                mounts
-            );
+            scrollToId(syntaxId(topic), mounts);
         },
         [mounts]
     );
