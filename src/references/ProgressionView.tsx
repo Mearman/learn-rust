@@ -1,4 +1,11 @@
-import { useMemo } from "react";
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { CheckCircle, Circle, GitBranch } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
@@ -10,11 +17,49 @@ import {
     noteBlock,
 } from "../theme/styles.css.ts";
 import { CONCEPTS } from "../data/concepts.ts";
-import { conceptDependsOn, conceptRequiredBy } from "../data/dependencies.ts";
+import {
+    CONCEPT_DEPENDENCIES,
+    conceptDependsOn,
+    conceptRequiredBy,
+} from "../data/dependencies.ts";
 import { LESSONS } from "../learn/lessons.ts";
 
 /** Visual state of a concept node in the dependency graph. */
 type NodeState = "complete" | "started" | "locked";
+
+/** A measured dependency edge ready to render as an SVG path. */
+interface EdgePath {
+    /** Stable react key, `${from}->${to}`. */
+    readonly key: string;
+    /** SVG cubic-bezier path data in container-relative coordinates. */
+    readonly d: string;
+    /** Drives stroke colour + arrowhead marker; from the prerequisite node. */
+    readonly state: NodeState;
+}
+
+/** Stroke colour for an edge, keyed by the prerequisite node's state. */
+function strokeForState(state: NodeState): string {
+    switch (state) {
+        case "complete":
+            return vars.colour.good;
+        case "started":
+            return vars.colour.accent;
+        case "locked":
+            return vars.colour.border;
+    }
+}
+
+/** Arrowhead marker id for an edge, keyed by the prerequisite node's state. */
+function markerIdForState(state: NodeState): string {
+    switch (state) {
+        case "complete":
+            return "rbc-arrow-good";
+        case "started":
+            return "rbc-arrow-accent";
+        case "locked":
+            return "rbc-arrow-border";
+    }
+}
 
 /**
  * Derive the visual state of a concept from the set of viewed lesson ids.
@@ -69,6 +114,87 @@ export function ProgressionView({
         }
         return result;
     }, []);
+
+    // --- Visual DAG edge overlay ---------------------------------------
+    // Each concept node registers its DOM element here so edges can be
+    // measured from live geometry (correct even when layers flex-wrap).
+    const nodeRefs = useRef<Map<string, HTMLElement>>(new Map());
+    const graphContainerRef = useRef<HTMLDivElement | null>(null);
+    const svgRef = useRef<SVGSVGElement | null>(null);
+
+    const [edges, setEdges] = useState<readonly EdgePath[]>([]);
+    const [svgSize, setSvgSize] = useState<{
+        width: number;
+        height: number;
+    }>({ width: 0, height: 0 });
+
+    const measureEdges = useCallback(() => {
+        const container = graphContainerRef.current;
+        if (container === null) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const computed: EdgePath[] = [];
+
+        for (const [from, to] of CONCEPT_DEPENDENCIES) {
+            const fromEl = nodeRefs.current.get(from);
+            const toEl = nodeRefs.current.get(to);
+            if (fromEl === undefined || toEl === undefined) continue;
+
+            const fr = fromEl.getBoundingClientRect();
+            const tr = toEl.getBoundingClientRect();
+
+            // Edge LEAVES the prerequisite (`to`) at its bottom-centre and
+            // ENTERS the dependent (`from`) at its top-centre, so the arrow
+            // reads "prerequisite → unlocks → dependent" top-to-bottom.
+            const startX = (tr.left + tr.right) / 2 - containerRect.left;
+            const startY = tr.bottom - containerRect.top;
+            const endX = (fr.left + fr.right) / 2 - containerRect.left;
+            const endY = fr.top - containerRect.top;
+
+            // Vertical-biased cubic bezier: control points share the
+            // midpoint Y, giving a smooth S-curve that absorbs the
+            // horizontal offset introduced when layers wrap.
+            const midY = startY + (endY - startY) / 2;
+            const d = `M ${String(startX)} ${String(startY)} C ${String(
+                startX
+            )} ${String(midY)}, ${String(endX)} ${String(midY)}, ${String(
+                endX
+            )} ${String(endY)}`;
+
+            const prereqConcept = CONCEPTS.find((c) => c.id === to);
+            const state =
+                prereqConcept === undefined
+                    ? "locked"
+                    : nodeState(prereqConcept.lessonIds, viewed);
+
+            computed.push({ key: `${from}->${to}`, d, state });
+        }
+
+        setEdges(computed);
+        setSvgSize({
+            width: container.scrollWidth,
+            height: container.scrollHeight,
+        });
+        // `layers` is derived once (useMemo with [] deps) so it is stable and
+        // does not belong in the dependency array; only `viewed` drives a
+        // recompute. Live geometry changes are caught by the ResizeObserver.
+    }, [viewed]);
+
+    useLayoutEffect(() => {
+        measureEdges();
+    }, [measureEdges]);
+
+    useEffect(() => {
+        const container = graphContainerRef.current;
+        if (container === null) return;
+        const observer = new ResizeObserver(() => {
+            measureEdges();
+        });
+        observer.observe(container);
+        return () => {
+            observer.disconnect();
+        };
+    }, [measureEdges]);
 
     return (
         <div
@@ -164,261 +290,365 @@ export function ProgressionView({
                 </span>
             </div>
 
-            {layers.map((layer, layerIndex) => (
-                <div key={layerIndex}>
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                            marginBottom: "0.75rem",
-                        }}
-                    >
-                        <span
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: "1.5rem",
-                                height: "1.5rem",
-                                borderRadius: "50%",
-                                background: vars.colour.accent,
-                                color: vars.colour.panel,
-                                fontSize: "0.75rem",
-                                fontWeight: 700,
-                                flexShrink: 0,
-                            }}
+            <div ref={graphContainerRef} style={{ position: "relative" }}>
+                <svg
+                    ref={svgRef}
+                    width={svgSize.width}
+                    height={svgSize.height}
+                    aria-hidden="true"
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        pointerEvents: "none",
+                        zIndex: 0,
+                        overflow: "visible",
+                    }}
+                >
+                    <defs>
+                        <marker
+                            id="rbc-arrow-good"
+                            markerWidth={8}
+                            markerHeight={8}
+                            refX={6}
+                            refY={3}
+                            orient="auto"
+                            markerUnits="strokeWidth"
                         >
-                            {layerIndex + 1}
-                        </span>
-                        <span
-                            style={{
-                                color: vars.colour.faint,
-                                fontSize: "0.8rem",
-                            }}
+                            <path
+                                d="M0,0 L6,3 L0,6 Z"
+                                fill={vars.colour.good}
+                            />
+                        </marker>
+                        <marker
+                            id="rbc-arrow-accent"
+                            markerWidth={8}
+                            markerHeight={8}
+                            refX={6}
+                            refY={3}
+                            orient="auto"
+                            markerUnits="strokeWidth"
                         >
-                            {layerIndex === 0
-                                ? "Start here"
-                                : `Layer ${String(layerIndex + 1)}`}
-                        </span>
-                    </div>
-                    <div
-                        style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "0.75rem",
-                        }}
-                    >
-                        {layer.map((conceptId) => {
-                            const concept = CONCEPTS.find(
-                                (c) => c.id === conceptId
-                            );
-                            if (concept === undefined) return null;
-                            const deps = conceptDependsOn(conceptId);
-                            const requiredBy = conceptRequiredBy(conceptId);
-                            const state = nodeState(concept.lessonIds, viewed);
-                            // Visual treatment per node state:
-                            // complete  → green border + dim green bg
-                            // started   → accent border (in-progress)
-                            // locked    → default card border (greyed title)
-                            const borderColor =
-                                state === "complete"
-                                    ? vars.colour.good
-                                    : state === "started"
-                                      ? vars.colour.accent
-                                      : vars.colour.border;
-                            const bgColor =
-                                state === "complete"
-                                    ? vars.colour.goodDim
-                                    : vars.colour.panel2;
-                            const titleColor =
-                                state === "locked"
-                                    ? vars.colour.faint
-                                    : vars.colour.accentSoft;
-                            return (
-                                <section
-                                    key={conceptId}
-                                    className={cheatCard}
-                                    style={{
-                                        flex: "1 1 280px",
-                                        minWidth: 0,
-                                        border: `1px solid ${borderColor}`,
-                                        background: bgColor,
-                                        transition:
-                                            "border-color 0.2s, background 0.2s",
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "0.375rem",
-                                        }}
-                                    >
-                                        {state === "complete" ? (
-                                            <CheckCircle
-                                                size={14}
-                                                aria-hidden="true"
-                                                style={{
-                                                    color: vars.colour.good,
-                                                    flexShrink: 0,
-                                                }}
-                                            />
-                                        ) : (
-                                            <Circle
-                                                size={14}
-                                                aria-hidden="true"
-                                                style={{
-                                                    color:
-                                                        state === "started"
-                                                            ? vars.colour.accent
-                                                            : vars.colour.faint,
-                                                    flexShrink: 0,
-                                                }}
-                                            />
-                                        )}
-                                        <h3
-                                            className={cheatTitle}
-                                            style={{ color: titleColor }}
-                                        >
-                                            {concept.title}
-                                        </h3>
-                                    </div>
-                                    <p
-                                        style={{
-                                            margin: "0 0 0.75rem",
-                                            fontSize: "0.85rem",
-                                            lineHeight: 1.5,
-                                            color:
-                                                state === "locked"
-                                                    ? vars.colour.faint
-                                                    : vars.colour.dim,
-                                        }}
-                                    >
-                                        {concept.description}
-                                    </p>
-                                    {deps.length > 0 ? (
-                                        <div
-                                            style={{
-                                                marginBottom: "0.5rem",
-                                                fontSize: "0.8rem",
-                                                color: vars.colour.faint,
-                                            }}
-                                        >
-                                            Requires:{" "}
-                                            {deps
-                                                .map((d) => {
-                                                    const dep = CONCEPTS.find(
-                                                        (c) => c.id === d
-                                                    );
-                                                    return dep?.title ?? d;
-                                                })
-                                                .join(", ")}
-                                        </div>
-                                    ) : null}
-                                    {requiredBy.length > 0 ? (
-                                        <div
-                                            style={{
-                                                marginBottom: "0.5rem",
-                                                fontSize: "0.8rem",
-                                                color: vars.colour.faint,
-                                            }}
-                                        >
-                                            Unlocks:{" "}
-                                            {requiredBy
-                                                .map((d) => {
-                                                    const dep = CONCEPTS.find(
-                                                        (c) => c.id === d
-                                                    );
-                                                    return dep?.title ?? d;
-                                                })
-                                                .join(", ")}
-                                        </div>
-                                    ) : null}
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            gap: "0.5rem",
-                                            flexWrap: "wrap",
-                                        }}
-                                    >
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                onOpenConcept(conceptId);
-                                            }}
-                                            className={navButton}
-                                            style={{
-                                                width: "auto",
-                                                padding: "0.4rem 0.65rem",
-                                                fontSize: "0.8rem",
-                                            }}
-                                        >
-                                            Compare languages
-                                        </button>
-                                        {concept.lessonIds.map((lessonId) => {
-                                            const lesson = LESSONS.find(
-                                                (l) => l.id === lessonId
-                                            );
-                                            const label =
-                                                lesson !== undefined
-                                                    ? lesson.title
-                                                    : lessonId;
-                                            const lessonViewed =
-                                                viewed.has(lessonId);
-                                            return (
-                                                <button
-                                                    key={lessonId}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        onOpenLesson(lessonId);
-                                                    }}
-                                                    className={navButton}
-                                                    style={{
-                                                        width: "auto",
-                                                        padding:
-                                                            "0.4rem 0.65rem",
-                                                        fontSize: "0.8rem",
-                                                        color: lessonViewed
-                                                            ? vars.colour.good
-                                                            : undefined,
-                                                    }}
-                                                >
-                                                    {lessonViewed ? (
-                                                        <CheckCircle
-                                                            size={12}
-                                                            aria-hidden="true"
-                                                            style={{
-                                                                marginRight:
-                                                                    "0.25rem",
-                                                                verticalAlign:
-                                                                    "middle",
-                                                            }}
-                                                        />
-                                                    ) : null}
-                                                    {label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </section>
-                            );
-                        })}
-                    </div>
-                    {layerIndex < layers.length - 1 ? (
+                            <path
+                                d="M0,0 L6,3 L0,6 Z"
+                                fill={vars.colour.accent}
+                            />
+                        </marker>
+                        <marker
+                            id="rbc-arrow-border"
+                            markerWidth={8}
+                            markerHeight={8}
+                            refX={6}
+                            refY={3}
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path
+                                d="M0,0 L6,3 L0,6 Z"
+                                fill={vars.colour.border}
+                            />
+                        </marker>
+                    </defs>
+                    {edges.map((e) => (
+                        <path
+                            key={e.key}
+                            d={e.d}
+                            fill="none"
+                            stroke={strokeForState(e.state)}
+                            strokeWidth={1.5}
+                            markerEnd={`url(#${markerIdForState(e.state)})`}
+                            opacity={e.state === "locked" ? 0.5 : 0.85}
+                        />
+                    ))}
+                </svg>
+                {layers.map((layer, layerIndex) => (
+                    <div key={layerIndex}>
                         <div
                             style={{
                                 display: "flex",
-                                justifyContent: "center",
-                                padding: "0.75rem 0",
-                                color: vars.colour.faint,
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                marginBottom: "0.75rem",
                             }}
                         >
-                            ↓
+                            <span
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    width: "1.5rem",
+                                    height: "1.5rem",
+                                    borderRadius: "50%",
+                                    background: vars.colour.accent,
+                                    color: vars.colour.panel,
+                                    fontSize: "0.75rem",
+                                    fontWeight: 700,
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {layerIndex + 1}
+                            </span>
+                            <span
+                                style={{
+                                    color: vars.colour.faint,
+                                    fontSize: "0.8rem",
+                                }}
+                            >
+                                {layerIndex === 0
+                                    ? "Start here"
+                                    : `Layer ${String(layerIndex + 1)}`}
+                            </span>
                         </div>
-                    ) : null}
-                </div>
-            ))}
+                        <div
+                            style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "0.75rem",
+                            }}
+                        >
+                            {layer.map((conceptId) => {
+                                const concept = CONCEPTS.find(
+                                    (c) => c.id === conceptId
+                                );
+                                if (concept === undefined) return null;
+                                const deps = conceptDependsOn(conceptId);
+                                const requiredBy = conceptRequiredBy(conceptId);
+                                const state = nodeState(
+                                    concept.lessonIds,
+                                    viewed
+                                );
+                                // Visual treatment per node state:
+                                // complete  → green border + dim green bg
+                                // started   → accent border (in-progress)
+                                // locked    → default card border (greyed title)
+                                const borderColor =
+                                    state === "complete"
+                                        ? vars.colour.good
+                                        : state === "started"
+                                          ? vars.colour.accent
+                                          : vars.colour.border;
+                                const bgColor =
+                                    state === "complete"
+                                        ? vars.colour.goodDim
+                                        : vars.colour.panel2;
+                                const titleColor =
+                                    state === "locked"
+                                        ? vars.colour.faint
+                                        : vars.colour.accentSoft;
+                                return (
+                                    <section
+                                        key={conceptId}
+                                        ref={(el) => {
+                                            if (el === null) {
+                                                nodeRefs.current.delete(
+                                                    conceptId
+                                                );
+                                            } else {
+                                                nodeRefs.current.set(
+                                                    conceptId,
+                                                    el
+                                                );
+                                            }
+                                        }}
+                                        className={cheatCard}
+                                        style={{
+                                            flex: "1 1 280px",
+                                            minWidth: 0,
+                                            position: "relative",
+                                            zIndex: 1,
+                                            border: `1px solid ${borderColor}`,
+                                            background: bgColor,
+                                            transition:
+                                                "border-color 0.2s, background 0.2s",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "0.375rem",
+                                            }}
+                                        >
+                                            {state === "complete" ? (
+                                                <CheckCircle
+                                                    size={14}
+                                                    aria-hidden="true"
+                                                    style={{
+                                                        color: vars.colour.good,
+                                                        flexShrink: 0,
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Circle
+                                                    size={14}
+                                                    aria-hidden="true"
+                                                    style={{
+                                                        color:
+                                                            state === "started"
+                                                                ? vars.colour
+                                                                      .accent
+                                                                : vars.colour
+                                                                      .faint,
+                                                        flexShrink: 0,
+                                                    }}
+                                                />
+                                            )}
+                                            <h3
+                                                className={cheatTitle}
+                                                style={{ color: titleColor }}
+                                            >
+                                                {concept.title}
+                                            </h3>
+                                        </div>
+                                        <p
+                                            style={{
+                                                margin: "0 0 0.75rem",
+                                                fontSize: "0.85rem",
+                                                lineHeight: 1.5,
+                                                color:
+                                                    state === "locked"
+                                                        ? vars.colour.faint
+                                                        : vars.colour.dim,
+                                            }}
+                                        >
+                                            {concept.description}
+                                        </p>
+                                        {deps.length > 0 ? (
+                                            <div
+                                                style={{
+                                                    marginBottom: "0.5rem",
+                                                    fontSize: "0.8rem",
+                                                    color: vars.colour.faint,
+                                                }}
+                                            >
+                                                Requires:{" "}
+                                                {deps
+                                                    .map((d) => {
+                                                        const dep =
+                                                            CONCEPTS.find(
+                                                                (c) =>
+                                                                    c.id === d
+                                                            );
+                                                        return dep?.title ?? d;
+                                                    })
+                                                    .join(", ")}
+                                            </div>
+                                        ) : null}
+                                        {requiredBy.length > 0 ? (
+                                            <div
+                                                style={{
+                                                    marginBottom: "0.5rem",
+                                                    fontSize: "0.8rem",
+                                                    color: vars.colour.faint,
+                                                }}
+                                            >
+                                                Unlocks:{" "}
+                                                {requiredBy
+                                                    .map((d) => {
+                                                        const dep =
+                                                            CONCEPTS.find(
+                                                                (c) =>
+                                                                    c.id === d
+                                                            );
+                                                        return dep?.title ?? d;
+                                                    })
+                                                    .join(", ")}
+                                            </div>
+                                        ) : null}
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                gap: "0.5rem",
+                                                flexWrap: "wrap",
+                                            }}
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    onOpenConcept(conceptId);
+                                                }}
+                                                className={navButton}
+                                                style={{
+                                                    width: "auto",
+                                                    padding: "0.4rem 0.65rem",
+                                                    fontSize: "0.8rem",
+                                                }}
+                                            >
+                                                Compare languages
+                                            </button>
+                                            {concept.lessonIds.map(
+                                                (lessonId) => {
+                                                    const lesson = LESSONS.find(
+                                                        (l) => l.id === lessonId
+                                                    );
+                                                    const label =
+                                                        lesson !== undefined
+                                                            ? lesson.title
+                                                            : lessonId;
+                                                    const lessonViewed =
+                                                        viewed.has(lessonId);
+                                                    return (
+                                                        <button
+                                                            key={lessonId}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                onOpenLesson(
+                                                                    lessonId
+                                                                );
+                                                            }}
+                                                            className={
+                                                                navButton
+                                                            }
+                                                            style={{
+                                                                width: "auto",
+                                                                padding:
+                                                                    "0.4rem 0.65rem",
+                                                                fontSize:
+                                                                    "0.8rem",
+                                                                color: lessonViewed
+                                                                    ? vars
+                                                                          .colour
+                                                                          .good
+                                                                    : undefined,
+                                                            }}
+                                                        >
+                                                            {lessonViewed ? (
+                                                                <CheckCircle
+                                                                    size={12}
+                                                                    aria-hidden="true"
+                                                                    style={{
+                                                                        marginRight:
+                                                                            "0.25rem",
+                                                                        verticalAlign:
+                                                                            "middle",
+                                                                    }}
+                                                                />
+                                                            ) : null}
+                                                            {label}
+                                                        </button>
+                                                    );
+                                                }
+                                            )}
+                                        </div>
+                                    </section>
+                                );
+                            })}
+                        </div>
+                        {layerIndex < layers.length - 1 ? (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    padding: "0.75rem 0",
+                                    color: vars.colour.faint,
+                                }}
+                            >
+                                ↓
+                            </div>
+                        ) : null}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
