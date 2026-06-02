@@ -481,8 +481,15 @@ export function App() {
                 </div>
 
                 <footer className={footer}>
-                    Snippets are illustrative. Run them for real at
-                    play.rust-lang.org
+                    Snippets are illustrative. Run them for real at{" "}
+                    <a
+                        href="https://play.rust-lang.org"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: vars.colour.accent }}
+                    >
+                        play.rust-lang.org
+                    </a>
                 </footer>
             </div>
 
