@@ -30,6 +30,7 @@ export function ThemeToggle({ mode, onChange }: ThemeToggleProps) {
                     if (isThemeMode(value)) onChange(value);
                 }}
                 size="xs"
+                aria-label="Theme"
                 styles={{
                     root: {
                         background: vars.colour.panel,
@@ -43,14 +44,14 @@ export function ThemeToggle({ mode, onChange }: ThemeToggleProps) {
                         background: vars.colour.accent,
                     },
                     innerLabel: {
-                        color: "#1a0f08",
+                        color: vars.colour.accentText,
                         fontWeight: 500,
                         fontSize: "0.75rem",
                     },
                     control: {
                         "&[data-active]": {
                             "& .mantine-SegmentedControl-innerLabel": {
-                                color: "#1a0f08",
+                                color: vars.colour.accentText,
                             },
                         },
                     },

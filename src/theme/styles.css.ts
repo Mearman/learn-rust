@@ -251,7 +251,7 @@ export const nextButton = style({
     fontWeight: 500,
     transition: "background 0.15s",
     background: vars.colour.accent,
-    color: "#1a0f08",
+    color: vars.colour.accentText,
     border: "none",
     cursor: "pointer",
 });
@@ -507,7 +507,7 @@ export const tabButton = style({
 
 export const tabButtonActive = style({
     background: vars.colour.accent,
-    color: "#1a0f08",
+    color: vars.colour.accentText,
 });
 
 export const tabButtonLabel = style({
@@ -949,7 +949,7 @@ export const runButton = style({
     fontSize: "0.8125rem",
     fontWeight: 500,
     background: vars.colour.accent,
-    color: "#1a0f08",
+    color: vars.colour.accentText,
     border: "none",
     cursor: "pointer",
     transition: "opacity 0.15s",

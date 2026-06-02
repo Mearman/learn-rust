@@ -167,6 +167,7 @@ export function CompactTailoring({
                         data={[...EXPERIENCE_OPTIONS]}
                         value={profile.experience}
                         onChange={handleExperience}
+                        aria-label="Experience level"
                         styles={{
                             root: {
                                 background: vars.colour.panel2,
@@ -182,13 +183,13 @@ export function CompactTailoring({
                                 background: vars.colour.accent,
                             },
                             innerLabel: {
-                                color: "#1a0f08",
+                                color: vars.colour.accentText,
                                 fontWeight: 500,
                             },
                             control: {
                                 "&[data-active]": {
                                     "& .mantine-SegmentedControl-innerLabel": {
-                                        color: "#1a0f08",
+                                        color: vars.colour.accentText,
                                     },
                                 },
                             },

@@ -195,12 +195,19 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                 </div>
 
                 <div className={settingsField}>
-                    <label className={settingsLabel}>Experience level</label>
+                    <label
+                        className={settingsLabel}
+                        htmlFor="experience-level"
+                    >
+                        Experience level
+                    </label>
                     <SegmentedControl
+                        id="experience-level"
                         data={[...EXPERIENCE_OPTIONS]}
                         value={profile.experience}
                         onChange={handleExperience}
                         fullWidth
+                        aria-label="Experience level"
                         styles={{
                             root: {
                                 background: vars.colour.panel,
@@ -214,13 +221,13 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                                 background: vars.colour.accent,
                             },
                             innerLabel: {
-                                color: "#1a0f08",
+                                color: vars.colour.accentText,
                                 fontWeight: 500,
                             },
                             control: {
                                 "&[data-active]": {
                                     "& .mantine-SegmentedControl-innerLabel": {
-                                        color: "#1a0f08",
+                                        color: vars.colour.accentText,
                                     },
                                 },
                             },
