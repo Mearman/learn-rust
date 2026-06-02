@@ -21,6 +21,7 @@ export interface UserProfile {
     readonly backgrounds: readonly DeveloperBackground[];
     readonly familiarities: readonly LanguageFamiliarity[];
     readonly experience: ExperienceLevel;
+    readonly hardGating: boolean;
 }
 
 export type UserProfileUpdater = (
@@ -77,7 +78,8 @@ export function isUserProfile(value: unknown): value is UserProfile {
     if (
         !("backgrounds" in value) ||
         !("familiarities" in value) ||
-        !("experience" in value)
+        !("experience" in value) ||
+        !("hardGating" in value)
     )
         return false;
     if (
@@ -86,6 +88,7 @@ export function isUserProfile(value: unknown): value is UserProfile {
     )
         return false;
     if (typeof value.experience !== "string") return false;
+    if (typeof value.hardGating !== "boolean") return false;
     return (
         value.backgrounds.every(isDeveloperBackground) &&
         value.familiarities.every(isLanguageFamiliarity) &&

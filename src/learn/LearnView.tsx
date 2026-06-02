@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Collapse } from "@mantine/core";
 import { Lightbulb, ArrowUpRight } from "lucide-react";
 import { vars } from "../theme/theme.css.ts";
 import {
@@ -7,6 +8,8 @@ import {
     navButton,
     noteBlock,
     subSection,
+    cheatCard,
+    cheatTitle,
 } from "../theme/styles.css.ts";
 import { Block } from "./Block.tsx";
 import { LESSONS } from "./lessons.ts";
@@ -122,6 +125,44 @@ function lessonTitleForId(id: string): string {
     return lesson !== undefined ? lesson.title : id;
 }
 
+function PrerequisiteLinks({
+    missing,
+    onOpenLesson,
+}: {
+    readonly missing: readonly PrerequisiteLesson[];
+    onOpenLesson: (id: string) => void;
+}) {
+    return (
+        <span>
+            {"Best read first: "}
+            {missing.map((prereq, i) => (
+                <span key={prereq.lessonId}>
+                    {i > 0 ? ", " : ""}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onOpenLesson(prereq.lessonId);
+                        }}
+                        style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            color: vars.colour.accent,
+                            font: "inherit",
+                            fontSize: "inherit",
+                            textDecoration: "underline",
+                            textUnderlineOffset: "2px",
+                        }}
+                    >
+                        {lessonTitleForId(prereq.lessonId)}
+                    </button>
+                </span>
+            ))}
+        </span>
+    );
+}
+
 function PrerequisiteBanner({
     missing,
     onOpenLesson,
@@ -139,33 +180,35 @@ function PrerequisiteBanner({
                     marginTop: 2,
                 }}
             />
-            <span>
-                {"Best read after: "}
-                {missing.map((prereq, i) => (
-                    <span key={prereq.lessonId}>
-                        {i > 0 ? ", " : ""}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                onOpenLesson(prereq.lessonId);
-                            }}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                padding: 0,
-                                cursor: "pointer",
-                                color: vars.colour.accent,
-                                font: "inherit",
-                                fontSize: "inherit",
-                                textDecoration: "underline",
-                                textUnderlineOffset: "2px",
-                            }}
-                        >
-                            {lessonTitleForId(prereq.lessonId)}
-                        </button>
-                    </span>
-                ))}
-            </span>
+            <PrerequisiteLinks missing={missing} onOpenLesson={onOpenLesson} />
+        </div>
+    );
+}
+
+function PrerequisiteGate({
+    missing,
+    onOpenLesson,
+    onShowAnyway,
+}: {
+    readonly missing: readonly PrerequisiteLesson[];
+    onOpenLesson: (id: string) => void;
+    onShowAnyway: () => void;
+}) {
+    return (
+        <div className={cheatCard}>
+            <p className={cheatTitle}>Prerequisites incomplete</p>
+            <PrerequisiteLinks missing={missing} onOpenLesson={onOpenLesson} />
+            <button
+                type="button"
+                onClick={onShowAnyway}
+                className={navButton}
+                style={{
+                    width: "auto",
+                    padding: "0.45rem 0.75rem",
+                }}
+            >
+                Show anyway
+            </button>
         </div>
     );
 }
@@ -187,6 +230,9 @@ function LessonArticle({
     useDwellRead(lesson.id, articleRef, viewed.has(lesson.id), onMarkViewed);
 
     const readiness = isLessonReady(lesson.id, viewed, CONCEPT_DEPENDENCIES);
+    const hardGated = profile.hardGating && !readiness.ready;
+    const [showAnyway, setShowAnyway] = useState(false);
+    const collapsed = hardGated && !showAnyway;
 
     return (
         <article
@@ -240,56 +286,74 @@ function LessonArticle({
                 </button>
             </div>
 
-            {!readiness.ready ? (
+            {profile.hardGating && hardGated ? (
+                <PrerequisiteGate
+                    missing={readiness.missing}
+                    onOpenLesson={onOpenLesson}
+                    onShowAnyway={() => {
+                        setShowAnyway(true);
+                    }}
+                />
+            ) : !profile.hardGating && !readiness.ready ? (
                 <PrerequisiteBanner
                     missing={readiness.missing}
                     onOpenLesson={onOpenLesson}
                 />
             ) : null}
 
-            {backgroundContextNotes(profile.backgrounds, lesson.id).map(
-                (note) => (
-                    <div key={note} className={noteBlock}>
-                        <Lightbulb
-                            size={16}
-                            style={{
-                                color: vars.colour.accent,
-                                flexShrink: 0,
-                                marginTop: 2,
-                            }}
-                        />
-                        <span>{note}</span>
-                    </div>
-                )
-            )}
+            <Collapse in={!collapsed}>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                    }}
+                >
+                    {backgroundContextNotes(profile.backgrounds, lesson.id).map(
+                        (note) => (
+                            <div key={note} className={noteBlock}>
+                                <Lightbulb
+                                    size={16}
+                                    style={{
+                                        color: vars.colour.accent,
+                                        flexShrink: 0,
+                                        marginTop: 2,
+                                    }}
+                                />
+                                <span>{note}</span>
+                            </div>
+                        )
+                    )}
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                }}
-            >
-                {lesson.blocks
-                    .filter((b) => blockVisible(b, profile.experience))
-                    .map((b, i) => (
-                        <Block
-                            key={i}
-                            block={b}
-                            profile={profile}
-                            compiling={compiling}
-                            onRun={
-                                b.kind === "code"
-                                    ? () => {
-                                          void onCompile(b.code);
-                                      }
-                                    : undefined
-                            }
-                            compileResult={compileResult}
-                            onClearCompile={onClearCompile}
-                        />
-                    ))}
-            </div>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "1rem",
+                        }}
+                    >
+                        {lesson.blocks
+                            .filter((b) => blockVisible(b, profile.experience))
+                            .map((b, i) => (
+                                <Block
+                                    key={i}
+                                    block={b}
+                                    profile={profile}
+                                    compiling={compiling}
+                                    onRun={
+                                        b.kind === "code"
+                                            ? () => {
+                                                  void onCompile(b.code);
+                                              }
+                                            : undefined
+                                    }
+                                    compileResult={compileResult}
+                                    onClearCompile={onClearCompile}
+                                />
+                            ))}
+                    </div>
+                </div>
+            </Collapse>
         </article>
     );
 }

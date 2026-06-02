@@ -91,12 +91,24 @@ describe("isExperienceLevel", () => {
 // ---------------------------------------------------------------------------
 
 describe("isUserProfile — valid inputs", () => {
-    it("accepts a fully populated profile", () => {
+    it("accepts a fully populated profile with hardGating false", () => {
         expect(
             isUserProfile({
                 backgrounds: ["frontend", "backend"],
                 familiarities: ["python", "typescript"],
                 experience: "intermediate",
+                hardGating: false,
+            })
+        ).toBe(true);
+    });
+
+    it("accepts a fully populated profile with hardGating true", () => {
+        expect(
+            isUserProfile({
+                backgrounds: ["frontend", "backend"],
+                familiarities: ["python", "typescript"],
+                experience: "intermediate",
+                hardGating: true,
             })
         ).toBe(true);
     });
@@ -107,6 +119,7 @@ describe("isUserProfile — valid inputs", () => {
                 backgrounds: [],
                 familiarities: [],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(true);
     });
@@ -118,6 +131,7 @@ describe("isUserProfile — valid inputs", () => {
                     backgrounds: ["student"],
                     familiarities: ["go"],
                     experience: level,
+                    hardGating: false,
                 })
             ).toBe(true);
         }
@@ -141,6 +155,7 @@ describe("isUserProfile — valid inputs", () => {
                 ],
                 familiarities: ["java"],
                 experience: "advanced",
+                hardGating: false,
             })
         ).toBe(true);
     });
@@ -159,6 +174,7 @@ describe("isUserProfile — valid inputs", () => {
                     "cpp",
                 ],
                 experience: "advanced",
+                hardGating: true,
             })
         ).toBe(true);
     });
@@ -200,6 +216,7 @@ describe("isUserProfile — rejects missing fields", () => {
             isUserProfile({
                 familiarities: ["python"],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -209,6 +226,7 @@ describe("isUserProfile — rejects missing fields", () => {
             isUserProfile({
                 backgrounds: ["frontend"],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -218,6 +236,17 @@ describe("isUserProfile — rejects missing fields", () => {
             isUserProfile({
                 backgrounds: ["frontend"],
                 familiarities: ["python"],
+                hardGating: false,
+            })
+        ).toBe(false);
+    });
+
+    it("rejects object missing hardGating", () => {
+        expect(
+            isUserProfile({
+                backgrounds: ["frontend"],
+                familiarities: ["python"],
+                experience: "beginner",
             })
         ).toBe(false);
     });
@@ -234,6 +263,7 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: "frontend",
                 familiarities: [],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -244,6 +274,7 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: ["frontend", "fullstack"],
                 familiarities: [],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -254,6 +285,7 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: ["backend"],
                 familiarities: ["rust"],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -264,6 +296,7 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: [],
                 familiarities: [42],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -274,6 +307,7 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: [null],
                 familiarities: [],
                 experience: "beginner",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -284,6 +318,7 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: [],
                 familiarities: [],
                 experience: "expert",
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -294,6 +329,7 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: [],
                 familiarities: [],
                 experience: 1,
+                hardGating: false,
             })
         ).toBe(false);
     });
@@ -304,6 +340,29 @@ describe("isUserProfile — rejects wrong field types", () => {
                 backgrounds: [],
                 familiarities: [],
                 experience: null,
+                hardGating: false,
+            })
+        ).toBe(false);
+    });
+
+    it("rejects hardGating as a string rather than a boolean", () => {
+        expect(
+            isUserProfile({
+                backgrounds: [],
+                familiarities: [],
+                experience: "beginner",
+                hardGating: "true",
+            })
+        ).toBe(false);
+    });
+
+    it("rejects hardGating as a number", () => {
+        expect(
+            isUserProfile({
+                backgrounds: [],
+                familiarities: [],
+                experience: "beginner",
+                hardGating: 1,
             })
         ).toBe(false);
     });
@@ -317,6 +376,7 @@ describe("isUserProfile — extra fields are irrelevant", () => {
                 backgrounds: ["frontend"],
                 familiarities: ["python"],
                 experience: "beginner",
+                hardGating: false,
                 extraField: "ignored",
             })
         ).toBe(true);

@@ -1,4 +1,4 @@
-import { MultiSelect, SegmentedControl } from "@mantine/core";
+import { MultiSelect, SegmentedControl, Switch } from "@mantine/core";
 import { vars } from "../theme/theme.css.ts";
 import {
     settingsPanel,
@@ -72,6 +72,11 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
             ...prev,
             experience: value,
         }));
+    };
+
+    const handleHardGating = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const checked = event.currentTarget.checked;
+        setProfile((prev) => ({ ...prev, hardGating: checked }));
     };
 
     return (
@@ -233,6 +238,33 @@ export function SettingsPanel({ profile, setProfile }: SettingsPanelProps) {
                     <div className={settingsHelp}>
                         Beginner shows the basics, intermediate adds the core
                         ideas, and advanced opens the deeper notes.
+                    </div>
+                </div>
+
+                <div className={settingsField}>
+                    <label className={settingsLabel} htmlFor="hard-gating">
+                        Lock lessons until prerequisites are read
+                    </label>
+                    <Switch
+                        id="hard-gating"
+                        checked={profile.hardGating}
+                        onChange={handleHardGating}
+                        aria-label="Lock lessons until prerequisites are read"
+                        styles={{
+                            track: {
+                                background: vars.colour.panel,
+                                border: `1px solid ${vars.colour.border}`,
+                                "&[data-checked]": {
+                                    background: vars.colour.accent,
+                                    borderColor: vars.colour.accent,
+                                },
+                            },
+                        }}
+                    />
+                    <div className={settingsHelp}>
+                        Off by default. When on, a lesson stays collapsed behind
+                        its title until every prerequisite lesson has been read
+                        — you can still expand it manually.
                     </div>
                 </div>
             </div>
