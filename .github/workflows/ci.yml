@@ -24,7 +24,7 @@ jobs:
         runs-on: ubuntu-latest
         if: github.event_name == 'pull_request'
         steps:
-            - uses: actions/checkout@v6.0.2
+            - uses: actions/checkout@v7.0.0
               with:
                   fetch-depth: 0
 
@@ -45,7 +45,7 @@ jobs:
         name: Check
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6.0.2
+            - uses: actions/checkout@v7.0.0
 
             - uses: pnpm/action-setup@v6.0.8
 
@@ -64,7 +64,7 @@ jobs:
         needs: check
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6.0.2
+            - uses: actions/checkout@v7.0.0
 
             - uses: pnpm/action-setup@v6.0.8
 
@@ -107,7 +107,7 @@ jobs:
             issues: write
             pull-requests: write
         steps:
-            - uses: actions/checkout@v6.0.2
+            - uses: actions/checkout@v7.0.0
               with:
                   # semantic-release needs full history and tags to determine
                   # the next version; persisted credentials let the git plugin
@@ -135,7 +135,7 @@ jobs:
         needs: [check, test]
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6.0.2
+            - uses: actions/checkout@v7.0.0
 
             - uses: pnpm/action-setup@v6.0.8
 
