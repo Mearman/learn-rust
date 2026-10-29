@@ -1,5 +1,7 @@
 # Rust by Concept
 
+[![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)](https://github.com/Mearman/learn-rust) [![Release](https://img.shields.io/github/v/release/Mearman/learn-rust)](https://github.com/Mearman/learn-rust/releases/latest) [![CI](https://img.shields.io/github/actions/workflow/status/Mearman/learn-rust/ci.yml?branch=main)](https://github.com/Mearman/learn-rust/actions)
+
 > A single-page web app that teaches Rust through ten core concepts, with live compilation against the official Rust Playground. Built with React 19, TypeScript, Vite, Mantine, and vanilla-extract.
 
 The app itself is written in TypeScript/React — it *teaches* Rust, it is not a Rust project. Deployed to GitHub Pages at `https://mearman.github.io/learn-rust/`.
